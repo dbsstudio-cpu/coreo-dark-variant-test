@@ -1,23 +1,23 @@
 ﻿/* css/tokens.css */
 :root {
-  --coreo-bg-base: #151517;
-  --coreo-bg-secondary: #1C1C1E;
-  --coreo-surface-raised: #2C2C2E;
-  --coreo-path: #1C1C1E;
-  --coreo-path-edge: #3A3A3C;
-  --coreo-wall-side: #1A1A1C;
+  --coreo-bg-base: #0A0A0C;
+  --coreo-bg-secondary: #151517;
+  --coreo-surface-raised: #3C3C40;
+  --coreo-path: #242428;
+  --coreo-path-edge: #4A4A50;
+  --coreo-wall-side: #202024;
   --coreo-text-primary: #F5F5F7;
   --coreo-text-secondary: #86868B;
   --coreo-glow-core: #00E5FF;
   --coreo-glow-hot: #8AF7FF;
-  --coreo-credit: #FFD60A;
-  --coreo-credit-hot: #FFF4A3;
+  --coreo-credit: #CCFF00;
+  --coreo-credit-hot: #FF007F;
   --coreo-danger: #FF2D55;
   --coreo-enemy-red: #FF2D55;
   --coreo-enemy-red-orange: #FF453A;
   --coreo-danger-glow: #FFD1D8;
   --coreo-threat-dark: #7A1024;
-  --coreo-special-violet: #6C5CE7;
+  --coreo-special-violet: #9D00FF;
   --coreo-success: #30D158;
 }
 
@@ -38,9 +38,9 @@ body {
   height: 100%;
   min-height: 100%;
   background:
-    radial-gradient(circle at 50% 12%, rgba(0, 229, 255, 0.16), transparent 34%),
-    radial-gradient(circle at 82% 36%, rgba(255, 45, 85, 0.10), transparent 24%),
-    linear-gradient(180deg, #1C1C1E 0%, var(--coreo-bg-base) 46%, #101012 100%);
+    radial-gradient(circle at 50% 12%, rgba(0, 229, 255, 0.17), transparent 34%),
+    radial-gradient(circle at 82% 36%, rgba(255, 45, 85, 0.12), transparent 24%),
+    linear-gradient(180deg, #151517 0%, var(--coreo-bg-base) 48%, #070708 100%);
   color: var(--coreo-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-variant-numeric: tabular-nums;
@@ -150,7 +150,7 @@ body {
 }
 
 /* =========================================
-   Premium Dark Cockpit：曜石底盤與高張力冷光
+   Premium Dark Cockpit v0.2：深空底盤與高對比迷宮
 ========================================= */
 .cell {
   position: absolute;
@@ -160,16 +160,16 @@ body {
 .cell.path {
   background: var(--coreo-path);
   box-shadow:
-    inset 0 0 0 1px rgba(245, 245, 247, 0.045),
-    0 0 18px rgba(0, 229, 255, 0.055);
+    inset 0 0 0 1px rgba(245, 245, 247, 0.055),
+    0 0 18px rgba(0, 229, 255, 0.045);
 }
 
 .cell.wall {
-  background: linear-gradient(145deg, #343436 0%, #2C2C2E 54%, #232326 100%);
+  background: linear-gradient(145deg, #46464A 0%, #3C3C40 52%, #323236 100%);
   border-radius: 14px;
   transform: translateZ(22px);
   box-shadow:
-    0 18px 34px rgba(0, 0, 0, 0.58),
+    0 18px 34px rgba(4, 4, 6, 0.62),
     inset 0 1px 0 rgba(245, 245, 247, 0.16),
     inset 0 0 0 1px rgba(245, 245, 247, 0.07);
 }
@@ -181,7 +181,7 @@ body {
   left: 0;
   width: 100%;
   height: 22px;
-  background: linear-gradient(180deg, #202024, #121214);
+  background: linear-gradient(180deg, #2A2A2E, #1A1A1C);
   transform-origin: top;
   transform: rotateX(-90deg);
   border-radius: 0 0 14px 14px;
@@ -298,22 +298,23 @@ body {
 
 /* 等級 4: 一般能量 (冰藍小圓點) */
 .light-core-item.standard {
-  width: 12px;
-  height: 12px;
-  background: var(--coreo-glow-core);
+  width: 14px;
+  height: 14px;
+  background: var(--coreo-credit);
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.90), 0 0 26px rgba(0, 229, 255, 0.46);
+  box-shadow: 0 0 13px rgba(204, 255, 0, 0.92), 0 0 28px rgba(204, 255, 0, 0.46);
   animation: float-core-std 2s ease-in-out infinite;
 }
 
 /* 等級 5: 強化能量 (香檳金大菱形，死路支線獎勵) */
 .light-core-item.upgraded {
-  width: 22px;
-  height: 22px;
-  background: var(--coreo-credit);
-  border-radius: 4px;
-  box-shadow: 0 0 16px var(--coreo-credit), 0 0 32px var(--coreo-credit-hot);
-  animation: float-core-upg 2s ease-in-out infinite;
+  width: 24px;
+  height: 24px;
+  background: var(--coreo-credit-hot);
+  border-radius: 6px;
+  transform: translate(-50%, -50%) translateZ(18px) rotate(45deg);
+  box-shadow: 0 0 16px rgba(255, 0, 127, 0.92), 0 0 34px rgba(157, 0, 255, 0.50);
+  animation: float-core-up 2s ease-in-out infinite;
 }
 
 @keyframes float-core-std {
@@ -439,6 +440,7 @@ body {
   margin: 12px 0;
   box-shadow: 0 0 14px rgba(48, 209, 88, 0.60);
 }
+
 
 
 

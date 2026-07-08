@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v01-premium-cockpit-20260708';
+﻿const COREO_CACHE = 'coreo-dark-variant-v02-maze-premium-20260709';
 const COREO_ASSETS = [
   './',
   './index.html',
@@ -45,6 +45,7 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
   );
 });
+
 
 
 
