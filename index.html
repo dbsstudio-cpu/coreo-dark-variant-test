@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>COREO Dark Variant - v0.1</title>
+  <meta name="theme-color" content="#080D12">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="COREO Dark">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/tokens.css">
+</head>
+<body>
+
+  <!-- 極簡 HUD -->
+  <div id="hud">
+    <div class="hud-group">
+      <div class="hud-label">LIGHT CORE</div>
+      <div class="hud-value" id="ui-core-val">00</div>
+    </div>
+  </div>
+
+  <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
+  <div id="version-tag">COREO DARK v0.1</div>
+
+  <!-- 3D 遊戲世界 -->
+  <div id="game-container">
+    <div id="fog-overlay"></div>
+    <div id="camera-rig">
+      <div id="world"></div>
+    </div>
+  </div>
+
+  <!-- 浮動操控盤接收區 -->
+  <div id="joystick-zone">
+    <div class="joystick-base" id="joystick-base">
+      <div class="joystick-knob" id="joystick-knob"></div>
+    </div>
+  </div>
+
+  <!-- 過關收束動畫 (無 alert) -->
+  <div id="level-complete-overlay">
+    <div class="lc-title">STAGE SECURED</div>
+    <div class="lc-line"></div>
+    <div class="hud-label" style="margin-top:20px;">TAP TO RESTART</div>
+  </div>
+
+  <script src="js/maze.js"></script>
+  <script src="js/control.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/render3d.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+          console.warn('COREO service worker registration failed:', error);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+

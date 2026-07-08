@@ -1,0 +1,442 @@
+﻿/* css/tokens.css */
+:root {
+  --coreo-bg-base: #080D12;
+  --coreo-bg-secondary: #111A23;
+  --coreo-surface-raised: #17212B;
+  --coreo-path: #1F7EA8;
+  --coreo-path-edge: #6FD9FF;
+  --coreo-wall-side: #0B1118;
+  --coreo-text-primary: #F4F7FA;
+  --coreo-text-secondary: #9EAAB5;
+  --coreo-glow-core: #00BFFF;
+  --coreo-glow-hot: #87EEFF;
+  --coreo-credit: #C9A45D;
+  --coreo-credit-hot: #F0D89A;
+  --coreo-danger: #FF3B30;
+  --coreo-enemy-red: #FF2D2D;
+  --coreo-enemy-red-orange: #FF5A36;
+  --coreo-danger-glow: #FFD2C7;
+  --coreo-threat-dark: #8A1020;
+  --coreo-special-violet: #6C5CE7;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+html,
+body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(0, 191, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 82% 38%, rgba(255, 45, 45, 0.10), transparent 26%),
+    linear-gradient(180deg, #0B1118 0%, var(--coreo-bg-base) 48%, #111A23 100%);
+  color: var(--coreo-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+body {
+  -webkit-overflow-scrolling: auto;
+}
+
+/* =========================================
+   HUD (極簡化，專注 Light Core 收集)
+========================================= */
+#hud {
+  position: fixed;
+  top: max(env(safe-area-inset-top), 16px);
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.hud-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-label {
+  font-size: 10px;
+  color: var(--coreo-text-secondary);
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+
+.hud-value {
+  font-size: 20px;
+  font-weight: 650;
+  color: var(--coreo-text-primary);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.hud-value.glow {
+  color: var(--coreo-credit);
+  text-shadow: 0 0 16px rgba(240, 216, 154, 0.76);
+  transform: scale(1.2);
+}
+
+#version-tag {
+  position: fixed;
+  bottom: max(env(safe-area-inset-bottom), 8px);
+  left: 8px;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--coreo-text-secondary);
+  opacity: 0.5;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* =========================================
+   3D 視圖與深度渲染
+========================================= */
+#game-container {
+  position: fixed;
+  inset: 0;
+  perspective: 1280px;
+  perspective-origin: 50% 54%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+
+#fog-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 16%;
+  background: linear-gradient(to bottom, rgba(8, 13, 18, 0.88) 0%, rgba(8, 13, 18, 0.34) 58%, transparent 100%);
+  z-index: 500;
+  pointer-events: none;
+}
+
+#camera-rig {
+  transform-style: preserve-3d;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  overflow: hidden;
+  touch-action: none;
+}
+
+#world {
+  transform-style: preserve-3d;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: rotateX(40deg) translateZ(-165px);
+  transition: transform 0.08s linear;
+  will-change: transform;
+}
+
+/* =========================================
+   Dark Variant v0.1：黑鈦展示艙與冷光管線
+========================================= */
+.cell {
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.cell.path {
+  background: #1F7EA8;
+  box-shadow: 0 0 18px rgba(0, 191, 255, 0.08);
+}
+
+.cell.wall {
+  background: linear-gradient(145deg, #26313D 0%, #101821 100%);
+  border-radius: 14px;
+  transform: translateZ(22px);
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.54),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(145, 170, 185, 0.12);
+}
+
+.cell.wall::after {
+  content: '';
+  position: absolute;
+  bottom: -22px;
+  left: 0;
+  width: 100%;
+  height: 22px;
+  background: linear-gradient(180deg, #111923, #070B10);
+  transform-origin: top;
+  transform: rotateX(-90deg);
+  border-radius: 0 0 14px 14px;
+}
+
+.cell.entity {
+  pointer-events: none;
+  transform: translateZ(1px);
+}
+
+.cell.start {
+  background: radial-gradient(circle at 50% 50%, rgba(244, 247, 250, 0.16) 0 24%, transparent 25%);
+}
+
+.cell.start::before,
+.cell.start::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+}
+
+.cell.start::before {
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(158, 170, 181, 0.48);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.82);
+  box-shadow: inset 0 0 10px rgba(158, 170, 181, 0.18);
+}
+
+.cell.start::after {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: rgba(158, 170, 181, 0.66);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(158, 170, 181, 0.32);
+}
+
+.cell.exit {
+  box-shadow: inset 0 0 26px rgba(0, 191, 255, 0.36);
+}
+
+.cell.exit::before,
+.cell.exit::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+}
+
+.cell.exit::before {
+  width: 35px;
+  height: 35px;
+  border: 2px solid var(--coreo-glow-core);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 18px rgba(0, 191, 255, 0.52);
+  animation: pulse-exit 2s infinite;
+}
+
+.cell.exit::after {
+  width: 19px;
+  height: 19px;
+  border: 2px solid var(--coreo-special-violet);
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+  transform: translate(-50%, -50%) rotate(45deg);
+  box-shadow: 6px -6px 14px rgba(108, 92, 231, 0.42);
+}
+/* =========================================
+   動態物件 (Player & Light Core)
+========================================= */
+#player {
+  position: absolute;
+  width: 62px;
+  height: 62px;
+  background-image: url('../assets/player.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 14px rgba(0, 191, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 191, 255, 0.5));
+  transform-style: preserve-3d;
+  z-index: 100;
+  transition: top 0.07s linear, left 0.07s linear, transform 0.1s ease;
+}
+
+#enemy {
+  position: absolute;
+  width: 62px;
+  height: 62px;
+  background-image: url('../assets/enemy.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 16px rgba(255, 45, 45, 0.9)) drop-shadow(0 0 36px rgba(255, 90, 54, 0.6));
+  transform-style: preserve-3d;
+  z-index: 96;
+  pointer-events: none;
+}
+
+/* --- 能量分級系統 (LIGHT CORE) --- */
+.light-core-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+}
+
+/* 等級 4: 一般能量 (冰藍小圓點) */
+.light-core-item.standard {
+  width: 12px;
+  height: 12px;
+  background: var(--coreo-glow-hot);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--coreo-glow-hot), 0 0 24px var(--coreo-glow-core);
+  animation: float-core-std 2s ease-in-out infinite;
+}
+
+/* 等級 5: 強化能量 (香檳金大菱形，死路支線獎勵) */
+.light-core-item.upgraded {
+  width: 22px;
+  height: 22px;
+  background: var(--coreo-credit-hot);
+  border-radius: 4px;
+  box-shadow: 0 0 16px var(--coreo-credit), 0 0 32px var(--coreo-credit-hot);
+  animation: float-core-upg 2s ease-in-out infinite;
+}
+
+@keyframes float-core-std {
+  0%, 100% { transform: translate(-50%, -50%) translateZ(14px); }
+  50% { transform: translate(-50%, -50%) translateZ(22px); }
+}
+@keyframes float-core-upg {
+  0%, 100% { transform: translate(-50%, -50%) translateZ(14px) rotate(45deg); }
+  50% { transform: translate(-50%, -50%) translateZ(26px) rotate(45deg); }
+}
+
+/* 收集能量時的開心搖擺動畫 */
+.player-collect-anim {
+  animation: player-joy 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes player-joy {
+  0% { transform: translate(-50%, -50%) translateZ(24px) scale(1) rotate(0deg); }
+  25% { transform: translate(-50%, -50%) translateZ(24px) scale(1.3) rotate(-15deg); }
+  50% { transform: translate(-50%, -50%) translateZ(24px) scale(1.3) rotate(15deg); }
+  75% { transform: translate(-50%, -50%) translateZ(24px) scale(1.1) rotate(-5deg); }
+  100% { transform: translate(-50%, -50%) translateZ(24px) scale(1) rotate(0deg); }
+}
+
+/* =========================================
+   Floating Thumb Control (高級透明感)
+========================================= */
+#joystick-zone {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 42%;
+  z-index: 2000;
+  touch-action: none;
+}
+
+.joystick-base {
+  position: absolute;
+  width: 132px;
+  height: 132px;
+  border: 1px solid rgba(0, 191, 255, 0.24);
+  background: rgba(14, 22, 30, 0.44);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+  box-shadow: 0 16px 36px rgba(60, 75, 92, 0.13);
+}
+
+.joystick-base.active { opacity: 1; }
+
+.joystick-knob {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  background-color: #1A2530;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 5px 15px rgba(60, 75, 92, 0.18), inset 0 0 0 1px rgba(0, 191, 255, 0.25);
+}
+
+.joystick-knob::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 9px;
+  height: 9px;
+  background-color: var(--coreo-glow-core);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(0, 191, 255, 0.75);
+}
+
+@keyframes pulse-exit {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.85; }
+  50% { transform: translate(-50%, -50%) scale(1.18); opacity: 0.22; }
+  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.85; }
+}
+
+.shake {
+  animation: wall-bump 0.2s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes wall-bump {
+  0%, 100% { transform: translate(-50%, -50%) translateZ(24px) rotate(0deg); }
+  25% { transform: translate(-50%, -50%) translateZ(24px) rotate(5deg) scale(0.92); }
+  75% { transform: translate(-50%, -50%) translateZ(24px) rotate(-5deg) scale(0.92); }
+}
+
+#level-complete-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(8, 13, 18, 0.94);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+#level-complete-overlay.show { opacity: 1; pointer-events: auto; }
+
+.lc-title {
+  font-size: 24px;
+  font-weight: 750;
+  color: var(--coreo-text-primary);
+  letter-spacing: 4px;
+}
+
+.lc-line {
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--coreo-glow-core), var(--coreo-credit));
+  margin: 12px 0;
+  box-shadow: 0 0 12px var(--coreo-glow-core);
+}
+
+
+
+
