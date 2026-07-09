@@ -73,6 +73,27 @@ const FX = {
     overlay.addEventListener('click', () => {
       location.reload();
     }, {once: true});
+  },
+
+  // 全域壓力警戒光 (淡紅色 Overlay)
+  toggleGlobalAlert: function(isActive) {
+    let overlay = document.getElementById('global-alert-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-alert-overlay';
+      document.body.appendChild(overlay);
+    }
+    if (isActive) overlay.classList.add('active');
+    else overlay.classList.remove('active');
+  },
+
+  // 強化能量的速度與視覺增益
+  triggerSpeedBoost: function(durationMs, playerDOM) {
+    if('vibrate' in navigator) navigator.vibrate([30, 50, 30]);
+    playerDOM.classList.add('player-speed-boost');
+    setTimeout(() => {
+      playerDOM.classList.remove('player-speed-boost');
+    }, durationMs);
   }
 };
 

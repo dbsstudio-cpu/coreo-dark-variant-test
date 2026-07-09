@@ -96,6 +96,9 @@ const Render3D = {
           core.style.left = `${x * this.CELL_SIZE + this.CELL_SIZE / 2}px`;
           core.style.top = `${y * this.CELL_SIZE + this.CELL_SIZE / 2}px`;
           world.appendChild(core);
+        } else if (type === 6) {
+          // 躲藏凹槽 (視覺上比路徑更深、更窄的凹陷區)
+          this.createEntity(world, x, y, 'pocket');
         }
       }
     }

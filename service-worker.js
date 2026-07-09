@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v02-maze-premium-20260709';
+﻿const COREO_CACHE = 'coreo-dark-variant-v03-gameplay-layer-20260710';
 const COREO_ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const COREO_ASSETS = [
   './js/camera.js',
   './js/render3d.js',
   './js/fx.js',
+  './js/enemy.js',
   './js/main.js',
   './icons/icon-180.png',
   './icons/icon-192.png',

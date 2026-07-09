@@ -314,7 +314,7 @@ body {
   border-radius: 6px;
   transform: translate(-50%, -50%) translateZ(18px) rotate(45deg);
   box-shadow: 0 0 16px rgba(255, 0, 127, 0.92), 0 0 34px rgba(157, 0, 255, 0.50);
-  animation: float-core-up 2s ease-in-out infinite;
+  animation: float-core-upg 2s ease-in-out infinite;
 }
 
 @keyframes float-core-std {
@@ -346,7 +346,7 @@ body {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 42%;
+  height: max(34%, 260px);
   z-index: 2000;
   touch-action: none;
 }
@@ -440,6 +440,71 @@ body {
   margin: 12px 0;
   box-shadow: 0 0 14px rgba(48, 209, 88, 0.60);
 }
+
+/* ==============================================
+   Gameplay Layer (Type 6, Enemy States, Effects)
+   顏色改用暗黑版自己的 --coreo-enemy-red (#FF2D55 = rgb(255,45,85))，
+   不沿用亮版的 rgb(255,59,48)
+============================================== */
+
+/* 躲藏凹槽 Type 6 (暗化、稍微縮小產生凹陷感) */
+.cell.entity.pocket {
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 8px;
+  transform: translateZ(2px) scale(0.85);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
+}
+
+/* 反派狀態：巡邏 (微弱紅光) */
+#enemy.enemy-state-patrol {
+  filter: drop-shadow(0 0 10px rgba(255, 45, 85, 0.4)) drop-shadow(0 0 20px rgba(255, 45, 85, 0.2));
+  transform: translate(-50%, -50%) translateZ(24px);
+}
+
+/* 反派狀態：警戒 (亮度提升) */
+#enemy.enemy-state-alert {
+  filter: drop-shadow(0 0 15px rgba(255, 45, 85, 0.9)) drop-shadow(0 0 30px rgba(255, 45, 85, 0.6));
+  transform: translate(-50%, -50%) translateZ(24px);
+  animation: pulse-enemy-alert 0.5s infinite;
+}
+@keyframes pulse-enemy-alert {
+  0%, 100% { transform: translate(-50%, -50%) translateZ(24px) scale(1); }
+  50% { transform: translate(-50%, -50%) translateZ(24px) scale(1.05); }
+}
+
+/* 反派狀態：追逐 (強烈殘影與抖動) */
+#enemy.enemy-state-chase {
+  filter: drop-shadow(0 0 20px rgba(255, 45, 85, 1)) drop-shadow(0 0 40px rgba(255, 45, 85, 0.8));
+  transform: translate(-50%, -50%) translateZ(24px);
+}
+#enemy.enemy-state-chase::after {
+  content: ''; position: absolute; inset: 0;
+  background: inherit; border-radius: 50%; opacity: 0.5;
+  animation: trail-shake 0.2s infinite alternate;
+}
+@keyframes trail-shake {
+  0% { transform: translate(-2px, -2px) scale(1.1); }
+  100% { transform: translate(2px, 2px) scale(1.1); }
+}
+
+/* 全域警戒紅光 Overlay */
+#global-alert-overlay {
+  position: fixed; inset: 0;
+  background: radial-gradient(circle, transparent 40%, rgba(255, 45, 85, 0.12) 100%);
+  pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 400;
+}
+#global-alert-overlay.active { opacity: 1; }
+
+/* 主角 Type 5 強化加速光尾 */
+#player.player-speed-boost {
+  filter: drop-shadow(0 0 20px var(--coreo-credit-hot)) drop-shadow(0 0 30px var(--coreo-credit));
+}
+#player.player-speed-boost::before {
+  content: ''; position: absolute; top: 100%; left: 50%; width: 24px; height: 40px;
+  background: linear-gradient(to bottom, var(--coreo-credit-hot), transparent);
+  transform: translateX(-50%); opacity: 0.7; border-radius: 12px;
+}
+
 
 
 
