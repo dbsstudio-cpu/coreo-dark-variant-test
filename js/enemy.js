@@ -5,18 +5,19 @@ const EnemyLogic = {
   patrolRoute: [],
   patrolIndex: 0,
   currentTarget: null,
-  baseAlertRadius: 250,
-  alertRadius: 250,
-  chaseDuration: 3600,
+  baseAlertRadius: 155, // 降壓：250 -> 180
+  alertRadius: 155,
+  chaseDuration: 1700,  // 降壓：3600 -> 2500
   chaseTimer: 0,
-  alertDelay: 420,
-  patrolSpeed: 1.05,
-  chaseSpeed: 2.05,
+  alertDelay: 560,
+  patrolSpeed: 0.82,
+  chaseSpeed: 1.45,      // 降壓後對齊玩家速度的 55-60%（baseSpeed 4.2）
   radius: 22,
   reactionTimer: 0,
-  reactionInterval: 170,
+  reactionInterval: 230,
   chosenStep: { x: 0, y: -1 },
   domElement: null,
+  spriteElement: null,
 
   init: function(startPos, patrolFrom, patrolTo, patrolRoute) {
     this.x = startPos.x;
@@ -29,9 +30,16 @@ const EnemyLogic = {
     this.chaseTimer = 0;
     this.reactionTimer = 0;
 
+    // 雙層 DOM：外層只管定位，內層承接所有動畫與發光效果
     const world = document.getElementById('world');
     this.domElement = document.createElement('div');
     this.domElement.id = 'enemy';
+    this.domElement.className = 'actor';
+
+    this.spriteElement = document.createElement('div');
+    this.spriteElement.className = 'actor-sprite enemy-state-patrol';
+    this.domElement.appendChild(this.spriteElement);
+
     world.appendChild(this.domElement);
     this.updateDOM();
   },
@@ -73,7 +81,7 @@ const EnemyLogic = {
         }
       }
     } else if (this.state === 'chase') {
-      if (isPlayerHidden || distToPlayer > this.alertRadius * 1.55) {
+      if (isPlayerHidden || distToPlayer > this.alertRadius * 1.35) {
         this.state = 'patrol';
         FX.toggleGlobalAlert(false);
       } else {
@@ -158,8 +166,11 @@ const EnemyLogic = {
   },
 
   updateDOM: function() {
+    // 外層只管位移，絕對不碰 transform
     this.domElement.style.left = `${this.x}px`;
     this.domElement.style.top = `${this.y}px`;
-    this.domElement.className = `enemy-state-${this.state}`;
+    // 內層處理動畫/發光狀態 class
+    this.spriteElement.className = `actor-sprite enemy-state-${this.state}`;
   }
 };
+

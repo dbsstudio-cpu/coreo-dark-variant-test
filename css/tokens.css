@@ -47,6 +47,8 @@ body {
   overflow: hidden;
   overscroll-behavior: none;
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 body {
@@ -117,6 +119,8 @@ body {
   justify-content: center;
   overflow: hidden;
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #fog-overlay {
@@ -137,6 +141,8 @@ body {
   position: absolute;
   overflow: hidden;
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #world {
@@ -258,34 +264,42 @@ body {
 /* =========================================
    動態物件 (Player & Light Core)
 ========================================= */
-#player {
+/* 外層定位容器：只負責座標與固定 Z 高度，絕對不套用動畫 */
+.actor {
   position: absolute;
-  width: 66px;
-  height: 66px;
-  background-image: url('../assets/player.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: 50%;
-  filter: drop-shadow(0 0 14px rgba(0, 191, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 191, 255, 0.5));
   transform-style: preserve-3d;
-  z-index: 520;
-  transition: top 0.07s linear, left 0.07s linear, transform 0.1s ease;
+  /* Z 軸數值固定為 12px 貼地感，JS 絕對不可再覆寫此屬性 */
+  transform: translate(-50%, -50%) translateZ(10px);
+  transition: top 0.07s linear, left 0.07s linear;
+  z-index: 100;
 }
 
-#enemy {
-  position: absolute;
-  width: 66px;
-  height: 66px;
-  background-image: url('../assets/enemy.png');
+#player.actor { z-index: 120; }
+#enemy.actor { z-index: 100; pointer-events: none; }
+
+/* 內層視覺容器：負責圖片、發光、所有動畫縮放與旋轉 */
+.actor-sprite {
+  position: relative;
+  width: 62px;
+  height: 62px;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
   border-radius: 50%;
-  filter: drop-shadow(0 0 16px rgba(255, 45, 45, 0.9)) drop-shadow(0 0 36px rgba(255, 90, 54, 0.6));
   transform-style: preserve-3d;
-  z-index: 500;
-  pointer-events: none;
+  transition: transform 0.1s ease, filter 0.3s ease;
+}
+
+/* 主角內層視覺 */
+#player .actor-sprite {
+  background-image: url('../assets/player.png');
+  filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 229, 255, 0.5));
+}
+
+/* 反派內層視覺（暗黑版自己的霓虹紅 #FF2D55） */
+#enemy .actor-sprite {
+  background-image: url('../assets/enemy.png');
+  filter: drop-shadow(0 0 16px rgba(255, 45, 85, 0.9)) drop-shadow(0 0 36px rgba(255, 45, 85, 0.6));
 }
 
 /* --- 能量分級系統 (LIGHT CORE) --- */
@@ -318,25 +332,34 @@ body {
 }
 
 @keyframes float-core-std {
-  0%, 100% { transform: translate(-50%, -50%) translateZ(14px); }
-  50% { transform: translate(-50%, -50%) translateZ(22px); }
+  0%, 100% { transform: translate(-50%, -50%) translateZ(10px); }
+  50% { transform: translate(-50%, -50%) translateZ(10px); }
 }
 @keyframes float-core-upg {
   0%, 100% { transform: translate(-50%, -50%) translateZ(14px) rotate(45deg); }
   50% { transform: translate(-50%, -50%) translateZ(26px) rotate(45deg); }
 }
 
-/* 收集能量時的開心搖擺動畫 */
-.player-collect-anim {
-  animation: player-joy 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  animation-fill-mode: none;
+/* 收集能量時的放大動畫（作用在內層 .actor-sprite，不碰外層定位） */
+.actor-sprite.player-collect-anim-4 {
+  animation: player-joy-4 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-@keyframes player-joy {
-  0% { transform: translate(-50%, -50%) translateZ(42px) scale(1) rotate(0deg); }
-  25% { transform: translate(-50%, -50%) translateZ(42px) scale(1.65) rotate(-15deg); }
-  50% { transform: translate(-50%, -50%) translateZ(42px) scale(1.65) rotate(15deg); }
-  75% { transform: translate(-50%, -50%) translateZ(42px) scale(1.35) rotate(-5deg); }
-  100% { transform: translate(-50%, -50%) translateZ(42px) scale(1) rotate(0deg); }
+@keyframes player-joy-4 {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.15) rotate(-10deg); }
+  50% { transform: scale(1.15) rotate(10deg); }
+  75% { transform: scale(1.05) rotate(-5deg); }
+}
+
+.actor-sprite.player-collect-anim-5 {
+  animation: player-joy-5 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes player-joy-5 {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  20% { transform: scale(1.35) rotate(-15deg); }
+  40% { transform: scale(1.35) rotate(15deg); }
+  60% { transform: scale(1.2) rotate(-10deg); }
+  80% { transform: scale(1.1) rotate(5deg); }
 }
 
 /* =========================================
@@ -347,9 +370,11 @@ body {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: max(50%, 340px);
+  height: max(52%, 360px);
   z-index: 2000;
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .joystick-base {
@@ -401,14 +426,14 @@ body {
   100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.85; }
 }
 
-.shake {
+.actor-sprite.shake {
   animation: wall-bump 0.2s cubic-bezier(.36,.07,.19,.97) both;
 }
 
 @keyframes wall-bump {
-  0%, 100% { transform: translate(-50%, -50%) translateZ(42px) rotate(0deg); }
-  25% { transform: translate(-50%, -50%) translateZ(42px) rotate(5deg) scale(0.92); }
-  75% { transform: translate(-50%, -50%) translateZ(42px) rotate(-5deg) scale(0.92); }
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(8deg) scale(0.95); }
+  75% { transform: rotate(-8deg) scale(0.95); }
 }
 
 #level-complete-overlay {
@@ -456,36 +481,33 @@ body {
   box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
 }
 
-/* 反派狀態：巡邏 (微弱紅光) */
-#enemy.enemy-state-patrol {
+/* 反派狀態：巡邏 (微弱紅光，全部作用在內層 .actor-sprite) */
+.actor-sprite.enemy-state-patrol {
   filter: drop-shadow(0 0 10px rgba(255, 45, 85, 0.4)) drop-shadow(0 0 20px rgba(255, 45, 85, 0.2));
-  transform: translate(-50%, -50%) translateZ(42px);
 }
 
 /* 反派狀態：警戒 (亮度提升) */
-#enemy.enemy-state-alert {
+.actor-sprite.enemy-state-alert {
   filter: drop-shadow(0 0 15px rgba(255, 45, 85, 0.9)) drop-shadow(0 0 30px rgba(255, 45, 85, 0.6));
-  transform: translate(-50%, -50%) translateZ(42px);
   animation: pulse-enemy-alert 0.5s infinite;
 }
 @keyframes pulse-enemy-alert {
-  0%, 100% { transform: translate(-50%, -50%) translateZ(42px) scale(1); }
-  50% { transform: translate(-50%, -50%) translateZ(42px) scale(1.05); }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 /* 反派狀態：追逐 (強烈殘影與抖動) */
-#enemy.enemy-state-chase {
+.actor-sprite.enemy-state-chase {
   filter: drop-shadow(0 0 20px rgba(255, 45, 85, 1)) drop-shadow(0 0 40px rgba(255, 45, 85, 0.8));
-  transform: translate(-50%, -50%) translateZ(42px);
 }
-#enemy.enemy-state-chase::after {
+.actor-sprite.enemy-state-chase::after {
   content: ''; position: absolute; inset: 0;
   background: inherit; border-radius: 50%; opacity: 0.5;
   animation: trail-shake 0.2s infinite alternate;
 }
 @keyframes trail-shake {
-  0% { transform: translate(-2px, -2px) scale(1.35); }
-  100% { transform: translate(2px, 2px) scale(1.35); }
+  0% { transform: translate(-2px, -2px) scale(1.1); }
+  100% { transform: translate(2px, 2px) scale(1.1); }
 }
 
 /* 全域警戒紅光 Overlay */
@@ -496,15 +518,17 @@ body {
 }
 #global-alert-overlay.active { opacity: 1; }
 
-/* 主角 Type 5 強化加速光尾 */
-#player.player-speed-boost {
+/* 主角 Type 5 強化加速光尾（作用在內層 .actor-sprite） */
+.actor-sprite.player-speed-boost {
   filter: drop-shadow(0 0 20px var(--coreo-credit-hot)) drop-shadow(0 0 30px var(--coreo-credit));
 }
-#player.player-speed-boost::before {
+.actor-sprite.player-speed-boost::before {
   content: ''; position: absolute; top: 100%; left: 50%; width: 24px; height: 40px;
   background: linear-gradient(to bottom, var(--coreo-credit-hot), transparent);
   transform: translateX(-50%); opacity: 0.7; border-radius: 12px;
 }
+
+
 
 
 

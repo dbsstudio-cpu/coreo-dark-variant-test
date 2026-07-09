@@ -50,3 +50,19 @@
 - Light Core 放大效果只在收集時觸發，不再像常駐放大。
 - touchmove 改由 document 追蹤，恢復 Android 操控穩定度。
 
+## 2026-07-09 v0.3.3 角色定位重構（S 產出、CC 驗證組裝）
+
+- 角色 DOM 拆為外層 `.actor`（只管 left/top 與固定 `translateZ(12px)`）+ 內層 `.actor-sprite`（圖片/發光/所有動畫），解決 `translateZ` 在 `rotateX(40deg)` 3D 空間裡造成的視覺偏移根因（偏移量 ≈ Z值×sin(40°)）。
+- 收集動畫改為 Type4(1.15倍/500ms)／Type5(1.35倍/800ms)獨立作用在內層，不再被每幀的位置更新覆蓋。
+- 反派難度降壓：警戒半徑 250→180、追逐時間 3600→2500ms、追逐速度調整為玩家速度的約57%、碰撞震動冷卻 500→1000ms。
+- 反派狀態光效維持本版自己的 `--coreo-enemy-red` #FF2D55，未沿用亮版色碼。
+- 迷宮地圖本輪未變動，與亮版同步沿用 CX 先前熱修的 7x47 版本。
+
+
+## 2026-07-09 v0.3.4 收斂修正
+
+- 依 CC 指令確立 actor 外層定位 / actor-sprite 內層動畫。
+- 控制器改用 Pointer Capture 優先，fallback 才使用 touch events。
+- 反派第一關降壓，降低感應半徑、追逐時間與追逐速度。
+- Light Core 收集放大只作用在內層 sprite，不再影響定位。
+

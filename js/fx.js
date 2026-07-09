@@ -1,7 +1,7 @@
 ﻿// js/fx.js
 const FX = {
-  // 收集 Light Core：實體飛向 HUD
-  collectCore: function(coreDOM) {
+  // 收集 Light Core：實體飛向 HUD，並依 type 觸發對應的內層 sprite 放大動畫
+  collectCore: function(coreDOM, spriteDOM, type) {
     const uiCore = document.getElementById('ui-core-val');
 
     // 取得 3D 空間中物件的 2D 螢幕座標
@@ -45,23 +45,21 @@ const FX = {
       if('vibrate' in navigator) navigator.vibrate([15, 30, 15]);
     };
 
-    // 觸發主角放大搖擺動畫
-    const playerDOM = document.getElementById('player');
-    if (playerDOM) {
-      // 移除再重加，確保連續吃到能量時動畫能重置觸發 (Trigger Reflow)
-      playerDOM.classList.remove('player-collect-anim');
-      void playerDOM.offsetWidth;
-      playerDOM.classList.add('player-collect-anim');
-      setTimeout(() => playerDOM.classList.remove('player-collect-anim'), 1050);
+    // 觸發主角內層 sprite 的收集放大動畫（Type 4 / Type 5 各自獨立動畫）
+    if (spriteDOM) {
+      const animClass = type === 5 ? 'player-collect-anim-5' : 'player-collect-anim-4';
+      spriteDOM.classList.remove('player-collect-anim-4', 'player-collect-anim-5');
+      void spriteDOM.offsetWidth; // 觸發 reflow 確保動畫重新播放
+      spriteDOM.classList.add(animClass);
     }
   },
 
-  // 撞牆震動
-  wallBump: function(playerDOM) {
-    if (playerDOM.classList.contains('shake')) return;
-    playerDOM.classList.add('shake');
+  // 撞牆震動（作用在角色內層 sprite）
+  wallBump: function(spriteDOM) {
+    if (spriteDOM.classList.contains('shake')) return;
+    spriteDOM.classList.add('shake');
     if('vibrate' in navigator) navigator.vibrate(10);
-    setTimeout(() => playerDOM.classList.remove('shake'), 200);
+    setTimeout(() => spriteDOM.classList.remove('shake'), 200);
   },
 
   // 過關收束動畫 (取代 alert)
@@ -88,12 +86,12 @@ const FX = {
     else overlay.classList.remove('active');
   },
 
-  // 強化能量的速度與視覺增益
-  triggerSpeedBoost: function(durationMs, playerDOM) {
+  // 強化能量的速度與視覺增益（作用在角色內層 sprite）
+  triggerSpeedBoost: function(durationMs, spriteDOM) {
     if('vibrate' in navigator) navigator.vibrate([30, 50, 30]);
-    playerDOM.classList.add('player-speed-boost');
+    spriteDOM.classList.add('player-speed-boost');
     setTimeout(() => {
-      playerDOM.classList.remove('player-speed-boost');
+      spriteDOM.classList.remove('player-speed-boost');
     }, durationMs);
   }
 };

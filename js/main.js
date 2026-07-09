@@ -11,6 +11,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const world = document.getElementById('world');
   const playerDiv = document.createElement('div');
   playerDiv.id = 'player';
+  playerDiv.className = 'actor';
+  const playerSprite = document.createElement('div');
+  playerSprite.className = 'actor-sprite';
+  playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
   const CELL_SIZE = Render3D.CELL_SIZE;
@@ -44,9 +48,9 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function updatePlayerDOM() {
+    // 外層只管 left/top，不再寫入 transform（transform 固定寫死在 CSS 的 .actor 規則）
     playerDiv.style.left = `${playerPos.x}px`;
     playerDiv.style.top = `${playerPos.y}px`;
-    playerDiv.style.transform = 'translate(-50%, -50%) translateZ(42px)';
   }
 
   function checkPickups() {
@@ -58,13 +62,13 @@ window.addEventListener('DOMContentLoaded', () => {
     if (type === 4 || type === 5) {
       mazeData[cy][cx] = 1;
       const coreDOM = document.getElementById(`core-${cx}-${cy}`);
-      if (coreDOM) FX.collectCore(coreDOM);
+      if (coreDOM) FX.collectCore(coreDOM, playerSprite, type);
 
       if (type === 5) {
         // 撘瑕??賡?嚗漲憓? 1.5 ???晷??撘勗?
         currentSpeed = baseSpeed * 1.5;
         EnemyLogic.alertRadius = EnemyLogic.baseAlertRadius * 0.6;
-        FX.triggerSpeedBoost(2500, playerDiv);
+        FX.triggerSpeedBoost(2500, playerSprite);
 
         setTimeout(() => {
           currentSpeed = baseSpeed;
@@ -99,7 +103,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!checkCollision(playerPos.x, nextY)) { playerPos.y = nextY; movedY = true; }
       else { hitWall = true; }
 
-      if (hitWall) FX.wallBump(playerDiv);
+      if (hitWall) FX.wallBump(playerSprite);
       if (movedX || movedY) {
         updatePlayerDOM();
         checkPickups();
@@ -118,8 +122,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const distToEnemy = Math.hypot(playerPos.x - EnemyLogic.x, playerPos.y - EnemyLogic.y);
     if (distToEnemy < PLAYER_RADIUS + EnemyLogic.radius) {
       if (playerBumpCooldown <= 0) {
-        FX.wallBump(playerDiv); // ????
-        playerBumpCooldown = 500;
+        FX.wallBump(playerSprite); // ????
+        playerBumpCooldown = 1000;
       }
     }
 
