@@ -52,6 +52,7 @@ const FX = {
       playerDOM.classList.remove('player-collect-anim');
       void playerDOM.offsetWidth;
       playerDOM.classList.add('player-collect-anim');
+      setTimeout(() => playerDOM.classList.remove('player-collect-anim'), 1050);
     }
   },
 
@@ -96,4 +97,5 @@ const FX = {
     }, durationMs);
   }
 };
+
 

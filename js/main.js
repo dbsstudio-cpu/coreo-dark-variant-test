@@ -46,7 +46,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function updatePlayerDOM() {
     playerDiv.style.left = `${playerPos.x}px`;
     playerDiv.style.top = `${playerPos.y}px`;
-    // ?拙振?祇?蝔凝瘚桃征嚗撥??3D ??    playerDiv.style.transform = `translate(-50%, -50%) translateZ(24px)`;
+    playerDiv.style.transform = 'translate(-50%, -50%) translateZ(42px)';
   }
 
   function checkPickups() {
@@ -130,5 +130,6 @@ window.addEventListener('DOMContentLoaded', () => {
   updatePlayerDOM();
   requestAnimationFrame(gameLoop);
 });
+
 
 

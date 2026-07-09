@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v031-hotfix-20260709';
+﻿const COREO_CACHE = 'coreo-dark-variant-v032-control-anchor-20260709';
 const COREO_ASSETS = [
   './',
   './index.html',
@@ -46,6 +46,7 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
   );
 });
+
 
 
 
