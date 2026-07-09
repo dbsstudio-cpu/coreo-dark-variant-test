@@ -1,29 +1,34 @@
-// js/enemy.js
+﻿// js/enemy.js
 const EnemyLogic = {
   x: 0, y: 0,
-  state: 'patrol', // 'patrol' | 'alert' | 'chase'
-  patrolFrom: null,
-  patrolTo: null,
+  state: 'patrol',
+  patrolRoute: [],
+  patrolIndex: 0,
   currentTarget: null,
-  baseAlertRadius: 220,
-  alertRadius: 220,
-  chaseDuration: 3000,
+  baseAlertRadius: 250,
+  alertRadius: 250,
+  chaseDuration: 3600,
   chaseTimer: 0,
-  speed: 2.6,
-  radius: 24, // 碰撞半徑
-
+  alertDelay: 420,
+  patrolSpeed: 1.05,
+  chaseSpeed: 2.05,
+  radius: 22,
+  reactionTimer: 0,
+  reactionInterval: 170,
+  chosenStep: { x: 0, y: -1 },
   domElement: null,
 
-  init: function(startPos, patrolFrom, patrolTo) {
+  init: function(startPos, patrolFrom, patrolTo, patrolRoute) {
     this.x = startPos.x;
     this.y = startPos.y;
-    this.patrolFrom = patrolFrom;
-    this.patrolTo = patrolTo;
-    this.currentTarget = this.patrolTo;
+    this.patrolRoute = patrolRoute && patrolRoute.length ? patrolRoute : [patrolFrom, patrolTo].filter(Boolean);
+    this.patrolIndex = 0;
+    this.currentTarget = this.patrolRoute[0] || startPos;
     this.state = 'patrol';
     this.alertRadius = this.baseAlertRadius;
+    this.chaseTimer = 0;
+    this.reactionTimer = 0;
 
-    // 建立 DOM
     const world = document.getElementById('world');
     this.domElement = document.createElement('div');
     this.domElement.id = 'enemy';
@@ -47,24 +52,28 @@ const EnemyLogic = {
 
   update: function(playerPos, isPlayerHidden, dt, mazeData, cellSize) {
     if (!this.domElement) return;
-    const timeScale = dt / 16.66; // 基準化為 60fps 的移動量
     const distToPlayer = Math.hypot(playerPos.x - this.x, playerPos.y - this.y);
 
-    // 狀態轉移邏輯
     if (this.state === 'patrol') {
       if (!isPlayerHidden && distToPlayer < this.alertRadius) {
         this.state = 'alert';
-        this.chaseTimer = 400; // 短暫停留警戒
+        this.chaseTimer = this.alertDelay;
         FX.toggleGlobalAlert(true);
       }
     } else if (this.state === 'alert') {
-      this.chaseTimer -= dt;
-      if (this.chaseTimer <= 0) {
-        this.state = 'chase';
-        this.chaseTimer = this.chaseDuration;
+      if (isPlayerHidden) {
+        this.state = 'patrol';
+        FX.toggleGlobalAlert(false);
+      } else {
+        this.chaseTimer -= dt;
+        if (this.chaseTimer <= 0) {
+          this.state = 'chase';
+          this.chaseTimer = this.chaseDuration;
+          this.reactionTimer = 0;
+        }
       }
     } else if (this.state === 'chase') {
-      if (isPlayerHidden || distToPlayer > this.alertRadius * 1.4) {
+      if (isPlayerHidden || distToPlayer > this.alertRadius * 1.55) {
         this.state = 'patrol';
         FX.toggleGlobalAlert(false);
       } else {
@@ -76,38 +85,76 @@ const EnemyLogic = {
       }
     }
 
-    // 移動邏輯
-    let targetX = this.x; let targetY = this.y;
     if (this.state === 'patrol') {
-      targetX = this.currentTarget.x;
-      targetY = this.currentTarget.y;
-      if (Math.hypot(targetX - this.x, targetY - this.y) < 5) {
-        // 到達巡邏點，切換目標
-        this.currentTarget = (this.currentTarget === this.patrolFrom) ? this.patrolTo : this.patrolFrom;
-      }
+      this.updatePatrol(dt, mazeData, cellSize);
     } else if (this.state === 'chase') {
-      targetX = playerPos.x;
-      targetY = playerPos.y;
-    }
-
-    // 執行位移 (警戒狀態不動)
-    if (this.state !== 'alert') {
-      const dx = targetX - this.x;
-      const dy = targetY - this.y;
-      const dist = Math.hypot(dx, dy);
-
-      if (dist > 1) {
-        const vx = (dx / dist) * this.speed * timeScale;
-        const vy = (dy / dist) * this.speed * timeScale;
-
-        // X軸滑動
-        if (!this.checkCollision(this.x + vx, this.y, mazeData, cellSize)) this.x += vx;
-        // Y軸滑動
-        if (!this.checkCollision(this.x, this.y + vy, mazeData, cellSize)) this.y += vy;
-      }
+      this.updateClumsyChase(playerPos, dt, mazeData, cellSize);
     }
 
     this.updateDOM();
+  },
+
+  updatePatrol: function(dt, mazeData, cellSize) {
+    if (!this.currentTarget) return;
+    if (Math.hypot(this.currentTarget.x - this.x, this.currentTarget.y - this.y) < 6) {
+      this.patrolIndex = (this.patrolIndex + 1) % this.patrolRoute.length;
+      this.currentTarget = this.patrolRoute[this.patrolIndex];
+    }
+    this.moveToward(this.currentTarget, this.patrolSpeed, dt, mazeData, cellSize, true);
+  },
+
+  updateClumsyChase: function(playerPos, dt, mazeData, cellSize) {
+    this.reactionTimer -= dt;
+    if (this.reactionTimer <= 0) {
+      this.chosenStep = this.chooseClumsyStep(playerPos, mazeData, cellSize);
+      this.reactionTimer = this.reactionInterval;
+    }
+    const timeScale = dt / 16.66;
+    const stepX = this.chosenStep.x * this.chaseSpeed * timeScale;
+    const stepY = this.chosenStep.y * this.chaseSpeed * timeScale;
+    if (!this.checkCollision(this.x + stepX, this.y + stepY, mazeData, cellSize)) {
+      this.x += stepX;
+      this.y += stepY;
+    } else {
+      this.reactionTimer = 0;
+    }
+  },
+
+  chooseClumsyStep: function(playerPos, mazeData, cellSize) {
+    const dx = playerPos.x - this.x;
+    const dy = playerPos.y - this.y;
+    const primary = Math.abs(dx) > Math.abs(dy)
+      ? [{x: Math.sign(dx), y: 0}, {x: 0, y: Math.sign(dy)}]
+      : [{x: 0, y: Math.sign(dy)}, {x: Math.sign(dx), y: 0}];
+    const fallback = [
+      {x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}
+    ];
+    const candidates = primary.concat(fallback).filter((step) => step.x !== 0 || step.y !== 0);
+    for (const step of candidates) {
+      const testX = this.x + step.x * this.radius;
+      const testY = this.y + step.y * this.radius;
+      if (!this.checkCollision(testX, testY, mazeData, cellSize)) return step;
+    }
+    return {x: 0, y: 0};
+  },
+
+  moveToward: function(target, speed, dt, mazeData, cellSize, allowAxisSlide) {
+    const timeScale = dt / 16.66;
+    const dx = target.x - this.x;
+    const dy = target.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist <= 1) return;
+    const vx = (dx / dist) * speed * timeScale;
+    const vy = (dy / dist) * speed * timeScale;
+    if (!this.checkCollision(this.x + vx, this.y + vy, mazeData, cellSize)) {
+      this.x += vx;
+      this.y += vy;
+      return;
+    }
+    if (allowAxisSlide) {
+      if (!this.checkCollision(this.x + vx, this.y, mazeData, cellSize)) this.x += vx;
+      if (!this.checkCollision(this.x, this.y + vy, mazeData, cellSize)) this.y += vy;
+    }
   },
 
   updateDOM: function() {

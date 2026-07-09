@@ -20,12 +20,15 @@ window.addEventListener('DOMContentLoaded', () => {
   let isGameOver = false;
   let playerBumpCooldown = 0; // ?脤???
 
-  // ?晷撌⊿????Hall D (y=23) ??Hall C (y=29)嚗粥?銝餉楝蝺? col1 ??
-  // 嚗ol3 ?券挾?舐??菜香頝舀蝺?y=28 撠望???銝?蹂??嗅楚?楝敺?
-  const enemyStart = { x: 1.5 * CELL_SIZE, y: 26 * CELL_SIZE };
-  const patrolA = { x: 1.5 * CELL_SIZE, y: 23.5 * CELL_SIZE };
-  const patrolB = { x: 1.5 * CELL_SIZE, y: 29.5 * CELL_SIZE };
-  EnemyLogic.init(enemyStart, patrolA, patrolB);
+  // Enemy patrol keeps local pressure, then switches to a slow clumsy chase when the player gets close.
+  const enemyStart = { x: 1.5 * CELL_SIZE, y: 30.5 * CELL_SIZE };
+  const patrolRoute = [
+    { x: 1.5 * CELL_SIZE, y: 27.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 30.5 * CELL_SIZE },
+    { x: 3.5 * CELL_SIZE, y: 30.5 * CELL_SIZE },
+    { x: 3.5 * CELL_SIZE, y: 28.5 * CELL_SIZE }
+  ];
+  EnemyLogic.init(enemyStart, null, null, patrolRoute);
 
   function isWall(cx, cy) {
     if (cy < 0 || cy >= mazeData.length || cx < 0 || cx >= mazeData[0].length) return true;
@@ -127,4 +130,5 @@ window.addEventListener('DOMContentLoaded', () => {
   updatePlayerDOM();
   requestAnimationFrame(gameLoop);
 });
+
 

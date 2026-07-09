@@ -167,7 +167,7 @@ body {
 .cell.wall {
   background: linear-gradient(145deg, #46464A 0%, #3C3C40 52%, #323236 100%);
   border-radius: 14px;
-  transform: translateZ(22px);
+  transform: translateZ(18px);
   box-shadow:
     0 18px 34px rgba(4, 4, 6, 0.62),
     inset 0 1px 0 rgba(245, 245, 247, 0.16),
@@ -177,10 +177,10 @@ body {
 .cell.wall::after {
   content: '';
   position: absolute;
-  bottom: -22px;
+  bottom: -18px;
   left: 0;
   width: 100%;
-  height: 22px;
+  height: 18px;
   background: linear-gradient(180deg, #2A2A2E, #1A1A1C);
   transform-origin: top;
   transform: rotateX(-90deg);
@@ -260,8 +260,8 @@ body {
 ========================================= */
 #player {
   position: absolute;
-  width: 62px;
-  height: 62px;
+  width: 66px;
+  height: 66px;
   background-image: url('../assets/player.png');
   background-size: contain;
   background-position: center;
@@ -269,14 +269,14 @@ body {
   border-radius: 50%;
   filter: drop-shadow(0 0 14px rgba(0, 191, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 191, 255, 0.5));
   transform-style: preserve-3d;
-  z-index: 100;
+  z-index: 520;
   transition: top 0.07s linear, left 0.07s linear, transform 0.1s ease;
 }
 
 #enemy {
   position: absolute;
-  width: 62px;
-  height: 62px;
+  width: 66px;
+  height: 66px;
   background-image: url('../assets/enemy.png');
   background-size: contain;
   background-position: center;
@@ -284,7 +284,7 @@ body {
   border-radius: 50%;
   filter: drop-shadow(0 0 16px rgba(255, 45, 45, 0.9)) drop-shadow(0 0 36px rgba(255, 90, 54, 0.6));
   transform-style: preserve-3d;
-  z-index: 96;
+  z-index: 500;
   pointer-events: none;
 }
 
@@ -328,14 +328,14 @@ body {
 
 /* 收集能量時的開心搖擺動畫 */
 .player-collect-anim {
-  animation: player-joy 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: player-joy 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 @keyframes player-joy {
-  0% { transform: translate(-50%, -50%) translateZ(24px) scale(1) rotate(0deg); }
-  25% { transform: translate(-50%, -50%) translateZ(24px) scale(1.3) rotate(-15deg); }
-  50% { transform: translate(-50%, -50%) translateZ(24px) scale(1.3) rotate(15deg); }
-  75% { transform: translate(-50%, -50%) translateZ(24px) scale(1.1) rotate(-5deg); }
-  100% { transform: translate(-50%, -50%) translateZ(24px) scale(1) rotate(0deg); }
+  0% { transform: translate(-50%, -88%) translateZ(56px) scale(1) rotate(0deg); }
+  25% { transform: translate(-50%, -88%) translateZ(56px) scale(1.65) rotate(-15deg); }
+  50% { transform: translate(-50%, -88%) translateZ(56px) scale(1.65) rotate(15deg); }
+  75% { transform: translate(-50%, -88%) translateZ(56px) scale(1.35) rotate(-5deg); }
+  100% { transform: translate(-50%, -88%) translateZ(56px) scale(1) rotate(0deg); }
 }
 
 /* =========================================
@@ -405,9 +405,9 @@ body {
 }
 
 @keyframes wall-bump {
-  0%, 100% { transform: translate(-50%, -50%) translateZ(24px) rotate(0deg); }
-  25% { transform: translate(-50%, -50%) translateZ(24px) rotate(5deg) scale(0.92); }
-  75% { transform: translate(-50%, -50%) translateZ(24px) rotate(-5deg) scale(0.92); }
+  0%, 100% { transform: translate(-50%, -88%) translateZ(56px) rotate(0deg); }
+  25% { transform: translate(-50%, -88%) translateZ(56px) rotate(5deg) scale(0.92); }
+  75% { transform: translate(-50%, -88%) translateZ(56px) rotate(-5deg) scale(0.92); }
 }
 
 #level-complete-overlay {
@@ -458,24 +458,24 @@ body {
 /* 反派狀態：巡邏 (微弱紅光) */
 #enemy.enemy-state-patrol {
   filter: drop-shadow(0 0 10px rgba(255, 45, 85, 0.4)) drop-shadow(0 0 20px rgba(255, 45, 85, 0.2));
-  transform: translate(-50%, -50%) translateZ(24px);
+  transform: translate(-50%, -88%) translateZ(56px);
 }
 
 /* 反派狀態：警戒 (亮度提升) */
 #enemy.enemy-state-alert {
   filter: drop-shadow(0 0 15px rgba(255, 45, 85, 0.9)) drop-shadow(0 0 30px rgba(255, 45, 85, 0.6));
-  transform: translate(-50%, -50%) translateZ(24px);
+  transform: translate(-50%, -88%) translateZ(56px);
   animation: pulse-enemy-alert 0.5s infinite;
 }
 @keyframes pulse-enemy-alert {
-  0%, 100% { transform: translate(-50%, -50%) translateZ(24px) scale(1); }
-  50% { transform: translate(-50%, -50%) translateZ(24px) scale(1.05); }
+  0%, 100% { transform: translate(-50%, -88%) translateZ(56px) scale(1); }
+  50% { transform: translate(-50%, -88%) translateZ(56px) scale(1.05); }
 }
 
 /* 反派狀態：追逐 (強烈殘影與抖動) */
 #enemy.enemy-state-chase {
   filter: drop-shadow(0 0 20px rgba(255, 45, 85, 1)) drop-shadow(0 0 40px rgba(255, 45, 85, 0.8));
-  transform: translate(-50%, -50%) translateZ(24px);
+  transform: translate(-50%, -88%) translateZ(56px);
 }
 #enemy.enemy-state-chase::after {
   content: ''; position: absolute; inset: 0;
@@ -483,8 +483,8 @@ body {
   animation: trail-shake 0.2s infinite alternate;
 }
 @keyframes trail-shake {
-  0% { transform: translate(-2px, -2px) scale(1.1); }
-  100% { transform: translate(2px, 2px) scale(1.1); }
+  0% { transform: translate(-2px, -2px) scale(1.35); }
+  100% { transform: translate(2px, 2px) scale(1.35); }
 }
 
 /* 全域警戒紅光 Overlay */
@@ -504,6 +504,7 @@ body {
   background: linear-gradient(to bottom, var(--coreo-credit-hot), transparent);
   transform: translateX(-50%); opacity: 0.7; border-radius: 12px;
 }
+
 
 
 
