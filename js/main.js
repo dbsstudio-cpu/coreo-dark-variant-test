@@ -6,7 +6,7 @@ window.addEventListener('DOMContentLoaded', () => {
   CameraLogic.init();
 
   const CELL_SIZE = Render3D.CELL_SIZE;
-  const PLAYER_RADIUS = 24;
+  const PLAYER_RADIUS = 21;
   let baseSpeed = 4.2;
   let currentSpeed = baseSpeed;
   let isGameOver = false;
@@ -27,18 +27,16 @@ window.addEventListener('DOMContentLoaded', () => {
   playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
-  // Villain patrol route: predictable Episode 01 spine, with full outbound and return points.
+  // Villain patrol route: lower-lane patrol, visible near the player but kept off the direct start tile.
   const enemyRoute = [
-    { x: 3.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 29.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 23.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 15.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 9.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 3.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 9.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 15.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 23.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }
+    { x: 3.5 * CELL_SIZE, y: 40.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 40.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
+    { x: 3.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
+    { x: 5.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
+    { x: 3.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 40.5 * CELL_SIZE }
   ];
 
   EnemyLogic.init(enemyRoute, 'villainHunt');
@@ -183,3 +181,4 @@ window.addEventListener('DOMContentLoaded', () => {
   updatePlayerDOM();
   requestAnimationFrame(gameLoop);
 });
+

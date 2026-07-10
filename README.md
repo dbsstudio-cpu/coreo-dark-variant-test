@@ -82,3 +82,9 @@
 - 新增 `basic/boost`、`player-collect-basic/player-collect-boost`、`player-signal-lost`、`villain-hunt` 等語意 class，並保留舊 class 相容。
 - 將反派調整為較笨拙的短追擊：降低偵測半徑、追擊速度與追擊時間，避免第一關形成過強封鎖。
 - CORE SIGNAL LOST 維持無 HP/無 alert，碰撞後顯示疊層並重置關卡。
+
+## 2026-07-10 v0.5.1 可視反派與手感小修
+- 修正反派巡邏起點到合法且較容易看見的下段路線，避免 v0.5 看起來像反派消失。
+- 主角碰撞半徑由 24 調整為 21，視覺大小不變，只改善左右轉角卡住感。
+- 放大吃光源動畫，一般光源與強化光源在手機上更容易看見。
+- Service Worker cache 更新為 `coreo-dark-variant-v051-visible-villain-20260710`。
