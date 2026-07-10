@@ -1,4 +1,4 @@
-﻿// js/enemy.js
+// js/enemy.js
 const EnemyLogic = {
   x: 0, y: 0,
   state: 'patrol',
@@ -6,20 +6,23 @@ const EnemyLogic = {
   patrolRoute: [],
   patrolIndex: 0,
   currentTarget: null,
-  baseAlertRadius: 135,
-  alertRadius: 135,
-  pathAlertLimit: 5,
-  pathSearchLimit: 16,
-  chaseDuration: 2400,
+  baseAlertRadius: 165,
+  alertRadius: 165,
+  pathAlertLimit: 7,
+  pathSearchLimit: 24,
+  chaseDuration: 3600,
   chaseTimer: 0,
-  alertDelay: 220,
+  alertDelay: 180,
   patrolSpeed: 0.62,
-  chaseSpeed: 1.28,
+  chaseSpeed: 1.45,
   radius: 22,
   reactionTimer: 0,
-  reactionInterval: 220,
+  reactionInterval: 180,
   chaseMemoryTimer: 0,
-  chaseMemoryDuration: 1000,
+  chaseMemoryDuration: 1300,
+  searchTimer: 0,
+  searchDuration: 1800,
+  imperfectStepChance: 0.22,
   lastKnownCell: null,
   chosenStep: { x: 0, y: -1 },
   domElement: null,
@@ -37,6 +40,7 @@ const EnemyLogic = {
     this.chaseTimer = 0;
     this.reactionTimer = 0;
     this.chaseMemoryTimer = 0;
+    this.searchTimer = 0;
     this.lastKnownCell = null;
     this.chosenStep = { x: 0, y: -1 };
 
@@ -108,17 +112,29 @@ const EnemyLogic = {
         }
       }
     } else if (this.state === 'chase') {
+      // chase 是最高優先移動模式：只有「玩家真的躲進 hide pocket」或「玩家真的拉開很遠距離」才會離開，
+      // 不再依賴 pathToPlayer 是否找得到路（BFS 找不到路時，chase 靠 updatePathChase 的直接向量 fallback 繼續追）
       if (isPlayerHidden) {
-        this.state = 'patrol';
+        this.state = 'search';
+        this.searchTimer = this.searchDuration;
         FX.toggleGlobalAlert(false);
-      } else if (!pathToPlayer && this.chaseMemoryTimer <= 0 && distToPlayer > this.alertRadius * 1.6) {
-        this.state = 'patrol';
+      } else if (distToPlayer > this.alertRadius * 2.4) {
+        this.state = 'search';
+        this.searchTimer = this.searchDuration;
         FX.toggleGlobalAlert(false);
+      }
+      // chaseTimer 只用來偵測長時間追逐無效，但門檻拉高，不提前放棄
+    } else if (this.state === 'search') {
+      if (!isPlayerHidden && pathToPlayer && (pathDistance <= this.pathAlertLimit || distToPlayer < this.alertRadius)) {
+        // 搜索途中重新發現玩家，直接回追逐
+        this.state = 'chase';
+        this.chaseTimer = this.chaseDuration;
+        this.reactionTimer = 0;
+        FX.toggleGlobalAlert(true);
       } else {
-        this.chaseTimer -= dt;
-        if (this.chaseTimer <= 0 && pathDistance > this.pathAlertLimit + 4) {
+        this.searchTimer -= dt;
+        if (this.searchTimer <= 0) {
           this.state = 'patrol';
-          FX.toggleGlobalAlert(false);
         }
       }
     }
@@ -127,6 +143,8 @@ const EnemyLogic = {
       this.updatePatrol(dt, mazeData, cellSize);
     } else if (this.state === 'chase') {
       this.updatePathChase(playerPos, pathToPlayer, dt, mazeData, cellSize);
+    } else if (this.state === 'search') {
+      this.updateSearch(dt, mazeData, cellSize);
     }
 
     this.updateDOM();
@@ -141,23 +159,19 @@ const EnemyLogic = {
     this.moveToward(this.currentTarget, this.patrolSpeed, dt, mazeData, cellSize, true);
   },
 
-  updatePathChase: function(playerPos, pathToPlayer, dt, mazeData, cellSize) {
-    this.reactionTimer -= dt;
-    if (this.reactionTimer <= 0) {
-      const pathStep = pathToPlayer && pathToPlayer.length ? pathToPlayer[0] : null;
-      this.chosenStep = pathStep || this.chooseMemoryStep(mazeData, cellSize) || this.chooseClumsyStep(playerPos, mazeData, cellSize);
-      this.reactionTimer = this.reactionInterval;
-    }
+  // 搜索：走向玩家最後已知位置附近，不是精準導航，到了就地徘徊直到 searchTimer 結束
+  updateSearch: function(dt, mazeData, cellSize) {
+    if (!this.lastKnownCell) return;
+    const target = this.cellCenter(this.lastKnownCell, cellSize);
+    const dist = Math.hypot(target.x - this.x, target.y - this.y);
+    if (dist < 8) return;
+    this.moveToward(target, this.patrolSpeed * 1.05, dt, mazeData, cellSize, true);
+  },
 
-    const timeScale = dt / 16.66;
-    const stepX = this.chosenStep.x * this.chaseSpeed * timeScale;
-    const stepY = this.chosenStep.y * this.chaseSpeed * timeScale;
-    if (!this.checkCollision(this.x + stepX, this.y + stepY, mazeData, cellSize)) {
-      this.x += stepX;
-      this.y += stepY;
-    } else {
-      this.reactionTimer = 0;
-    }
+  // 追逐：每一幀都直接朝玩家目前位置移動，用跟巡邏/搜索同一套 moveToward，
+  // 保證反派一定會持續移動靠近玩家，不依賴路徑計算是否成功
+  updatePathChase: function(playerPos, pathToPlayer, dt, mazeData, cellSize) {
+    this.moveToward(playerPos, this.chaseSpeed, dt, mazeData, cellSize, true);
   },
 
   findPathToPlayer: function(playerPos, mazeData, cellSize, limit) {
