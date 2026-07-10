@@ -88,3 +88,9 @@
 - 主角碰撞半徑由 24 調整為 21，視覺大小不變，只改善左右轉角卡住感。
 - 放大吃光源動畫，一般光源與強化光源在手機上更容易看見。
 - Service Worker cache 更新為 `coreo-dark-variant-v051-visible-villain-20260710`。
+
+## 2026-07-10 v0.5.3 可視短巡邏與限制尋路追逐
+- 反派巡邏範圍回到出生點附近，避免 v0.5.2 全圖巡邏導致玩家看不到反派。
+- `enemy.js` 新增限制範圍 BFS 尋路追逐，反派會繞路追玩家，但只搜尋 12 格，不是全知追殺。
+- 玩家進入 Type 6 躲藏凹槽或拉開距離時，反派會中斷追逐回巡邏。
+- Service Worker cache 更新為 `coreo-dark-variant-v053-pathfinding-chase-20260710`。

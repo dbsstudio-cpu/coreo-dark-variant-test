@@ -6,16 +6,17 @@ const EnemyLogic = {
   patrolRoute: [],
   patrolIndex: 0,
   currentTarget: null,
-  baseAlertRadius: 155,
-  alertRadius: 155,
-  chaseDuration: 1700,
+  baseAlertRadius: 185,
+  alertRadius: 185,
+  chaseDuration: 2200,
   chaseTimer: 0,
-  alertDelay: 560,
-  patrolSpeed: 0.82,
-  chaseSpeed: 1.45,
+  alertDelay: 420,
+  patrolSpeed: 0.86,
+  chaseSpeed: 1.62,
   radius: 22,
   reactionTimer: 0,
-  reactionInterval: 230,
+  reactionInterval: 320,
+  pathSearchLimit: 12,
   chosenStep: { x: 0, y: -1 },
   domElement: null,
   spriteElement: null,
@@ -31,6 +32,7 @@ const EnemyLogic = {
     this.alertRadius = this.baseAlertRadius;
     this.chaseTimer = 0;
     this.reactionTimer = 0;
+    this.chosenStep = { x: 0, y: -1 };
 
     const world = document.getElementById('world');
     if (!this.domElement) {
@@ -83,7 +85,7 @@ const EnemyLogic = {
         }
       }
     } else if (this.state === 'chase') {
-      if (isPlayerHidden || distToPlayer > this.alertRadius * 1.35) {
+      if (isPlayerHidden || distToPlayer > this.alertRadius * 1.45) {
         this.state = 'patrol';
         FX.toggleGlobalAlert(false);
       } else {
@@ -98,7 +100,7 @@ const EnemyLogic = {
     if (this.state === 'patrol') {
       this.updatePatrol(dt, mazeData, cellSize);
     } else if (this.state === 'chase') {
-      this.updateClumsyChase(playerPos, dt, mazeData, cellSize);
+      this.updatePathChase(playerPos, dt, mazeData, cellSize);
     }
 
     this.updateDOM();
@@ -113,12 +115,13 @@ const EnemyLogic = {
     this.moveToward(this.currentTarget, this.patrolSpeed, dt, mazeData, cellSize, true);
   },
 
-  updateClumsyChase: function(playerPos, dt, mazeData, cellSize) {
+  updatePathChase: function(playerPos, dt, mazeData, cellSize) {
     this.reactionTimer -= dt;
     if (this.reactionTimer <= 0) {
-      this.chosenStep = this.chooseClumsyStep(playerPos, mazeData, cellSize);
+      this.chosenStep = this.choosePathStep(playerPos, mazeData, cellSize) || this.chooseClumsyStep(playerPos, mazeData, cellSize);
       this.reactionTimer = this.reactionInterval;
     }
+
     const timeScale = dt / 16.66;
     const stepX = this.chosenStep.x * this.chaseSpeed * timeScale;
     const stepY = this.chosenStep.y * this.chaseSpeed * timeScale;
@@ -128,6 +131,46 @@ const EnemyLogic = {
     } else {
       this.reactionTimer = 0;
     }
+  },
+
+  choosePathStep: function(playerPos, mazeData, cellSize) {
+    const start = {
+      x: Math.floor(this.x / cellSize),
+      y: Math.floor(this.y / cellSize)
+    };
+    const goal = {
+      x: Math.floor(playerPos.x / cellSize),
+      y: Math.floor(playerPos.y / cellSize)
+    };
+
+    if (this.isWall(start.x, start.y, mazeData) || this.isWall(goal.x, goal.y, mazeData)) return null;
+    if (start.x === goal.x && start.y === goal.y) return this.chooseClumsyStep(playerPos, mazeData, cellSize);
+
+    const key = (p) => `${p.x},${p.y}`;
+    const queue = [{ x: start.x, y: start.y, path: [] }];
+    const visited = new Set([key(start)]);
+    const dirs = [
+      { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }
+    ];
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (current.path.length >= this.pathSearchLimit) continue;
+
+      for (const dir of dirs) {
+        const next = { x: current.x + dir.x, y: current.y + dir.y };
+        const nextKey = key(next);
+        if (visited.has(nextKey) || this.isWall(next.x, next.y, mazeData)) continue;
+
+        const path = current.path.concat(dir);
+        if (next.x === goal.x && next.y === goal.y) return path[0];
+
+        visited.add(nextKey);
+        queue.push({ x: next.x, y: next.y, path });
+      }
+    }
+
+    return null;
   },
 
   chooseClumsyStep: function(playerPos, mazeData, cellSize) {
