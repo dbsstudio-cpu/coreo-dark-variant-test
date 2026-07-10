@@ -27,16 +27,12 @@ window.addEventListener('DOMContentLoaded', () => {
   playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
-  // v0.5.5: legal near-spawn patrol. Active chase uses path-distance sensing in enemy.js.
+  // v0.5.6: mid-route pocket guard. The start lane stays safe; chase begins after the player reaches Hall C.
   const enemyRoute = [
-    { x: 3.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
-    { x: 5.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 32.5 * CELL_SIZE },
-    { x: 5.5 * CELL_SIZE, y: 32.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 32.5 * CELL_SIZE }
+    { x: 1.5 * CELL_SIZE, y: 30.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 29.5 * CELL_SIZE },
+    { x: 2.5 * CELL_SIZE, y: 29.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }
   ];
 
   EnemyLogic.init(enemyRoute, 'villainHunt');

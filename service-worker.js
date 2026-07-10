@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v055-active-path-chase-20260710';
+﻿const COREO_CACHE = 'coreo-dark-variant-v056-mid-pocket-chase-20260710';
 const COREO_ASSETS = [
   './',
   './index.html',
@@ -46,6 +46,7 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
   );
 });
+
 
 
 

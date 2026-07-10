@@ -102,3 +102,10 @@
 - 追逐使用 `findPathToPlayer()`，搜尋上限提高到 24 格；短暫失去路徑時保留 1 秒記憶。
 - 新增多個一般能量點，讓測試收集與主角放大效果更容易觀察。
 - Service Worker cache 更新為 `coreo-dark-variant-v055-active-path-chase-20260710`。
+
+## 2026-07-10 v0.5.6 中段凹洞反派修正
+- 修正 v0.5.5 反派離出生點過近，導致主角剛出入口就被封死的問題。
+- 反派改放在中段 Hall C 旁的凹洞/側槽附近，主角起步區保持安全。
+- 降低路徑觸發門檻與追逐速度，讓反派會追，但不會第一秒堵住入口。
+- 保留路徑式追逐，不回退成純定點巡邏。
+- Service Worker cache 更新為 `coreo-dark-variant-v056-mid-pocket-chase-20260710`。
