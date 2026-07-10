@@ -27,12 +27,15 @@ window.addEventListener('DOMContentLoaded', () => {
   playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
-  // v0.5.6: mid-route pocket guard. The start lane stays safe; chase begins after the player reaches Hall C.
+  // v0.5.7: mid-left patrol with a right-side bypass. Keep the start lane safe.
   const enemyRoute = [
-    { x: 1.5 * CELL_SIZE, y: 30.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 29.5 * CELL_SIZE },
-    { x: 2.5 * CELL_SIZE, y: 29.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }
+    { x: 1.5 * CELL_SIZE, y: 21.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 20.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 19.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 18.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
+    { x: 2.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }
   ];
 
   EnemyLogic.init(enemyRoute, 'villainHunt');

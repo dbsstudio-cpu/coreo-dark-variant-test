@@ -109,3 +109,11 @@
 - 降低路徑觸發門檻與追逐速度，讓反派會追，但不會第一秒堵住入口。
 - 保留路徑式追逐，不回退成純定點巡邏。
 - Service Worker cache 更新為 `coreo-dark-variant-v056-mid-pocket-chase-20260710`。
+
+## 2026-07-10 v0.5.7 Stage01 路線重規劃
+- 維持 7 欄 x 39 列，重做中段迷宮結構，避免牽動 camera / render / CSS 大改。
+- 將反派巡邏移到中段左側路線，右側保留繞路線，避免封住唯一通道。
+- 新增/保留有效 hide pocket，讓玩家能短暫中斷追逐。
+- Boost Core 改為中段風險獎勵，不吃也能通關。
+- `enemy.js` 只降壓參數，不重寫追逐系統：降低偵測半徑、路徑觸發距離、追逐速度與追逐時間。
+- Service Worker cache 更新為 `coreo-dark-variant-v057-replanned-stage01-20260710`。
