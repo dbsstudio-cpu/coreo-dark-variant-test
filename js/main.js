@@ -27,16 +27,35 @@ window.addEventListener('DOMContentLoaded', () => {
   playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
-  // Villain patrol route: lower-lane patrol, visible near the player but kept off the direct start tile.
+  // 反派巡邏路線：貫串巡邏教學區(Hall A/B/C) → 埋伏教學區(誤導型錯路) → 出口前壓力區(Hall G)
+  // v0.5.2 修正：地圖每個 Hall 之間刻意設計了「誘導死路」（col3 在 row15→16、row21→22、row27→28
+  // 會斷掉；Hall B↔Hall C 之間 row31 只有 col5 連通），舊路線全程固定用 x=3.5 會在 Hall B↔Hall C
+  // 之間卡死。這裡依照 maze.js 實際連通性，在每個 Hall（整排都是路的寬敞格）內插入換車道的路徑點，
+  // 換車道時停留在同一 y、只移動 x，確保每一段垂直移動都走在真正連通的欄位上。
   const enemyRoute = [
-    { x: 3.5 * CELL_SIZE, y: 40.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 40.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
-    { x: 5.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 40.5 * CELL_SIZE }
+    { x: 3.5 * CELL_SIZE, y: 35.5 * CELL_SIZE }, // Hall A（巡邏教學起點）
+    { x: 3.5 * CELL_SIZE, y: 32.5 * CELL_SIZE }, // Hall B，經 col3 抵達
+    { x: 5.5 * CELL_SIZE, y: 32.5 * CELL_SIZE }, // Hall B 內換到 col5（Hall B↔Hall C 只有 col5 連通）
+    { x: 5.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }, // Hall C，經 col5 抵達
+    { x: 1.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }, // Hall C 內換到 col1（Hall C↔Hall D 只有 col1 連通，col3 是死路）
+    { x: 1.5 * CELL_SIZE, y: 23.5 * CELL_SIZE }, // Hall D，經 col1 抵達
+    { x: 5.5 * CELL_SIZE, y: 23.5 * CELL_SIZE }, // Hall D 內換到 col5（往上只有 col5 連通，col3 是死路）
+    { x: 5.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }, // Hall E，經 col5 抵達
+    { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }, // Hall E 內換到 col1（埋伏區主通道）
+    { x: 1.5 * CELL_SIZE, y: 10.5 * CELL_SIZE }, // 埋伏教學區入口（誤導型錯路旁，經 col1）
+    { x: 5.5 * CELL_SIZE, y: 9.5 * CELL_SIZE },  // Hall F 內換到 col5（往上只有 col5 連通）
+    { x: 3.5 * CELL_SIZE, y: 3.5 * CELL_SIZE },  // Hall G（出口前壓力區），經 col5 抵達後在寬敞區換回 col3
+    { x: 5.5 * CELL_SIZE, y: 3.5 * CELL_SIZE },  // 折返：Hall G 內換回 col5
+    { x: 5.5 * CELL_SIZE, y: 9.5 * CELL_SIZE },  // Hall F，經 col5
+    { x: 1.5 * CELL_SIZE, y: 9.5 * CELL_SIZE },  // Hall F 內換回 col1
+    { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }, // Hall E，經 col1
+    { x: 5.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }, // Hall E 內換回 col5
+    { x: 5.5 * CELL_SIZE, y: 23.5 * CELL_SIZE }, // Hall D，經 col5
+    { x: 1.5 * CELL_SIZE, y: 23.5 * CELL_SIZE }, // Hall D 內換回 col1
+    { x: 1.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }, // Hall C，經 col1
+    { x: 5.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }, // Hall C 內換回 col5
+    { x: 5.5 * CELL_SIZE, y: 32.5 * CELL_SIZE }, // Hall B，經 col5
+    { x: 3.5 * CELL_SIZE, y: 32.5 * CELL_SIZE }  // Hall B 內換回 col3，回到 Hall A 完成一圈
   ];
 
   EnemyLogic.init(enemyRoute, 'villainHunt');
