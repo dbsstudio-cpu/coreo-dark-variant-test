@@ -2,16 +2,17 @@
 const EnemyLogic = {
   x: 0, y: 0,
   state: 'patrol',
+  type: 'villainHunt',
   patrolRoute: [],
   patrolIndex: 0,
   currentTarget: null,
-  baseAlertRadius: 155, // 降壓：250 -> 180
+  baseAlertRadius: 155,
   alertRadius: 155,
-  chaseDuration: 1700,  // 降壓：3600 -> 2500
+  chaseDuration: 1700,
   chaseTimer: 0,
   alertDelay: 560,
   patrolSpeed: 0.82,
-  chaseSpeed: 1.45,      // 降壓後對齊玩家速度的 55-60%（baseSpeed 4.2）
+  chaseSpeed: 1.45,
   radius: 22,
   reactionTimer: 0,
   reactionInterval: 230,
@@ -19,26 +20,27 @@ const EnemyLogic = {
   domElement: null,
   spriteElement: null,
 
-  init: function(startPos, patrolFrom, patrolTo, patrolRoute) {
-    this.x = startPos.x;
-    this.y = startPos.y;
-    this.patrolRoute = patrolRoute && patrolRoute.length ? patrolRoute : [patrolFrom, patrolTo].filter(Boolean);
+  init: function(route, enemyType = 'villainHunt') {
+    this.type = enemyType;
+    this.patrolRoute = route;
     this.patrolIndex = 0;
-    this.currentTarget = this.patrolRoute[0] || startPos;
+    this.x = route[0].x;
+    this.y = route[0].y;
+    this.currentTarget = route[1 % route.length];
     this.state = 'patrol';
     this.alertRadius = this.baseAlertRadius;
     this.chaseTimer = 0;
     this.reactionTimer = 0;
 
-    // 雙層 DOM：外層只管定位，內層承接所有動畫與發光效果
     const world = document.getElementById('world');
-    this.domElement = document.createElement('div');
-    this.domElement.id = 'enemy';
-    this.domElement.className = 'actor';
+    if (!this.domElement) {
+      this.domElement = document.createElement('div');
+      this.domElement.id = 'enemy';
+      this.domElement.className = 'actor';
 
-    this.spriteElement = document.createElement('div');
-    this.spriteElement.className = 'actor-sprite enemy-state-patrol';
-    this.domElement.appendChild(this.spriteElement);
+      this.spriteElement = document.createElement('div');
+      this.domElement.appendChild(this.spriteElement);
+    }
 
     world.appendChild(this.domElement);
     this.updateDOM();
@@ -166,11 +168,9 @@ const EnemyLogic = {
   },
 
   updateDOM: function() {
-    // 外層只管位移，絕對不碰 transform
     this.domElement.style.left = `${this.x}px`;
     this.domElement.style.top = `${this.y}px`;
-    // 內層處理動畫/發光狀態 class
-    this.spriteElement.className = `actor-sprite enemy-state-${this.state}`;
+    const typeClass = this.type.replace(/([A-Z])/g, '-$1').toLowerCase();
+    this.spriteElement.className = `actor-sprite enemy-state-${this.state} ${typeClass}`;
   }
 };
-

@@ -50,6 +50,15 @@
 - Light Core 放大效果只在收集時觸發，不再像常駐放大。
 - touchmove 改由 document 追蹤，恢復 Android 操控穩定度。
 
+## 2026-07-10 v0.4 第一關規則教學層（S 產出、CC 驗證組裝）
+
+依 GPT「第一關規則教學層」正式裁決：
+- 新增 CORE SIGNAL LOST 失敗機制：碰到反派觸發紅光閃現/核心異常閃爍/畫面震動失焦/文字疊層，0.9秒後 `resetLevel()` 乾淨重置關卡（不做死亡/HP、不 reload 頁面）。
+- 迷宮改回 7x39 三教學區設計（巡邏區 Hall A/C、埋伏區誤導型錯路、出口前壓力區 Hall G），取代先前 CX 熱修的 7x47 版本，與亮版同步。
+- 反派巡邏路線延伸貫串三個教學區。
+- CC 組裝時修正 S 原始碼的 `requestAnimationFrame` 迴圈重啟遺漏（否則碰到反派重置一次後遊戲會整個卡死）與追逐邏輯退回成直線逼近的問題（保留原本的笨拙追逐設計）。
+- 反派紅光、失敗疊層文字色維持本版自己的 `--coreo-enemy-red`/`--coreo-danger` (#FF2D55)，未沿用亮版色碼。
+
 ## 2026-07-09 v0.3.3 角色定位重構（S 產出、CC 驗證組裝）
 
 - 角色 DOM 拆為外層 `.actor`（只管 left/top 與固定 `translateZ(12px)`）+ 內層 `.actor-sprite`（圖片/發光/所有動畫），解決 `translateZ` 在 `rotateX(40deg)` 3D 空間裡造成的視覺偏移根因（偏移量 ≈ Z值×sin(40°)）。
@@ -66,3 +75,10 @@
 - 反派第一關降壓，降低感應半徑、追逐時間與追逐速度。
 - Light Core 收集放大只作用在內層 sprite，不再影響定位。
 
+
+## 2026-07-10 v0.5 Premium Dark Cockpit 審閱整合版
+- 以本地 DarkVariant v0.4 為基準，審閱 S 的 Premium Dark Cockpit v1.1 產出後定點合併。
+- 保留 `maze.js`、`camera.js`、`control.js` 與現有 actor-split 架構，不整包覆蓋。
+- 新增 `basic/boost`、`player-collect-basic/player-collect-boost`、`player-signal-lost`、`villain-hunt` 等語意 class，並保留舊 class 相容。
+- 將反派調整為較笨拙的短追擊：降低偵測半徑、追擊速度與追擊時間，避免第一關形成過強封鎖。
+- CORE SIGNAL LOST 維持無 HP/無 alert，碰撞後顯示疊層並重置關卡。

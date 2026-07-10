@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>COREO Dark Variant - v0.3.4</title>
+  <title>COREO Dark Variant - v0.5</title>
   <meta name="theme-color" content="#0A0A0C">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,7 +25,7 @@
   </div>
 
   <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
-  <div id="version-tag">COREO DARK v0.3.4</div>
+  <div id="version-tag">COREO DARK v0.5</div>
 
   <!-- 3D 遊戲世界 -->
   <div id="game-container">
@@ -49,6 +49,13 @@
     <div class="hud-label" style="margin-top:20px;">TAP TO RESTART</div>
   </div>
 
+  <!-- CORE SIGNAL LOST：被反派碰到時的失敗疊層（不是死亡/HP，無 alert） -->
+  <div id="signal-lost-overlay">
+    <div class="lc-title" style="color: var(--coreo-danger);">CORE SIGNAL LOST</div>
+    <div class="lc-line" style="background: var(--coreo-danger); box-shadow: 0 0 12px var(--coreo-danger);"></div>
+    <div class="hud-label" style="margin-top:20px;">RECONNECTING...</div>
+  </div>
+
   <script src="js/maze.js"></script>
   <script src="js/control.js"></script>
   <script src="js/camera.js"></script>
@@ -68,6 +75,7 @@
   </script>
 </body>
 </html>
+
 
 
 
