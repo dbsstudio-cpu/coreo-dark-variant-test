@@ -6,15 +6,15 @@ const EnemyLogic = {
   patrolRoute: [],
   patrolIndex: 0,
   currentTarget: null,
-  baseAlertRadius: 165,
-  alertRadius: 165,
+  baseAlertRadius: 145,
+  alertRadius: 145,
   pathAlertLimit: 7,
   pathSearchLimit: 24,
-  chaseDuration: 3600,
+  chaseDuration: 2600,
   chaseTimer: 0,
   alertDelay: 180,
   patrolSpeed: 0.62,
-  chaseSpeed: 1.45,
+  chaseSpeed: 1.30,
   radius: 22,
   reactionTimer: 0,
   reactionInterval: 180,
@@ -118,12 +118,20 @@ const EnemyLogic = {
         this.state = 'search';
         this.searchTimer = this.searchDuration;
         FX.toggleGlobalAlert(false);
-      } else if (distToPlayer > this.alertRadius * 2.4) {
+      } else if (distToPlayer > this.alertRadius * 1.5) {
+        // 玩家只要拉開約 1.5 倍偵測距離，反派就會放棄追逐，確保玩家有實際逃脫空間，
+        // 不會被黏在窄通道動彈不得
         this.state = 'search';
         this.searchTimer = this.searchDuration;
         FX.toggleGlobalAlert(false);
+      } else {
+        this.chaseTimer -= dt;
+        if (this.chaseTimer <= 0) {
+          this.state = 'search';
+          this.searchTimer = this.searchDuration;
+          FX.toggleGlobalAlert(false);
+        }
       }
-      // chaseTimer 只用來偵測長時間追逐無效，但門檻拉高，不提前放棄
     } else if (this.state === 'search') {
       if (!isPlayerHidden && pathToPlayer && (pathDistance <= this.pathAlertLimit || distToPlayer < this.alertRadius)) {
         // 搜索途中重新發現玩家，直接回追逐
