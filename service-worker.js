@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v051-visible-villain-20260710';
+﻿const COREO_CACHE = 'coreo-dark-variant-v052-patrol-route-fix-20260710';
 const COREO_ASSETS = [
   './',
   './index.html',
