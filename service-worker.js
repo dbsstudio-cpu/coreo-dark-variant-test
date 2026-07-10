@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v059-stable-chase-20260710';
+﻿const COREO_CACHE = 'coreo-dark-variant-v0510-direct-chase-20260710';
 const COREO_ASSETS = [
   './',
   './index.html',
