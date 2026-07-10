@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v057-replanned-stage01-20260710';
+﻿const COREO_CACHE = 'coreo-dark-variant-v058-reasonable-chase-20260710';
 const COREO_ASSETS = [
   './',
   './index.html',
