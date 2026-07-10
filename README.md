@@ -94,3 +94,11 @@
 - `enemy.js` 新增限制範圍 BFS 尋路追逐，反派會繞路追玩家，但只搜尋 12 格，不是全知追殺。
 - 玩家進入 Type 6 躲藏凹槽或拉開距離時，反派會中斷追逐回巡邏。
 - Service Worker cache 更新為 `coreo-dark-variant-v053-pathfinding-chase-20260710`。
+
+## 2026-07-10 v0.5.5 主動路徑追逐與能量增加
+- 跳過 v0.5.4，版本更新為 `COREO DARK v0.5.5`。
+- 反派巡邏點修正為合法近場 Hall A/B 路線，不再使用超出地圖的 40.5/44.5。
+- 反派發現玩家改用路徑距離判定：`pathAlertLimit: 12`，不只靠直線距離。
+- 追逐使用 `findPathToPlayer()`，搜尋上限提高到 24 格；短暫失去路徑時保留 1 秒記憶。
+- 新增多個一般能量點，讓測試收集與主角放大效果更容易觀察。
+- Service Worker cache 更新為 `coreo-dark-variant-v055-active-path-chase-20260710`。

@@ -1,56 +1,48 @@
 ﻿// js/maze.js
 const MazeLogic = {
-  // 0: wall, 1: path, 2: start, 3: exit, 4: light core, 5: boost core, 6: hide pocket
-  // 7x47 Stage01 v2.9.1: longer first-stage route, short hide pockets, reward dead ends.
+  // 0:牆壁, 1:路徑, 2:起點, 3:出口, 4:一般能量, 5:強化能量, 6:躲藏凹槽
+  // 7x39，Gameplay Rule Layer Stage01：三個反派教學區（巡邏/埋伏/出口前壓力）
   getTestCorridor: function() {
     const map = [
       [0,0,0,3,0,0,0], // y=0  Exit
       [0,0,0,1,0,0,0],
       [0,0,0,1,0,0,0],
-      [0,0,0,1,0,0,0],
-      [0,0,0,1,0,0,0],
-      [0,0,0,1,0,0,0],
-      [0,1,1,1,1,1,0], // y=6  Hall H
-      [0,1,0,0,0,5,0], // reward dead end
-      [0,1,0,0,0,0,0],
-      [0,1,0,0,0,0,0],
-      [0,1,0,0,0,0,0],
-      [0,1,0,0,0,0,0],
-      [0,1,1,1,1,1,0], // y=12 Hall G
+      [0,1,4,1,1,1,0], // y=3  Hall G ← 出口前壓力區
       [0,0,0,1,0,1,0],
       [0,0,0,1,0,1,0],
       [0,0,0,1,0,1,0],
-      [0,1,1,1,4,1,0], // y=16 Hall F
-      [0,1,0,0,0,0,0],
-      [0,1,1,1,1,1,0], // y=18 Hall E
+      [0,0,0,1,0,1,0], // y=7  純錯路①
       [0,0,0,0,0,1,0],
-      [0,0,0,0,6,1,0], // short hide pocket
-      [0,0,0,0,0,1,0],
-      [0,0,0,0,0,1,0],
-      [0,0,0,0,0,1,0],
-      [0,1,1,1,1,1,0], // y=24 Hall D
-      [0,1,0,0,0,0,0],
-      [0,1,0,0,0,0,0],
-      [0,1,6,1,0,0,0], // short hide pocket beside patrol pressure
-      [0,1,0,1,0,0,0], // bypass lane
-      [0,1,1,1,1,1,0], // y=29 Hall C
-      [0,1,1,1,0,1,0], // enemy patrol can bend here without sealing route
-      [0,0,0,1,0,0,0],
-      [0,0,0,1,0,0,0],
-      [0,0,0,1,0,0,0],
-      [0,1,1,1,1,1,0], // y=34 Hall B
-      [0,1,0,0,0,4,0], // reward branch
-      [0,1,1,1,1,1,0], // y=36 Hall A
-      [0,0,0,0,0,1,0],
-      [0,0,0,0,0,1,0],
-      [0,0,0,0,0,1,0],
-      [0,1,1,1,1,1,0], // y=40 Start approach
+      [0,1,1,1,1,1,0], // y=9  Hall F
+      [0,1,0,1,0,6,0], // y=10 埋伏教學區入口 + 躲藏凹槽①
       [0,1,0,1,0,0,0],
       [0,1,0,1,0,0,0],
       [0,1,0,1,0,0,0],
-      [0,1,4,1,1,1,0], // y=44 first branch/core
+      [0,1,0,1,0,0,0],
+      [0,1,0,1,0,0,0], // y=15 誤導型錯路（埋伏教學區主體）
+      [0,1,0,0,0,0,0],
+      [0,1,1,1,4,1,0], // y=17 Hall E
+      [0,0,0,1,0,1,0],
+      [0,0,0,1,0,1,0],
+      [0,0,0,1,0,1,0],
+      [0,0,0,1,0,1,0], // y=21 純錯路②
+      [0,0,0,0,0,1,0],
+      [0,1,1,4,1,1,0], // y=23 Hall D + energy
+      [0,1,0,1,0,0,0],
+      [0,1,0,1,0,0,0],
+      [0,1,0,1,0,0,0],
+      [0,1,0,5,0,0,0], // y=27 獎勵死路（強化能量）
+      [0,1,0,0,0,0,0],
+      [0,1,4,1,1,1,0], // y=29 Hall C ← 巡邏教學區 + energy
+      [0,6,0,0,0,1,0], // y=30 躲藏凹槽②
+      [0,0,0,0,0,1,0],
+      [0,4,1,1,1,1,0], // y=32 Hall B + energy
       [0,0,0,1,0,0,0],
-      [0,0,0,2,0,0,0]  // y=46 Start
+      [0,0,0,1,0,0,0],
+      [0,1,1,4,1,4,0], // y=35 Hall A ← 巡邏教學起點 + energy
+      [0,0,0,1,0,0,0],
+      [0,0,0,1,0,0,0],
+      [0,0,0,2,0,0,0]  // y=38 Start
     ];
     this.verifySolvable(map);
     return map;
@@ -64,18 +56,14 @@ const MazeLogic = {
         if (maze[y][x] === 3) exit = {x, y};
       }
     }
-    if (!start || !exit) {
-      console.error('[Maze] Missing start or exit.');
-      return false;
-    }
-    const queue = [start];
-    const visited = new Set([`${start.x},${start.y}`]);
+    let queue = [start];
+    let visited = new Set([`${start.x},${start.y}`]);
     while (queue.length > 0) {
-      const curr = queue.shift();
+      let curr = queue.shift();
       if (curr.x === exit.x && curr.y === exit.y) return true;
       const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
-      for (const d of dirs) {
-        const nx = curr.x + d[0], ny = curr.y + d[1];
+      for (let d of dirs) {
+        let nx = curr.x + d[0], ny = curr.y + d[1];
         if (ny >= 0 && ny < maze.length && nx >= 0 && nx < maze[0].length) {
           if (maze[ny][nx] !== 0 && !visited.has(`${nx},${ny}`)) {
             visited.add(`${nx},${ny}`);
@@ -84,7 +72,9 @@ const MazeLogic = {
         }
       }
     }
-    console.error('[Maze] Unsolvable corridor.');
+    console.error('[Maze] 驗證失敗：無解的走廊！');
     return false;
   }
 };
+
+

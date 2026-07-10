@@ -27,15 +27,16 @@ window.addEventListener('DOMContentLoaded', () => {
   playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
-  // v0.5.3: visible short patrol near spawn. Chase uses limited pathfinding in enemy.js.
+  // v0.5.5: legal near-spawn patrol. Active chase uses path-distance sensing in enemy.js.
   const enemyRoute = [
-    { x: 3.5 * CELL_SIZE, y: 40.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 40.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
-    { x: 5.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 44.5 * CELL_SIZE },
-    { x: 3.5 * CELL_SIZE, y: 40.5 * CELL_SIZE }
+    { x: 3.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
+    { x: 1.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
+    { x: 3.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
+    { x: 5.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
+    { x: 3.5 * CELL_SIZE, y: 35.5 * CELL_SIZE },
+    { x: 3.5 * CELL_SIZE, y: 32.5 * CELL_SIZE },
+    { x: 5.5 * CELL_SIZE, y: 32.5 * CELL_SIZE },
+    { x: 3.5 * CELL_SIZE, y: 32.5 * CELL_SIZE }
   ];
 
   EnemyLogic.init(enemyRoute, 'villainHunt');
