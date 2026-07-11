@@ -69,14 +69,8 @@ window.addEventListener('DOMContentLoaded', () => {
       if (coreDOM) FX.collectCore(coreDOM, playerSprite, type);
 
       if (type === 5) {
-        currentSpeed = baseSpeed * 1.5;
-        EnemyLogic.alertRadius = EnemyLogic.baseAlertRadius * 0.6;
+        // v0.5.13.2: GPT 裁決取消暴衝，Core Pulse 只保留收集回饋，不再改變移動速度或反派警戒範圍
         FX.triggerSpeedBoost(2500, playerSprite);
-
-        setTimeout(() => {
-          currentSpeed = baseSpeed;
-          EnemyLogic.alertRadius = EnemyLogic.baseAlertRadius;
-        }, 2500);
       }
     }
 

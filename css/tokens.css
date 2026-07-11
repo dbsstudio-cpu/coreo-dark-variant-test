@@ -1,12 +1,13 @@
 ﻿/* css/tokens.css */
 :root {
-  --coreo-bg-base: #0A0A0C;
+  --coreo-bg-base: #050508;
   --coreo-bg-secondary: #151517;
   --coreo-surface-raised: #3C3C40;
-  --coreo-path: #1E1E22;
+  --coreo-path: #4A4A52;
   --coreo-path-edge: #4A4A50;
   --coreo-wall-side: #202024;
-  --coreo-wall-face: #323236;
+  --coreo-wall-face: #6E6E78;
+  --coreo-edge-highlight: rgba(255, 255, 255, 0.15);
   --coreo-text-primary: #F5F5F7;
   --coreo-text-secondary: #86868B;
   --coreo-glow-core: #00E5FF;
@@ -185,13 +186,13 @@ body {
 }
 
 .cell.wall {
-  background: linear-gradient(145deg, #3E3E42 0%, var(--coreo-wall-face) 60%, #2C2C30 100%);
+  background: linear-gradient(145deg, #84848E 0%, var(--coreo-wall-face) 60%, #57575F 100%);
   border-radius: 14px;
   transform: translateZ(18px);
   box-shadow:
     0 18px 34px rgba(4, 4, 6, 0.62),
     inset 0 1px 0 rgba(245, 245, 247, 0.16),
-    inset 0 0 0 1px rgba(245, 245, 247, 0.07);
+    inset 0 0 0 1px var(--coreo-edge-highlight);
 }
 
 .cell.wall::after {
@@ -386,9 +387,8 @@ body {
 #joystick-zone {
   position: fixed;
   bottom: 0;
-  left: 28px;
-  right: 28px;
-  width: auto;
+  left: 0;
+  width: 100%;
   height: max(52%, 360px);
   z-index: 2000;
   touch-action: none;

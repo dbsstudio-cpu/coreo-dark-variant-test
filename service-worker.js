@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v05131-edge-swipe-fix-20260711';
+﻿const COREO_CACHE = 'coreo-dark-variant-v05132-gpt-decision-color-speed-20260711';
 const COREO_ASSETS = [
   './',
   './index.html',
