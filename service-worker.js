@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v0513-orientation-brightness-20260711';
+﻿const COREO_CACHE = 'coreo-dark-variant-v05131-edge-swipe-fix-20260711';
 const COREO_ASSETS = [
   './',
   './index.html',
