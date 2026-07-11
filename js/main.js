@@ -26,11 +26,12 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => el.classList.remove('glow'), 200);
   }
 
-  // v0.5.19: 拿到 Core Pulse 瞬間，迷宮矩陣接縫灌滿金色霓虹光後緩慢冷卻（純 CSS transition 驅動）
+  // v0.5.19/v0.5.20: 拿到 Core Pulse 瞬間，迷宮矩陣接縫灌滿金色霓虹光、反應裝甲牆體跳秒冷卻，
+  // class 要留到跳秒動畫（3.5s）播完才拿掉，keyframes 動畫必須整段時間都符合這個 class 才會持續播放
   function energizeMatrix() {
     if (!world) return;
     world.classList.add('energized');
-    setTimeout(() => world.classList.remove('energized'), 150);
+    setTimeout(() => world.classList.remove('energized'), 3600);
   }
 
   const pristineMazeData = JSON.parse(JSON.stringify(MazeLogic.getTestCorridor()));

@@ -209,6 +209,52 @@ body {
   transition: box-shadow 0.1s ease-out;
 }
 
+/* v0.5.20：反應裝甲牆體——最多 3 組長方形大牆體，觸發時跳秒式冷卻，製造動力爐啟動的心跳感 */
+#world.energized .reactive-block {
+  animation: reactive-countdown 3.5s steps(4, end) forwards;
+}
+@keyframes reactive-countdown {
+  0% {
+    box-shadow:
+      0 0 0 1px var(--coreo-matrix-glow),
+      0 18px 34px rgba(4, 4, 6, 0.62),
+      inset 0 1px 0 rgba(245, 245, 247, 0.16),
+      inset 0 0 0 1px var(--coreo-edge-highlight),
+      inset 0 0 24px rgba(255, 214, 10, 0.6);
+  }
+  25% {
+    box-shadow:
+      0 0 0 1px var(--coreo-matrix-glow),
+      0 18px 34px rgba(4, 4, 6, 0.62),
+      inset 0 1px 0 rgba(245, 245, 247, 0.16),
+      inset 0 0 0 1px var(--coreo-edge-highlight),
+      inset 0 0 16px rgba(255, 214, 10, 0.38);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px var(--coreo-matrix-glow),
+      0 18px 34px rgba(4, 4, 6, 0.62),
+      inset 0 1px 0 rgba(245, 245, 247, 0.16),
+      inset 0 0 0 1px var(--coreo-edge-highlight),
+      inset 0 0 9px rgba(255, 214, 10, 0.2);
+  }
+  75% {
+    box-shadow:
+      0 0 0 1px var(--coreo-matrix-glow),
+      0 18px 34px rgba(4, 4, 6, 0.62),
+      inset 0 1px 0 rgba(245, 245, 247, 0.16),
+      inset 0 0 0 1px var(--coreo-edge-highlight),
+      inset 0 0 3px rgba(255, 214, 10, 0.08);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1px var(--coreo-matrix-glow),
+      0 18px 34px rgba(4, 4, 6, 0.62),
+      inset 0 1px 0 rgba(245, 245, 247, 0.16),
+      inset 0 0 0 1px var(--coreo-edge-highlight);
+  }
+}
+
 .cell.wall::after {
   content: '';
   position: absolute;

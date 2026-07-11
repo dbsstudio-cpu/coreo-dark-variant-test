@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v0519-color-fix-matrix-glow-20260711';
+﻿const COREO_CACHE = 'coreo-dark-variant-v0520-reactive-block-countdown-20260711';
 const COREO_ASSETS = [
   './',
   './index.html',

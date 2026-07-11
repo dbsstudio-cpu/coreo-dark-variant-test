@@ -50,6 +50,9 @@ const Render3D = {
     }
 
     // 2. 牆體處理：全面貪婪合併成大型實體區塊
+    // v0.5.20：從中挑出最多 3 組真正的長方形大牆體，標記為「反應裝甲」，供 Core Pulse 觸發跳秒光效
+    let reactiveAssigned = 0;
+    const maxReactiveBlocks = 3;
     let visitedWalls = Array(h).fill(0).map(() => Array(w).fill(false));
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -75,7 +78,9 @@ const Render3D = {
               visitedWalls[ty][tx] = true;
             }
           }
-          this.createBlock(world, x, y, blockW, blockH, 'wall');
+          const isReactive = reactiveAssigned < maxReactiveBlocks && Math.max(blockW, blockH) >= 3;
+          if (isReactive) reactiveAssigned++;
+          this.createBlock(world, x, y, blockW, blockH, isReactive ? 'wall reactive-block' : 'wall');
         }
       }
     }
