@@ -458,14 +458,14 @@ body {
   75% { transform: rotate(-8deg) scale(0.95); }
 }
 
-/* v0.5.15：過關 Cinematic Zoom——主角放大 3~4 倍 + 冰藍衝擊波，才彈出 STAGE SECURED */
+/* v0.5.16：過關 Cinematic Zoom——放慢節奏、往上抬升脫離出口光環，主角放大後停格再暗場 */
 .actor-sprite.player-victory-zoom {
-  animation: victory-zoom 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: victory-zoom 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes victory-zoom {
-  0% { transform: scale(1); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
-  60% { transform: scale(3.6); filter: drop-shadow(0 0 40px rgba(0, 229, 255, 1)); }
-  100% { transform: scale(3.2); filter: drop-shadow(0 0 30px rgba(0, 229, 255, 0.9)); }
+  0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
+  70% { transform: scale(3.6) translateY(-18px); filter: drop-shadow(0 0 42px rgba(0, 229, 255, 1)); }
+  100% { transform: scale(3.6) translateY(-18px); filter: drop-shadow(0 0 34px rgba(0, 229, 255, 0.95)); }
 }
 
 .victory-burst {
@@ -481,11 +481,11 @@ body {
   opacity: 1;
   pointer-events: none;
   z-index: 200;
-  animation: victory-burst-expand 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: victory-burst-expand 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes victory-burst-expand {
   0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; }
-  100% { transform: translate(-50%, -50%) scale(14); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(16); opacity: 0; }
 }
 
 #level-complete-overlay {
@@ -750,12 +750,13 @@ body {
   justify-content: center;
 }
 
+/* v0.5.16：擂台對稱構圖——主角左上／反派右下對角拉開，兩者體積接近一比一，主角略大 */
 .cinematic-ember {
   position: absolute;
-  top: 13%;
+  bottom: 4%;
   right: 4%;
-  width: 58%;
-  max-width: 260px;
+  width: 48%;
+  max-width: 212px;
   animation: breathe-ember 5s ease-in-out infinite;
 }
 .cinematic-ember img {
@@ -766,10 +767,10 @@ body {
 
 .cinematic-player {
   position: absolute;
-  bottom: 10%;
-  left: 9%;
-  width: 53%;
-  max-width: 231px;
+  top: 4%;
+  left: 4%;
+  width: 54%;
+  max-width: 236px;
   animation: breathe-player 4s ease-in-out infinite;
 }
 .cinematic-player img {
@@ -777,6 +778,16 @@ body {
   height: auto;
   filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.5));
 }
+
+.cinematic-name {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 2px;
+  margin-top: 8px;
+}
+.player-name { color: var(--coreo-glow-core); }
+.ember-name { color: #FF3B30; }
 
 /* GEM：兩者呼吸節奏刻意不同步（4s / 5s），避免同步跳動的廉價感 */
 @keyframes breathe-player {
@@ -799,7 +810,7 @@ body {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.15); /* 高光框線 */
   border-radius: 18px;
-  padding: 22px 20px;
+  padding: 28px 24px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -840,8 +851,9 @@ body {
 }
 
 .info-mission {
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 18px;
+  margin-top: 2px;
 }
 .info-mission p {
   font-size: 0.85rem;

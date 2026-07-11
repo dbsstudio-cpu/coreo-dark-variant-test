@@ -28,7 +28,9 @@ const EnemyLogic = {
   domElement: null,
   spriteElement: null,
   guardAnchor: null,
-  maxChaseDistanceFromGuard: 520,
+  // v0.5.16：拿到 Pulse 往出口跑時，EMBER 要能持續施壓，追逐範圍從守護區錨點放大到接近出口，
+  // 只在出口前留一小段安全區，確保玩家仍有辦法甩開，不會變成無解
+  maxChaseDistanceFromGuard: 950,
 
   init: function(route, enemyType = 'villainHunt') {
     this.type = enemyType;

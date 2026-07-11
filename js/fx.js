@@ -78,7 +78,7 @@ const FX = {
       overlay.addEventListener('click', () => {
         location.reload();
       }, {once: true});
-    }, 900);
+    }, 2200);
   },
 
   toggleGlobalAlert: function(isActive) {
