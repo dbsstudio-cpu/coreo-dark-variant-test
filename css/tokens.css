@@ -3,7 +3,8 @@
   --coreo-bg-base: #050508;
   --coreo-bg-secondary: #151517;
   --coreo-surface-raised: #3C3C40;
-  --coreo-path: #3D4251;
+  /* v0.5.21：深空玻璃底盤方向——路徑大幅壓暗趨近深空黑，但刻意保留一階可辨識差，不做到跟背景完全同色 */
+  --coreo-path: #12141C;
   --coreo-path-edge: #4A4A50;
   --coreo-wall-side: #202024;
   --coreo-wall-face: #5A6275;
@@ -170,6 +171,12 @@ body {
   transform: rotateX(40deg) translateZ(-165px);
   transition: transform 0.08s linear;
   will-change: transform;
+  /* v0.5.21：深空玻璃底盤——整塊迷宮懸浮在透明玻璃板上，只用透明底色＋邊框做出反光邊緣，
+     刻意不用 backdrop-filter（會隨鏡頭捲動持續做模糊取樣，Android 效能風險高） */
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
 }
 
 /* =========================================
