@@ -215,7 +215,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const briefingEnterBtn = document.getElementById('briefing-enter-btn');
 
   function startGame() {
-    if (briefingOverlay) briefingOverlay.classList.remove('show');
+    if (briefingOverlay) {
+      briefingOverlay.classList.remove('show');
+      // 關掉後直接脫離渲染樹，不能只靠 opacity:0，
+      // 不然裡面的漂浮動畫、漸層背景會在背景持續運算，拖垮 Android 幀率、
+      // 造成 dt 忽大忽小，主角跟反派移動就會看起來像卡頓後爆衝
+      briefingOverlay.style.display = 'none';
+    }
     lastTime = performance.now();
     requestAnimationFrame(gameLoop);
   }

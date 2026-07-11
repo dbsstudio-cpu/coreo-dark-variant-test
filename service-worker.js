@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v0514-stage-briefing-core-pulse-20260711';
+﻿const COREO_CACHE = 'coreo-dark-variant-v05141-briefing-perf-fix-20260711';
 const COREO_ASSETS = [
   './',
   './index.html',
