@@ -8,6 +8,7 @@
   --coreo-wall-side: #202024;
   --coreo-wall-face: #5A6275;
   --coreo-edge-highlight: rgba(255, 255, 255, 0.15);
+  --coreo-matrix-glow: rgba(0, 229, 255, 0.05);
   --coreo-text-primary: #F5F5F7;
   --coreo-text-secondary: #86868B;
   --coreo-glow-core: #00E5FF;
@@ -51,9 +52,10 @@ body {
   width: 100%;
   height: 100%;
   min-height: 100%;
+  /* v0.5.19：牆體改冷藍灰後，原本的粉紅警戒環境光相對變搶戲，疊出偏粉紫的色偏，降低強度壓回去 */
   background:
     radial-gradient(circle at 50% 12%, rgba(0, 229, 255, 0.17), transparent 34%),
-    radial-gradient(circle at 82% 36%, rgba(255, 45, 85, 0.12), transparent 24%),
+    radial-gradient(circle at 82% 36%, rgba(255, 45, 85, 0.06), transparent 22%),
     linear-gradient(180deg, #151517 0%, var(--coreo-bg-base) 48%, #070708 100%);
   color: var(--coreo-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -182,7 +184,9 @@ body {
   background: var(--coreo-path);
   box-shadow:
     inset 0 0 0 1px rgba(245, 245, 247, 0.055),
-    0 0 18px rgba(0, 229, 255, 0.045);
+    0 0 18px rgba(0, 229, 255, 0.045),
+    inset 0 0 0 1px var(--coreo-matrix-glow);
+  transition: box-shadow 1.5s ease-in;
 }
 
 .cell.wall {
@@ -190,10 +194,19 @@ body {
   background: linear-gradient(145deg, #7A8398 0%, var(--coreo-wall-face) 60%, #434A5E 100%);
   border-radius: 14px;
   transform: translateZ(18px);
+  transition: box-shadow 1.5s ease-in;
   box-shadow:
+    0 0 0 1px var(--coreo-matrix-glow),
     0 18px 34px rgba(4, 4, 6, 0.62),
     inset 0 1px 0 rgba(245, 245, 247, 0.16),
     inset 0 0 0 1px var(--coreo-edge-highlight);
+}
+
+/* v0.5.19：拿到 Core Pulse 瞬間，迷宮矩陣接縫灌滿金色霓虹光，快速亮起、緩慢冷卻回常態 */
+#world.energized .cell.path,
+#world.energized .cell.wall {
+  --coreo-matrix-glow: rgba(255, 214, 10, 0.85);
+  transition: box-shadow 0.1s ease-out;
 }
 
 .cell.wall::after {

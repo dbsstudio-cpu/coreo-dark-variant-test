@@ -26,6 +26,13 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => el.classList.remove('glow'), 200);
   }
 
+  // v0.5.19: 拿到 Core Pulse 瞬間，迷宮矩陣接縫灌滿金色霓虹光後緩慢冷卻（純 CSS transition 驅動）
+  function energizeMatrix() {
+    if (!world) return;
+    world.classList.add('energized');
+    setTimeout(() => world.classList.remove('energized'), 150);
+  }
+
   const pristineMazeData = JSON.parse(JSON.stringify(MazeLogic.getTestCorridor()));
   let mazeData = JSON.parse(JSON.stringify(pristineMazeData));
   let playerPos = Render3D.buildWorld(mazeData);
@@ -92,12 +99,14 @@ window.addEventListener('DOMContentLoaded', () => {
           if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
           flashHud(hudPulseVal);
           FX.triggerSpeedBoost(600, playerSprite);
+          energizeMatrix();
         }
       } else {
         pulseCount++;
         if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
         flashHud(hudPulseVal);
         FX.triggerSpeedBoost(2500, playerSprite);
+        energizeMatrix();
       }
     }
 
