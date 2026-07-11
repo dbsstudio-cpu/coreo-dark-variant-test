@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v0521-glass-chassis-void-path-20260711';
+﻿const COREO_CACHE = 'coreo-dark-variant-v0522-path-brightness-revert-20260711';
 const COREO_ASSETS = [
   './',
   './index.html',

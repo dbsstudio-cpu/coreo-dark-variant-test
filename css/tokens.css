@@ -3,8 +3,8 @@
   --coreo-bg-base: #050508;
   --coreo-bg-secondary: #151517;
   --coreo-surface-raised: #3C3C40;
-  /* v0.5.21：深空玻璃底盤方向——路徑大幅壓暗趨近深空黑，但刻意保留一階可辨識差，不做到跟背景完全同色 */
-  --coreo-path: #12141C;
+  /* v0.5.22：深空玻璃底盤的「路徑趨近全黑」實測辨識度太低，退回 v0.5.18 驗證有效的深藍灰 */
+  --coreo-path: #3D4251;
   --coreo-path-edge: #4A4A50;
   --coreo-wall-side: #202024;
   --coreo-wall-face: #5A6275;
