@@ -215,8 +215,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const briefingEnterBtn = document.getElementById('briefing-enter-btn');
 
   function startGame() {
-    const fullscreenRequest = document.documentElement.requestFullscreen?.();
-    fullscreenRequest?.catch?.(() => {});
 
     if (briefingOverlay) {
       briefingOverlay.classList.remove('show');
