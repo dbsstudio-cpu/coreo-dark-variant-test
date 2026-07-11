@@ -458,14 +458,14 @@ body {
   75% { transform: rotate(-8deg) scale(0.95); }
 }
 
-/* v0.5.16：過關 Cinematic Zoom——放慢節奏、往上抬升脫離出口光環，主角放大後停格再暗場 */
+/* v0.5.17：過關 Cinematic Zoom——持續往上飄升脫離迷宮結構、進入畫面上方空白深空區，到頂點才凍結暗場 */
 .actor-sprite.player-victory-zoom {
-  animation: victory-zoom 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: victory-zoom 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes victory-zoom {
   0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
-  70% { transform: scale(3.6) translateY(-18px); filter: drop-shadow(0 0 42px rgba(0, 229, 255, 1)); }
-  100% { transform: scale(3.6) translateY(-18px); filter: drop-shadow(0 0 34px rgba(0, 229, 255, 0.95)); }
+  45% { transform: scale(2.4) translateY(-150px); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
+  100% { transform: scale(3.8) translateY(-340px); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
 }
 
 .victory-burst {
@@ -481,7 +481,7 @@ body {
   opacity: 1;
   pointer-events: none;
   z-index: 200;
-  animation: victory-burst-expand 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: victory-burst-expand 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes victory-burst-expand {
   0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; }

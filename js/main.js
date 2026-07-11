@@ -215,6 +215,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const briefingEnterBtn = document.getElementById('briefing-enter-btn');
 
   function startGame() {
+    const fullscreenRequest = document.documentElement.requestFullscreen?.();
+    fullscreenRequest?.catch?.(() => {});
+
     if (briefingOverlay) {
       briefingOverlay.classList.remove('show');
       // 關掉後直接脫離渲染樹，不能只靠 opacity:0，

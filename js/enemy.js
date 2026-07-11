@@ -129,11 +129,13 @@ const EnemyLogic = {
         this.searchTimer = this.searchDuration;
         FX.toggleGlobalAlert(false);
       } else if (
-        distToPlayer > this.alertRadius * 1.5 ||
+        distToPlayer > this.alertRadius * 4 ||
         Math.hypot(this.x - this.guardAnchor.x, this.y - this.guardAnchor.y) > this.maxChaseDistanceFromGuard
       ) {
-        // 玩家拉開約 1.5 倍偵測距離、或反派追出守護區錨點 maxChaseDistanceFromGuard 範圍，任一成立就放棄，
-        // 確保玩家有實際逃脫空間，也確保追逐範圍涵蓋地圖中段大半而不是被巡邏路線鎖死
+        // v0.5.17：原本 1.5 倍偵測距離的即時放棄門檻太小（約217px），玩家往出口衝刺時幾乎瞬間就會觸發，
+        // 導致完全用不到守護區錨點那個更大的範圍——這才是「拿到 Pulse 後反派不追」的真正原因。
+        // 改成 4 倍（約580px），讓守護區錨點範圍才是真正的主要邊界。玩家基礎速度(4.2)遠快於反派追逐速度(1.30)，
+        // 只要持續移動仍然一定甩得掉，不會變成無解
         this.state = 'search';
         this.searchTimer = this.searchDuration;
         FX.toggleGlobalAlert(false);

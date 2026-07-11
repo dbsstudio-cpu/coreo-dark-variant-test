@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v0516-briefing-v2-zoom-pacing-chase-range-20260711';
+﻿const COREO_CACHE = 'coreo-dark-variant-v05171-android-fullscreen-gesture-fix-20260711';
 const COREO_ASSETS = [
   './',
   './index.html',
