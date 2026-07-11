@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>COREO Dark Variant - v0.5.14.1</title>
+  <title>COREO Dark Variant - v0.5.14.2</title>
   <meta name="theme-color" content="#0A0A0C">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,52 +29,51 @@
   </div>
 
   <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
-  <div id="version-tag">COREO DARK v0.5.14.1</div>
+  <div id="version-tag">COREO DARK v0.5.14.2</div>
 
-  <!-- Stage Briefing：進關卡前的全螢幕任務啟動畫面 -->
+  <!-- Stage Briefing (Cinematic Poster v1.0) -->
   <div id="stage-briefing" class="show">
-    <div class="briefing-inner">
-      <div class="briefing-title">
-        <div class="briefing-stage-num">STAGE 01｜CORE AWAKENING</div>
-        <div class="briefing-stage-sub">第一關｜核心甦醒</div>
+    <!-- 深度空間背景與光效 -->
+    <div class="briefing-bg">
+      <div class="bg-glow-player"></div>
+      <div class="bg-glow-ember"></div>
+    </div>
+
+    <div class="briefing-content">
+      <!-- 頂部：極簡關卡代號 -->
+      <div class="briefing-header">
+        <h2>STAGE 01 | CORE AWAKENING</h2>
+        <p>第一關｜核心甦醒</p>
       </div>
 
-      <div class="briefing-row">
-        <div class="briefing-card hero">
-          <div class="briefing-avatar hero-avatar"></div>
-          <div class="briefing-card-title">LIGHT CORE</div>
-          <div class="briefing-card-desc">在迷宮中收集核心碎片，啟動出口。</div>
+      <!-- 中央：大型對峙懸浮 -->
+      <div class="briefing-cinematic">
+        <div class="cinematic-ember">
+          <img src="assets/enemy_ember.png" alt="EMBER" />
         </div>
-        <div class="briefing-card villain">
-          <div class="briefing-avatar villain-avatar"></div>
-          <div class="briefing-card-title">EMBER｜熾核獵者</div>
-          <div class="briefing-card-desc">它會等待、阻擋並追逐靠近的主角。</div>
+        <div class="cinematic-player">
+          <img src="assets/player.png" alt="COREO" />
         </div>
       </div>
 
-      <div class="briefing-row resources">
-        <div class="briefing-resource">
-          <div class="briefing-resource-icon shard"></div>
-          <div class="briefing-resource-text">
-            <div class="briefing-card-title">Core Shard｜核光碎片</div>
-            <div class="briefing-card-desc">收集 5 個，可形成 1 個 Core Pulse。</div>
+      <!-- 底部：極簡資源與任務卡片 & 啟動按鈕 -->
+      <div class="briefing-footer">
+        <div class="briefing-info-card">
+          <div class="info-row">
+            <span class="info-icon shard-icon"></span>
+            <p><strong>Core Shard｜核光碎片</strong>：收集 5 個，可形成 1 個 Core Pulse。</p>
+          </div>
+          <div class="info-row">
+            <span class="info-icon pulse-icon"></span>
+            <p><strong>Core Pulse｜脈衝核心</strong>：啟動出口的必要能量。</p>
+          </div>
+          <div class="info-mission">
+            <p>收集核光碎片，形成 Core Pulse，避開 EMBER，抵達出口。</p>
           </div>
         </div>
-        <div class="briefing-resource">
-          <div class="briefing-resource-icon pulse"></div>
-          <div class="briefing-resource-text">
-            <div class="briefing-card-title">Core Pulse｜脈衝核心</div>
-            <div class="briefing-card-desc">啟動出口的必要能量。</div>
-          </div>
-        </div>
-      </div>
 
-      <div class="briefing-mission">
-        <div class="briefing-mission-label">MISSION</div>
-        <div class="briefing-mission-text">收集 Core Pulse，避開 EMBER，抵達出口。</div>
+        <button id="briefing-enter-btn">ENTER STAGE 01</button>
       </div>
-
-      <button id="briefing-enter-btn" class="briefing-enter-btn">ENTER STAGE 01</button>
     </div>
   </div>
 
