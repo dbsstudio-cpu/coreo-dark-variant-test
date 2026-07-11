@@ -1,10 +1,10 @@
 ﻿// js/fx.js
 const FX = {
   collectCore: function(coreDOM, spriteDOM, type) {
-    const uiCore = document.getElementById('ui-core-val');
+    const isBoost = type === 5;
+    const uiCore = document.getElementById(isBoost ? 'ui-pulse-val' : 'ui-shard-val');
     const rect = coreDOM.getBoundingClientRect();
     const uiRect = uiCore.getBoundingClientRect();
-    const isBoost = type === 5;
 
     const particle = document.createElement('div');
     particle.style.position = 'fixed';
@@ -31,12 +31,10 @@ const FX = {
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)'
     });
 
+    // v0.5.14: 計數與 HUD 文字改由 main.js 的 shardCount/pulseCount 統一管理，
+    // 這裡只負責粒子飛行動畫與觸覺回饋，避免重複累加
     animation.onfinish = () => {
       particle.remove();
-      const current = parseInt(uiCore.textContent, 10) || 0;
-      uiCore.textContent = (current + 1).toString().padStart(2, '0');
-      uiCore.classList.add('glow');
-      setTimeout(() => uiCore.classList.remove('glow'), 200);
       if ('vibrate' in navigator) navigator.vibrate([15, 30, 15]);
     };
 
@@ -84,5 +82,18 @@ const FX = {
     setTimeout(() => {
       spriteDOM.classList.remove('player-speed-boost', 'player-boosted');
     }, durationMs);
+  },
+
+  // v0.5.14: 玩家在還沒有 Core Pulse 時碰到出口，用震動+HUD閃爍提醒「出口還沒啟動」，不能單純衝到出口就過關
+  exitLocked: function(spriteDOM, pulseHudEl) {
+    if (spriteDOM && !spriteDOM.classList.contains('shake')) {
+      spriteDOM.classList.add('shake');
+      setTimeout(() => spriteDOM.classList.remove('shake'), 200);
+    }
+    if (pulseHudEl) {
+      pulseHudEl.classList.add('glow');
+      setTimeout(() => pulseHudEl.classList.remove('glow'), 220);
+    }
+    if ('vibrate' in navigator) navigator.vibrate([40, 40, 40, 40, 40]);
   }
 };

@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v05132-gpt-decision-color-speed-20260711';
+﻿const COREO_CACHE = 'coreo-dark-variant-v0514-stage-briefing-core-pulse-20260711';
 const COREO_ASSETS = [
   './',
   './index.html',
@@ -15,7 +15,7 @@ const COREO_ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './assets/player.png',
-  './assets/enemy.png'
+  './assets/enemy_ember.png'
 ];
 
 self.addEventListener('install', (event) => {

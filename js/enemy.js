@@ -27,6 +27,8 @@ const EnemyLogic = {
   chosenStep: { x: 0, y: -1 },
   domElement: null,
   spriteElement: null,
+  guardAnchor: null,
+  maxChaseDistanceFromGuard: 520,
 
   init: function(route, enemyType = 'villainHunt') {
     this.type = enemyType;
@@ -43,6 +45,12 @@ const EnemyLogic = {
     this.searchTimer = 0;
     this.lastKnownCell = null;
     this.chosenStep = { x: 0, y: -1 };
+    // v0.5.14: 守護區錨點＝巡邏路線的平均座標，追逐放棄距離改成從這個錨點算，
+    // 不再只看反派當下位置，才不會被巡邏路線鎖出一條假邊界線
+    this.guardAnchor = route.reduce(
+      (acc, p) => ({ x: acc.x + p.x / route.length, y: acc.y + p.y / route.length }),
+      { x: 0, y: 0 }
+    );
 
     const world = document.getElementById('world');
     if (!this.domElement) {
@@ -118,9 +126,12 @@ const EnemyLogic = {
         this.state = 'search';
         this.searchTimer = this.searchDuration;
         FX.toggleGlobalAlert(false);
-      } else if (distToPlayer > this.alertRadius * 1.5) {
-        // 玩家只要拉開約 1.5 倍偵測距離，反派就會放棄追逐，確保玩家有實際逃脫空間，
-        // 不會被黏在窄通道動彈不得
+      } else if (
+        distToPlayer > this.alertRadius * 1.5 ||
+        Math.hypot(this.x - this.guardAnchor.x, this.y - this.guardAnchor.y) > this.maxChaseDistanceFromGuard
+      ) {
+        // 玩家拉開約 1.5 倍偵測距離、或反派追出守護區錨點 maxChaseDistanceFromGuard 範圍，任一成立就放棄，
+        // 確保玩家有實際逃脫空間，也確保追逐範圍涵蓋地圖中段大半而不是被巡邏路線鎖死
         this.state = 'search';
         this.searchTimer = this.searchDuration;
         FX.toggleGlobalAlert(false);

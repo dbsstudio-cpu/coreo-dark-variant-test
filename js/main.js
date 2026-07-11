@@ -13,6 +13,19 @@ window.addEventListener('DOMContentLoaded', () => {
   let isResetting = false;
   let lastTime = performance.now();
 
+  // v0.5.14: Core Shard / Core Pulse 資源規則（GPT 裁決）
+  const SHARDS_PER_PULSE = 5;
+  let shardCount = 0;
+  let pulseCount = 0;
+  const hudShardVal = document.getElementById('ui-shard-val');
+  const hudPulseVal = document.getElementById('ui-pulse-val');
+
+  function flashHud(el) {
+    if (!el) return;
+    el.classList.add('glow');
+    setTimeout(() => el.classList.remove('glow'), 200);
+  }
+
   const pristineMazeData = JSON.parse(JSON.stringify(MazeLogic.getTestCorridor()));
   let mazeData = JSON.parse(JSON.stringify(pristineMazeData));
   let playerPos = Render3D.buildWorld(mazeData);
@@ -63,20 +76,39 @@ window.addEventListener('DOMContentLoaded', () => {
     const cy = Math.floor(playerPos.y / CELL_SIZE);
     const type = mazeData[cy][cx];
 
+    // type 4 = Core Shard｜核光碎片，type 5 = Core Pulse｜脈衝核心（直接拾取的高階資源點）
     if (type === 4 || type === 5) {
       mazeData[cy][cx] = 1;
       const coreDOM = document.getElementById(`core-${cx}-${cy}`);
       if (coreDOM) FX.collectCore(coreDOM, playerSprite, type);
 
-      if (type === 5) {
-        // v0.5.13.2: GPT 裁決取消暴衝，Core Pulse 只保留收集回饋，不再改變移動速度或反派警戒範圍
+      if (type === 4) {
+        shardCount++;
+        if (hudShardVal) hudShardVal.textContent = shardCount.toString().padStart(2, '0');
+        flashHud(hudShardVal);
+
+        if (shardCount % SHARDS_PER_PULSE === 0) {
+          pulseCount++;
+          if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
+          flashHud(hudPulseVal);
+          FX.triggerSpeedBoost(600, playerSprite);
+        }
+      } else {
+        pulseCount++;
+        if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
+        flashHud(hudPulseVal);
         FX.triggerSpeedBoost(2500, playerSprite);
       }
     }
 
     if (type === 3) {
-      isGameOver = true;
-      FX.levelComplete();
+      // v0.5.14：通關條件改為「至少 1 個 Core Pulse ＋ 抵達出口」，不能單純衝到出口就過關
+      if (pulseCount >= 1) {
+        isGameOver = true;
+        FX.levelComplete();
+      } else {
+        FX.exitLocked(playerSprite, hudPulseVal);
+      }
     }
   }
 
@@ -111,6 +143,11 @@ window.addEventListener('DOMContentLoaded', () => {
     currentSpeed = baseSpeed;
     isGameOver = false;
     EnemyLogic.alertRadius = EnemyLogic.baseAlertRadius;
+
+    shardCount = 0;
+    pulseCount = 0;
+    if (hudShardVal) hudShardVal.textContent = '00';
+    if (hudPulseVal) hudPulseVal.textContent = '0';
 
     const globalAlert = document.getElementById('global-alert-overlay');
     if (globalAlert) globalAlert.classList.remove('flash', 'active');
@@ -172,5 +209,20 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   updatePlayerDOM();
-  requestAnimationFrame(gameLoop);
+
+  // v0.5.14: Stage Briefing 進場畫面，按下 ENTER STAGE 01 才開始遊戲迴圈
+  const briefingOverlay = document.getElementById('stage-briefing');
+  const briefingEnterBtn = document.getElementById('briefing-enter-btn');
+
+  function startGame() {
+    if (briefingOverlay) briefingOverlay.classList.remove('show');
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+  }
+
+  if (briefingEnterBtn) {
+    briefingEnterBtn.addEventListener('click', startGame, { once: true });
+  } else {
+    startGame();
+  }
 });

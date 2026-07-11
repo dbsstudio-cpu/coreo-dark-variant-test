@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>COREO Dark Variant - v0.5.13.2</title>
+  <title>COREO Dark Variant - v0.5.14</title>
   <meta name="theme-color" content="#0A0A0C">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,16 +16,67 @@
 </head>
 <body>
 
-  <!-- 極簡 HUD -->
+  <!-- 極簡 HUD：Core Shard / Core Pulse 分開顯示 -->
   <div id="hud">
     <div class="hud-group">
-      <div class="hud-label">LIGHT CORE</div>
-      <div class="hud-value" id="ui-core-val">00</div>
+      <div class="hud-label">CORE SHARD</div>
+      <div class="hud-value" id="ui-shard-val">00</div>
+    </div>
+    <div class="hud-group">
+      <div class="hud-label">CORE PULSE</div>
+      <div class="hud-value" id="ui-pulse-val">0</div>
     </div>
   </div>
 
   <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
-  <div id="version-tag">COREO DARK v0.5.13.2</div>
+  <div id="version-tag">COREO DARK v0.5.14</div>
+
+  <!-- Stage Briefing：進關卡前的全螢幕任務啟動畫面 -->
+  <div id="stage-briefing" class="show">
+    <div class="briefing-inner">
+      <div class="briefing-title">
+        <div class="briefing-stage-num">STAGE 01｜CORE AWAKENING</div>
+        <div class="briefing-stage-sub">第一關｜核心甦醒</div>
+      </div>
+
+      <div class="briefing-row">
+        <div class="briefing-card hero">
+          <div class="briefing-avatar hero-avatar"></div>
+          <div class="briefing-card-title">LIGHT CORE</div>
+          <div class="briefing-card-desc">在迷宮中收集核心碎片，啟動出口。</div>
+        </div>
+        <div class="briefing-card villain">
+          <div class="briefing-avatar villain-avatar"></div>
+          <div class="briefing-card-title">EMBER｜熾核獵者</div>
+          <div class="briefing-card-desc">它會等待、阻擋並追逐靠近的主角。</div>
+        </div>
+      </div>
+
+      <div class="briefing-row resources">
+        <div class="briefing-resource">
+          <div class="briefing-resource-icon shard"></div>
+          <div class="briefing-resource-text">
+            <div class="briefing-card-title">Core Shard｜核光碎片</div>
+            <div class="briefing-card-desc">收集 5 個，可形成 1 個 Core Pulse。</div>
+          </div>
+        </div>
+        <div class="briefing-resource">
+          <div class="briefing-resource-icon pulse"></div>
+          <div class="briefing-resource-text">
+            <div class="briefing-card-title">Core Pulse｜脈衝核心</div>
+            <div class="briefing-card-desc">啟動出口的必要能量。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="briefing-mission">
+        <div class="briefing-mission-label">MISSION</div>
+        <div class="briefing-mission-text">收集 Core Pulse，避開 EMBER，抵達出口。</div>
+      </div>
+
+      <button id="briefing-enter-btn" class="briefing-enter-btn">ENTER STAGE 01</button>
+    </div>
+  </div>
 
   <!-- 3D 遊戲世界 -->
   <div id="game-container">
