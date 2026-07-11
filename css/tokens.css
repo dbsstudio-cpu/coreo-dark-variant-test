@@ -3,9 +3,10 @@
   --coreo-bg-base: #0A0A0C;
   --coreo-bg-secondary: #151517;
   --coreo-surface-raised: #3C3C40;
-  --coreo-path: #242428;
+  --coreo-path: #1E1E22;
   --coreo-path-edge: #4A4A50;
   --coreo-wall-side: #202024;
+  --coreo-wall-face: #323236;
   --coreo-text-primary: #F5F5F7;
   --coreo-text-secondary: #86868B;
   --coreo-glow-core: #00E5FF;
@@ -58,6 +59,7 @@ body {
   font-variant-numeric: tabular-nums;
   overflow: hidden;
   overscroll-behavior: none;
+  overscroll-behavior-x: none;
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
@@ -73,8 +75,8 @@ body {
 #hud {
   position: fixed;
   top: max(env(safe-area-inset-top), 16px);
-  left: 20px;
-  right: 20px;
+  left: max(env(safe-area-inset-left), 20px);
+  right: max(env(safe-area-inset-right), 20px);
   display: flex;
   justify-content: space-between;
   z-index: 1000;
@@ -109,7 +111,7 @@ body {
 #version-tag {
   position: fixed;
   bottom: max(env(safe-area-inset-bottom), 8px);
-  left: 8px;
+  left: max(env(safe-area-inset-left), 8px);
   font-size: 9px;
   letter-spacing: 0.05em;
   color: var(--coreo-text-secondary);
@@ -183,7 +185,7 @@ body {
 }
 
 .cell.wall {
-  background: linear-gradient(145deg, #46464A 0%, #3C3C40 52%, #323236 100%);
+  background: linear-gradient(145deg, #3E3E42 0%, var(--coreo-wall-face) 60%, #2C2C30 100%);
   border-radius: 14px;
   transform: translateZ(18px);
   box-shadow:
@@ -286,7 +288,7 @@ body {
   z-index: 100;
 }
 
-#player.actor { z-index: 120; }
+#player.actor { z-index: 120; transition: top 0.045s linear, left 0.045s linear; }
 #enemy.actor { z-index: 100; pointer-events: none; }
 
 /* 內層視覺容器：負責圖片、發光、所有動畫縮放與旋轉 */
@@ -384,11 +386,13 @@ body {
 #joystick-zone {
   position: fixed;
   bottom: 0;
-  left: 0;
-  width: 100%;
+  left: 28px;
+  right: 28px;
+  width: auto;
   height: max(52%, 360px);
   z-index: 2000;
   touch-action: none;
+  overscroll-behavior-x: none;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -510,6 +514,11 @@ body {
 @keyframes pulse-enemy-alert {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
+}
+
+/* 反派狀態：搜索（追丟玩家後，去最後出現位置附近找一下） */
+.actor-sprite.enemy-state-search {
+  filter: drop-shadow(0 0 13px rgba(255, 45, 85, 0.65)) drop-shadow(0 0 26px rgba(255, 45, 85, 0.35));
 }
 
 /* 反派狀態：追逐 (強烈殘影與抖動) */
