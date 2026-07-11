@@ -56,13 +56,29 @@ const FX = {
     setTimeout(() => spriteDOM.classList.remove('shake'), 200);
   },
 
-  levelComplete: function() {
-    if ('vibrate' in navigator) navigator.vibrate([50, 50, 100]);
-    const overlay = document.getElementById('level-complete-overlay');
-    overlay.classList.add('show');
-    overlay.addEventListener('click', () => {
-      location.reload();
-    }, {once: true});
+  // v0.5.15: 過關 Cinematic Zoom——主角先放大 3~4 倍 + 冰藍衝擊波，播完才彈出 STAGE SECURED
+  levelComplete: function(spriteDOM, actorDOM) {
+    if ('vibrate' in navigator) navigator.vibrate([40, 30, 40, 30, 120]);
+
+    if (spriteDOM) {
+      spriteDOM.classList.add('player-victory-zoom');
+    }
+
+    if (actorDOM) {
+      const burst = document.createElement('div');
+      burst.className = 'victory-burst';
+      actorDOM.appendChild(burst);
+      burst.addEventListener('animationend', () => burst.remove(), { once: true });
+    }
+
+    setTimeout(() => {
+      if ('vibrate' in navigator) navigator.vibrate([50, 50, 100]);
+      const overlay = document.getElementById('level-complete-overlay');
+      overlay.classList.add('show');
+      overlay.addEventListener('click', () => {
+        location.reload();
+      }, {once: true});
+    }, 900);
   },
 
   toggleGlobalAlert: function(isActive) {

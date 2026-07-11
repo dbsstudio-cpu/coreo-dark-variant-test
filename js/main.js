@@ -105,7 +105,7 @@ window.addEventListener('DOMContentLoaded', () => {
       // v0.5.14：通關條件改為「至少 1 個 Core Pulse ＋ 抵達出口」，不能單純衝到出口就過關
       if (pulseCount >= 1) {
         isGameOver = true;
-        FX.levelComplete();
+        FX.levelComplete(playerSprite, playerDiv);
       } else {
         FX.exitLocked(playerSprite, hudPulseVal);
       }

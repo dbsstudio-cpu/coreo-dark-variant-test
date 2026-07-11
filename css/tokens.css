@@ -244,8 +244,9 @@ body {
   box-shadow: 0 0 10px rgba(245, 245, 247, 0.24);
 }
 
+/* v0.5.15：出口改為「白金光環 Core Ring」+ 底部光柱，取代原本綠色虛線框 */
 .cell.exit {
-  box-shadow: inset 0 0 26px rgba(48, 209, 88, 0.30);
+  box-shadow: inset 0 0 30px rgba(215, 198, 138, 0.28);
 }
 
 .cell.exit::before,
@@ -257,24 +258,31 @@ body {
   pointer-events: none;
 }
 
+/* 緩慢旋轉的白金光環 */
 .cell.exit::before {
-  width: 35px;
-  height: 35px;
-  border: 2px solid var(--coreo-success);
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--coreo-stage-secured);
+  border-top-color: transparent;
   border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 18px rgba(48, 209, 88, 0.52);
-  animation: pulse-exit 2s infinite;
+  transform: translate(-50%, -50%) rotate(0deg);
+  box-shadow: 0 0 20px rgba(215, 198, 138, 0.55);
+  animation: exit-ring-spin 3.4s linear infinite;
 }
 
+/* 底部往上打的光柱 */
 .cell.exit::after {
-  width: 19px;
-  height: 19px;
-  border: 2px solid var(--coreo-success);
-  border-left-color: transparent;
-  border-bottom-color: transparent;
-  transform: translate(-50%, -50%) rotate(45deg);
-  box-shadow: 6px -6px 14px rgba(48, 209, 88, 0.42);
+  width: 5px;
+  height: 120px;
+  bottom: 50%;
+  top: auto;
+  background: linear-gradient(to top, rgba(215, 198, 138, 0.55), transparent);
+  transform: translate(-50%, 0);
+}
+
+@keyframes exit-ring-spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 /* =========================================
    動態物件 (Player & Light Core)
@@ -440,12 +448,6 @@ body {
   box-shadow: 0 0 12px rgba(0, 191, 255, 0.75);
 }
 
-@keyframes pulse-exit {
-  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.85; }
-  50% { transform: translate(-50%, -50%) scale(1.18); opacity: 0.22; }
-  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.85; }
-}
-
 .actor-sprite.shake {
   animation: wall-bump 0.2s cubic-bezier(.36,.07,.19,.97) both;
 }
@@ -454,6 +456,36 @@ body {
   0%, 100% { transform: rotate(0deg) scale(1); }
   25% { transform: rotate(8deg) scale(0.95); }
   75% { transform: rotate(-8deg) scale(0.95); }
+}
+
+/* v0.5.15：過關 Cinematic Zoom——主角放大 3~4 倍 + 冰藍衝擊波，才彈出 STAGE SECURED */
+.actor-sprite.player-victory-zoom {
+  animation: victory-zoom 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes victory-zoom {
+  0% { transform: scale(1); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
+  60% { transform: scale(3.6); filter: drop-shadow(0 0 40px rgba(0, 229, 255, 1)); }
+  100% { transform: scale(3.2); filter: drop-shadow(0 0 30px rgba(0, 229, 255, 0.9)); }
+}
+
+.victory-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--coreo-glow-core);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.8);
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 1;
+  pointer-events: none;
+  z-index: 200;
+  animation: victory-burst-expand 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes victory-burst-expand {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(14); opacity: 0; }
 }
 
 #level-complete-overlay {
@@ -720,11 +752,11 @@ body {
 
 .cinematic-ember {
   position: absolute;
-  top: 8%;
-  right: -5%;
+  top: 13%;
+  right: 4%;
   width: 58%;
   max-width: 260px;
-  animation: float-cinematic 6s ease-in-out infinite alternate;
+  animation: breathe-ember 5s ease-in-out infinite;
 }
 .cinematic-ember img {
   width: 100%;
@@ -734,11 +766,11 @@ body {
 
 .cinematic-player {
   position: absolute;
-  bottom: 8%;
-  left: 0%;
-  width: 48%;
-  max-width: 210px;
-  animation: float-cinematic 5s ease-in-out infinite alternate-reverse;
+  bottom: 10%;
+  left: 9%;
+  width: 53%;
+  max-width: 231px;
+  animation: breathe-player 4s ease-in-out infinite;
 }
 .cinematic-player img {
   width: 100%;
@@ -746,9 +778,14 @@ body {
   filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.5));
 }
 
-@keyframes float-cinematic {
-  0% { transform: translateY(0px); }
-  100% { transform: translateY(12px); }
+/* GEM：兩者呼吸節奏刻意不同步（4s / 5s），避免同步跳動的廉價感 */
+@keyframes breathe-player {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-7px) scale(1.03); }
+}
+@keyframes breathe-ember {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.025); }
 }
 
 /* 底部資訊與按鈕 */
@@ -761,8 +798,8 @@ body {
 .briefing-info-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.15); /* 高光框線 */
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 22px 20px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -770,36 +807,36 @@ body {
 .info-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 14px;
+  margin-bottom: 16px;
 }
-.info-row:nth-child(2) { margin-bottom: 14px; }
+.info-row:nth-child(2) { margin-bottom: 18px; }
 
 .info-icon {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 .shard-icon {
   background: var(--coreo-core-basic);
   border-radius: 50%;
-  box-shadow: 0 0 8px var(--coreo-core-basic-glow);
+  box-shadow: 0 0 10px var(--coreo-core-basic-glow);
 }
 .pulse-icon {
   background: var(--coreo-core-boost);
   transform: rotate(45deg);
-  box-shadow: 0 0 8px var(--coreo-core-boost);
+  box-shadow: 0 0 10px var(--coreo-core-boost);
 }
 
 .info-row p {
   font-size: 0.8rem;
   color: var(--coreo-text-secondary);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.55;
 }
 .info-row p strong {
   color: var(--coreo-text-primary);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .info-mission {
