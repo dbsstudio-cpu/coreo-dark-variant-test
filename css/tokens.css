@@ -3,10 +3,10 @@
   --coreo-bg-base: #050508;
   --coreo-bg-secondary: #151517;
   --coreo-surface-raised: #3C3C40;
-  --coreo-path: #4A4A52;
+  --coreo-path: #3D4251;
   --coreo-path-edge: #4A4A50;
   --coreo-wall-side: #202024;
-  --coreo-wall-face: #6E6E78;
+  --coreo-wall-face: #5A6275;
   --coreo-edge-highlight: rgba(255, 255, 255, 0.15);
   --coreo-text-primary: #F5F5F7;
   --coreo-text-secondary: #86868B;
@@ -186,7 +186,8 @@ body {
 }
 
 .cell.wall {
-  background: linear-gradient(145deg, #84848E 0%, var(--coreo-wall-face) 60%, #57575F 100%);
+  /* v0.5.18：GEM 冷鋼藍灰方向，牆體加入微弱藍紫色相，打破純中性灰的死板感 */
+  background: linear-gradient(145deg, #7A8398 0%, var(--coreo-wall-face) 60%, #434A5E 100%);
   border-radius: 14px;
   transform: translateZ(18px);
   box-shadow:
@@ -202,7 +203,7 @@ body {
   left: 0;
   width: 100%;
   height: 18px;
-  background: linear-gradient(180deg, #2A2A2E, #1A1A1C);
+  background: linear-gradient(180deg, #262B3A, #12141C);
   transform-origin: top;
   transform: rotateX(-90deg);
   border-radius: 0 0 14px 14px;
