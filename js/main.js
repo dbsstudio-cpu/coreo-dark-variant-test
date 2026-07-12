@@ -11,9 +11,14 @@ window.addEventListener('DOMContentLoaded', () => {
   let currentSpeed = baseSpeed;
   let isGameOver = false;
   let isResetting = false;
+  let hasGameStarted = false;
+  let backGuardArmed = false;
   let lastTime = performance.now();
   let lastTrailTime = 0;
+  let lastSnapshotTime = 0;
   const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
+  const SNAPSHOT_INTERVAL = 500;
+  const RUN_STATE_KEY = 'coreo-dark-run-state-v1';
 
   // v0.5.14: Core Shard / Core Pulse 資源規則（GPT 裁決）
   const SHARDS_PER_PULSE = 5;
@@ -36,9 +41,24 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => world.classList.remove('energized'), 3600);
   }
 
+  function loadRunSnapshot() {
+    try {
+      const raw = sessionStorage.getItem(RUN_STATE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.mazeData) || !parsed.playerPos) return null;
+      return parsed;
+    } catch (error) {
+      sessionStorage.removeItem(RUN_STATE_KEY);
+      return null;
+    }
+  }
+
   const pristineMazeData = JSON.parse(JSON.stringify(MazeLogic.getTestCorridor()));
-  let mazeData = JSON.parse(JSON.stringify(pristineMazeData));
+  const restoredRun = loadRunSnapshot();
+  let mazeData = restoredRun?.mazeData || JSON.parse(JSON.stringify(pristineMazeData));
   let playerPos = Render3D.buildWorld(mazeData);
+  if (restoredRun?.playerPos) playerPos = restoredRun.playerPos;
 
   const world = document.getElementById('world');
   const playerDiv = document.createElement('div');
@@ -62,6 +82,90 @@ window.addEventListener('DOMContentLoaded', () => {
   ];
 
   EnemyLogic.init(enemyRoute, 'villainHunt');
+  if (restoredRun?.enemy) {
+    Object.assign(EnemyLogic, {
+      x: restoredRun.enemy.x ?? EnemyLogic.x,
+      y: restoredRun.enemy.y ?? EnemyLogic.y,
+      state: restoredRun.enemy.state || EnemyLogic.state,
+      patrolIndex: restoredRun.enemy.patrolIndex ?? EnemyLogic.patrolIndex,
+      chaseTimer: restoredRun.enemy.chaseTimer ?? EnemyLogic.chaseTimer,
+      reactionTimer: restoredRun.enemy.reactionTimer ?? EnemyLogic.reactionTimer,
+      chaseMemoryTimer: restoredRun.enemy.chaseMemoryTimer ?? EnemyLogic.chaseMemoryTimer,
+      searchTimer: restoredRun.enemy.searchTimer ?? EnemyLogic.searchTimer,
+      lastKnownCell: restoredRun.enemy.lastKnownCell || EnemyLogic.lastKnownCell
+    });
+    EnemyLogic.currentTarget = enemyRoute[EnemyLogic.patrolIndex % enemyRoute.length] || EnemyLogic.currentTarget;
+    EnemyLogic.updateDOM();
+  }
+
+  if (restoredRun) {
+    shardCount = restoredRun.shardCount || 0;
+    pulseCount = restoredRun.pulseCount || 0;
+    if (hudShardVal) hudShardVal.textContent = shardCount.toString().padStart(2, '0');
+    if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
+  }
+
+  function saveRunSnapshot() {
+    if (!hasGameStarted || isGameOver || isResetting) return;
+    const snapshot = {
+      playerPos,
+      mazeData,
+      shardCount,
+      pulseCount,
+      enemy: {
+        x: EnemyLogic.x,
+        y: EnemyLogic.y,
+        state: EnemyLogic.state,
+        patrolIndex: EnemyLogic.patrolIndex,
+        chaseTimer: EnemyLogic.chaseTimer,
+        reactionTimer: EnemyLogic.reactionTimer,
+        chaseMemoryTimer: EnemyLogic.chaseMemoryTimer,
+        searchTimer: EnemyLogic.searchTimer,
+        lastKnownCell: EnemyLogic.lastKnownCell
+      },
+      savedAt: Date.now()
+    };
+    try {
+      sessionStorage.setItem(RUN_STATE_KEY, JSON.stringify(snapshot));
+    } catch (error) {
+      // 儲存失敗時不影響遊戲主流程；返回保護仍會生效。
+    }
+  }
+
+  function clearRunSnapshot() {
+    sessionStorage.removeItem(RUN_STATE_KEY);
+  }
+
+  function armBackGestureGuard() {
+    if (backGuardArmed || !history.pushState) return;
+    try {
+      history.replaceState({ ...(history.state || {}), coreoGameEntry: true }, document.title, location.href);
+      history.pushState({ coreoBackGuard: true }, document.title, location.href);
+      backGuardArmed = true;
+    } catch (error) {
+      backGuardArmed = false;
+    }
+  }
+
+  function holdGameAfterBackGesture() {
+    ControlLogic.stop?.();
+    saveRunSnapshot();
+    try {
+      history.pushState({ coreoBackGuard: true }, document.title, location.href);
+    } catch (error) {
+      // 某些 WebView 可能禁止 pushState；保留快照即可避免整場白打。
+    }
+  }
+
+  window.addEventListener('popstate', () => {
+    if (!hasGameStarted || isGameOver) return;
+    holdGameAfterBackGesture();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveRunSnapshot();
+  });
+  window.addEventListener('pagehide', saveRunSnapshot);
 
   function isWall(cx, cy) {
     if (cy < 0 || cy >= mazeData.length || cx < 0 || cx >= mazeData[0].length) return true;
@@ -117,6 +221,7 @@ window.addEventListener('DOMContentLoaded', () => {
       // v0.5.14：通關條件改為「至少 1 個 Core Pulse ＋ 抵達出口」，不能單純衝到出口就過關
       if (pulseCount >= 1) {
         isGameOver = true;
+        clearRunSnapshot();
         FX.levelComplete(playerSprite, playerDiv);
       } else {
         FX.exitLocked(playerSprite, hudPulseVal);
@@ -145,6 +250,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function resetLevel() {
+    clearRunSnapshot();
     mazeData = JSON.parse(JSON.stringify(pristineMazeData));
     playerPos = Render3D.buildWorld(mazeData);
 
@@ -206,6 +312,10 @@ window.addEventListener('DOMContentLoaded', () => {
           lastTrailTime = time;
           FX.spawnTrail(world, playerPos.x, playerPos.y);
         }
+        if (time - lastSnapshotTime >= SNAPSHOT_INTERVAL) {
+          lastSnapshotTime = time;
+          saveRunSnapshot();
+        }
       }
     }
 
@@ -232,6 +342,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const briefingEnterBtn = document.getElementById('briefing-enter-btn');
 
   function startGame() {
+    hasGameStarted = true;
+    armBackGestureGuard();
 
     if (briefingOverlay) {
       briefingOverlay.classList.remove('show');

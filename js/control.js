@@ -6,19 +6,49 @@ const ControlLogic = {
   activePointerId: null,
   baseX: 0,
   baseY: 0,
+  baseElement: null,
+  knobElement: null,
   maxRadius: 54,
+  edgeSafeInset: 48,
+
+  refreshSafeInset: function() {
+    this.edgeSafeInset = Math.min(64, Math.max(42, Math.round(window.innerWidth * 0.075)));
+    document.documentElement.style.setProperty('--coreo-gesture-safe-inset', `${this.edgeSafeInset}px`);
+  },
+
+  clampControlX: function(x) {
+    return Math.min(window.innerWidth - this.edgeSafeInset, Math.max(this.edgeSafeInset, x));
+  },
+
+  isEdgeGestureStart: function(x) {
+    return x <= this.edgeSafeInset || x >= window.innerWidth - this.edgeSafeInset;
+  },
+
+  stop: function() {
+    this.isActive = false;
+    this.activePointerId = null;
+    this.dx = 0;
+    this.dy = 0;
+    if (this.baseElement) this.baseElement.classList.remove('active');
+    if (this.knobElement) this.knobElement.style.transform = 'translate(-50%, -50%)';
+  },
 
   init: function() {
     const zone = document.getElementById('joystick-zone');
     const base = document.getElementById('joystick-base');
     const knob = document.getElementById('joystick-knob');
+    this.baseElement = base;
+    this.knobElement = knob;
+    this.refreshSafeInset();
+    window.addEventListener('resize', () => this.refreshSafeInset());
 
     const setBase = (x, y) => {
-      this.baseX = x;
+      const safeX = this.clampControlX(x);
+      this.baseX = safeX;
       this.baseY = y;
       this.dx = 0;
       this.dy = 0;
-      base.style.left = `${x}px`;
+      base.style.left = `${safeX}px`;
       base.style.top = `${y}px`;
       base.classList.add('active');
       knob.style.transform = 'translate(-50%, -50%)';
@@ -39,17 +69,16 @@ const ControlLogic = {
     };
 
     const stop = () => {
-      this.isActive = false;
-      this.activePointerId = null;
-      this.dx = 0;
-      this.dy = 0;
-      base.classList.remove('active');
-      knob.style.transform = 'translate(-50%, -50%)';
+      this.stop();
     };
 
     if (window.PointerEvent) {
       zone.addEventListener('pointerdown', (event) => {
         if (this.isActive) return;
+        if (this.isEdgeGestureStart(event.clientX)) {
+          this.stop();
+          return;
+        }
         event.preventDefault();
         this.isActive = true;
         this.activePointerId = event.pointerId;
@@ -79,6 +108,10 @@ const ControlLogic = {
       if (this.isActive) return;
       const touch = getTouch(event);
       if (!touch) return;
+      if (this.isEdgeGestureStart(touch.clientX)) {
+        this.stop();
+        return;
+      }
       event.preventDefault();
       this.isActive = true;
       setBase(touch.clientX, touch.clientY);

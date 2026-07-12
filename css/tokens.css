@@ -41,6 +41,7 @@
   --coreo-threat-dark: #7A1024;
   --coreo-special-violet: #9D00FF;
   --coreo-success: #30D158;
+  --coreo-gesture-safe-inset: 48px;
 }
 
 * {
@@ -494,8 +495,9 @@ body {
 #joystick-zone {
   position: fixed;
   bottom: 0;
-  left: 0;
-  width: 100%;
+  left: max(env(safe-area-inset-left), var(--coreo-gesture-safe-inset));
+  right: max(env(safe-area-inset-right), var(--coreo-gesture-safe-inset));
+  width: auto;
   height: max(52%, 360px);
   z-index: 2000;
   touch-action: none;
@@ -994,6 +996,5 @@ body {
   background: rgba(0, 229, 255, 0.15);
   transform: scale(0.97);
 }
-
 
 
