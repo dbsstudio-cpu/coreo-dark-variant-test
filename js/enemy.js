@@ -10,7 +10,7 @@ const EnemyLogic = {
   alertRadius: 145,
   pathAlertLimit: 7,
   pathSearchLimit: 24,
-  chaseDuration: 2600,
+  chaseDuration: 11000,
   chaseTimer: 0,
   alertDelay: 180,
   patrolSpeed: 0.62,
@@ -70,7 +70,10 @@ const EnemyLogic = {
 
   isWall: function(cx, cy, mazeData) {
     if (cy < 0 || cy >= mazeData.length || cx < 0 || cx >= mazeData[0].length) return true;
-    return mazeData[cy][cx] === 0;
+    // v0.5.25：躲藏凹槽(代號6)是玩家專屬躲藏格，只有單一出入口的死巷，
+    // 反派若在追逐/搜索時被引導走進去，直接向量移動邏輯會卡在裡面出不來(視覺上像「躲起來不追了」)。
+    // 對反派而言把這種格子當牆一樣禁止進入，從根本避免卡死。
+    return mazeData[cy][cx] === 0 || mazeData[cy][cx] === 6;
   },
 
   toCell: function(pos, cellSize) {

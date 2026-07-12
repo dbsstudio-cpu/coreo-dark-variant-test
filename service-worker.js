@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v0524-color-and-trail-20260712';
+﻿const COREO_CACHE = 'coreo-dark-variant-v0525-pocket-trap-briefing-scroll-20260712';
 const COREO_ASSETS = [
   './',
   './index.html',
