@@ -238,16 +238,20 @@ body {
     inset 0 0 0 1px var(--coreo-edge-highlight);
 }
 
-/* v0.5.19：拿到 Core Pulse 瞬間，迷宮矩陣接縫灌滿金色霓虹光，快速亮起、緩慢冷卻回常態 */
-#world.energized .cell.path,
-#world.energized .cell.wall {
-  --coreo-matrix-glow: rgba(249, 217, 118, 0.85);
-  transition: box-shadow 0.1s ease-out;
+/* v0.5.27：Core Pulse 後的全迷宮 cell 陰影重算會讓 iPhone/Android 累格。
+   改成容器層短暫脈衝，保留大光源回饋，但不讓每個牆體與路徑都一起重繪。 */
+#world.energized {
+  border-color: rgba(249, 217, 118, 0.34);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 26px rgba(249, 217, 118, 0.22),
+    inset 0 0 24px rgba(249, 217, 118, 0.10);
+  transition: box-shadow 0.12s ease-out, border-color 0.12s ease-out;
 }
 
 /* v0.5.20：反應裝甲牆體——最多 3 組長方形大牆體，觸發時跳秒式冷卻，製造動力爐啟動的心跳感 */
 #world.energized .reactive-block {
-  animation: reactive-countdown 3.5s steps(4, end) forwards;
+  animation: none;
 }
 @keyframes reactive-countdown {
   0% {
@@ -687,6 +691,17 @@ body {
   transform: translateX(-50%); opacity: 0.7; border-radius: 12px;
 }
 
+/* v0.5.27：Stage 01 Core Pulse 是出口啟動資源，不是加速道具。
+   保留短暫白金亮起，避免長時間光尾與多層 drop-shadow 影響手機幀率。 */
+.actor-sprite.player-pulse-feedback {
+  animation: pulse-feedback 0.52s ease-out both;
+}
+@keyframes pulse-feedback {
+  0% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
+  36% { transform: scale(1.18); filter: brightness(1.22) drop-shadow(0 0 18px rgba(249, 217, 118, 0.72)); }
+  100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
+}
+
 /* ==============================================
    v0.5.1 CORE SIGNAL LOST 失敗演出特效
 ============================================== */
@@ -996,5 +1011,4 @@ body {
   background: rgba(0, 229, 255, 0.15);
   transform: scale(0.97);
 }
-
 

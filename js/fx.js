@@ -104,6 +104,17 @@ const FX = {
     else overlay.classList.remove('active');
   },
 
+  corePulseFeedback: function(spriteDOM) {
+    if ('vibrate' in navigator) navigator.vibrate([20, 35, 20]);
+    if (!spriteDOM) return;
+    spriteDOM.classList.remove('player-speed-boost', 'player-boosted', 'player-pulse-feedback');
+    void spriteDOM.offsetWidth;
+    spriteDOM.classList.add('player-pulse-feedback');
+    setTimeout(() => {
+      spriteDOM.classList.remove('player-pulse-feedback');
+    }, 520);
+  },
+
   triggerSpeedBoost: function(durationMs, spriteDOM) {
     if ('vibrate' in navigator) navigator.vibrate([30, 50, 30]);
     spriteDOM.classList.add('player-speed-boost', 'player-boosted');

@@ -25,6 +25,9 @@ const EnemyLogic = {
   imperfectStepChance: 0.22,
   lastKnownCell: null,
   chosenStep: { x: 0, y: -1 },
+  stuckTimer: 0,
+  lastMoveX: 0,
+  lastMoveY: 0,
   domElement: null,
   spriteElement: null,
   guardAnchor: null,
@@ -47,6 +50,9 @@ const EnemyLogic = {
     this.searchTimer = 0;
     this.lastKnownCell = null;
     this.chosenStep = { x: 0, y: -1 };
+    this.stuckTimer = 0;
+    this.lastMoveX = this.x;
+    this.lastMoveY = this.y;
     // v0.5.14: 守護區錨點＝巡邏路線的平均座標，追逐放棄距離改成從這個錨點算，
     // 不再只看反派當下位置，才不會被巡邏路線鎖出一條假邊界線
     this.guardAnchor = route.reduce(
@@ -175,6 +181,7 @@ const EnemyLogic = {
       this.updateSearch(dt, mazeData, cellSize);
     }
 
+    this.recoverIfStuck(dt, mazeData, cellSize);
     this.updateDOM();
   },
 
@@ -190,16 +197,34 @@ const EnemyLogic = {
   // 搜索：走向玩家最後已知位置附近，不是精準導航，到了就地徘徊直到 searchTimer 結束
   updateSearch: function(dt, mazeData, cellSize) {
     if (!this.lastKnownCell) return;
-    const target = this.cellCenter(this.lastKnownCell, cellSize);
+    const path = this.findPathToCell(this.lastKnownCell, mazeData, cellSize, this.pathSearchLimit);
+    const target = this.getPathStepTarget(path, this.cellCenter(this.lastKnownCell, cellSize), cellSize);
     const dist = Math.hypot(target.x - this.x, target.y - this.y);
     if (dist < 8) return;
     this.moveToward(target, this.patrolSpeed * 1.05, dt, mazeData, cellSize, true);
   },
 
-  // 追逐：每一幀都直接朝玩家目前位置移動，用跟巡邏/搜索同一套 moveToward，
-  // 保證反派一定會持續移動靠近玩家，不依賴路徑計算是否成功
+  // v0.5.27：追逐時真正沿 BFS 下一格走，避免 Core Pulse 後玩家拉長距離、
+  // EMBER 直線撞牆卡在角落。找不到玩家路徑時才追最後記憶格。
   updatePathChase: function(playerPos, pathToPlayer, dt, mazeData, cellSize) {
-    this.moveToward(playerPos, this.chaseSpeed, dt, mazeData, cellSize, true);
+    const memoryStep = pathToPlayer ? null : this.chooseMemoryStep(mazeData, cellSize);
+    let target = playerPos;
+
+    if (pathToPlayer && pathToPlayer.length > 0) {
+      target = this.getPathStepTarget(pathToPlayer, playerPos, cellSize);
+    } else if (memoryStep) {
+      const start = this.toCell({ x: this.x, y: this.y }, cellSize);
+      target = this.cellCenter({ x: start.x + memoryStep.x, y: start.y + memoryStep.y }, cellSize);
+    }
+
+    this.moveToward(target, this.chaseSpeed, dt, mazeData, cellSize, true);
+  },
+
+  getPathStepTarget: function(path, fallbackTarget, cellSize) {
+    if (!path || path.length === 0) return fallbackTarget;
+    const start = this.toCell({ x: this.x, y: this.y }, cellSize);
+    const next = { x: start.x + path[0].x, y: start.y + path[0].y };
+    return this.cellCenter(next, cellSize);
   },
 
   findPathToPlayer: function(playerPos, mazeData, cellSize, limit) {
@@ -280,6 +305,61 @@ const EnemyLogic = {
       if (!this.checkCollision(this.x + vx, this.y, mazeData, cellSize)) this.x += vx;
       if (!this.checkCollision(this.x, this.y + vy, mazeData, cellSize)) this.y += vy;
     }
+  },
+
+  recoverIfStuck: function(dt, mazeData, cellSize) {
+    if (this.state !== 'chase' && this.state !== 'search') {
+      this.stuckTimer = 0;
+      this.lastMoveX = this.x;
+      this.lastMoveY = this.y;
+      return;
+    }
+
+    const moved = Math.hypot(this.x - this.lastMoveX, this.y - this.lastMoveY);
+    this.lastMoveX = this.x;
+    this.lastMoveY = this.y;
+
+    if (moved > 0.18) {
+      this.stuckTimer = 0;
+      return;
+    }
+
+    this.stuckTimer += dt;
+    if (this.stuckTimer < 420) return;
+
+    const safeCenter = this.findNearestOpenCenter(mazeData, cellSize);
+    if (safeCenter) {
+      this.x = safeCenter.x;
+      this.y = safeCenter.y;
+      this.lastMoveX = this.x;
+      this.lastMoveY = this.y;
+    }
+    this.stuckTimer = 0;
+  },
+
+  findNearestOpenCenter: function(mazeData, cellSize) {
+    const origin = this.toCell({ x: this.x, y: this.y }, cellSize);
+    const queue = [origin];
+    const visited = new Set([`${origin.x},${origin.y}`]);
+
+    while (queue.length > 0) {
+      const cell = queue.shift();
+      if (!this.isWall(cell.x, cell.y, mazeData)) return this.cellCenter(cell, cellSize);
+
+      const dirs = [
+        { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }
+      ];
+      for (const dir of dirs) {
+        const next = { x: cell.x + dir.x, y: cell.y + dir.y };
+        const key = `${next.x},${next.y}`;
+        if (visited.has(key)) continue;
+        if (next.y < 0 || next.y >= mazeData.length || next.x < 0 || next.x >= mazeData[0].length) continue;
+        visited.add(key);
+        queue.push(next);
+      }
+    }
+
+    return null;
   },
 
   updateDOM: function() {

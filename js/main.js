@@ -15,10 +15,11 @@ window.addEventListener('DOMContentLoaded', () => {
   let backGuardArmed = false;
   let lastTime = performance.now();
   let lastTrailTime = 0;
-  let lastSnapshotTime = 0;
   const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
-  const SNAPSHOT_INTERVAL = 500;
+  const MAX_FRAME_DT = 34; // Core Pulse 觸發後若掉幀，限制單幀補位，避免主角/反派瞬間跳格
+  const PULSE_EFFECT_DURATION = 950;
   const RUN_STATE_KEY = 'coreo-dark-run-state-v1';
+  let pulseEffectUntil = 0;
 
   // v0.5.14: Core Shard / Core Pulse 資源規則（GPT 裁決）
   const SHARDS_PER_PULSE = 5;
@@ -33,12 +34,17 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => el.classList.remove('glow'), 200);
   }
 
-  // v0.5.19/v0.5.20: 拿到 Core Pulse 瞬間，迷宮矩陣接縫灌滿金色霓虹光、反應裝甲牆體跳秒冷卻，
-  // class 要留到跳秒動畫（3.5s）播完才拿掉，keyframes 動畫必須整段時間都符合這個 class 才會持續播放
+  // v0.5.27: Core Pulse 只保留短暫矩陣回饋。iPhone/Android 在 Pulse 後會同時承受追逐與特效，
+  // 因此避免長時間全迷宮陰影動畫拖慢主迴圈。
   function energizeMatrix() {
     if (!world) return;
+    pulseEffectUntil = performance.now() + PULSE_EFFECT_DURATION;
     world.classList.add('energized');
-    setTimeout(() => world.classList.remove('energized'), 3600);
+    setTimeout(() => world.classList.remove('energized'), PULSE_EFFECT_DURATION);
+  }
+
+  function isPulseEffectActive(time = performance.now()) {
+    return time < pulseEffectUntil;
   }
 
   function loadRunSnapshot() {
@@ -205,16 +211,17 @@ window.addEventListener('DOMContentLoaded', () => {
           pulseCount++;
           if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
           flashHud(hudPulseVal);
-          FX.triggerSpeedBoost(600, playerSprite);
+          FX.corePulseFeedback(playerSprite);
           energizeMatrix();
         }
       } else {
         pulseCount++;
         if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
         flashHud(hudPulseVal);
-        FX.triggerSpeedBoost(2500, playerSprite);
+        FX.corePulseFeedback(playerSprite);
         energizeMatrix();
       }
+      saveRunSnapshot();
     }
 
     if (type === 3) {
@@ -285,7 +292,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function gameLoop(time) {
     if (isGameOver || isResetting) return;
-    const dt = time - lastTime;
+    const dt = Math.min(time - lastTime, MAX_FRAME_DT);
     lastTime = time;
     const timeScale = dt / 16.66;
 
@@ -308,13 +315,9 @@ window.addEventListener('DOMContentLoaded', () => {
         updatePlayerDOM();
         checkPickups();
 
-        if (time - lastTrailTime >= TRAIL_INTERVAL) {
+        if (!isPulseEffectActive(time) && time - lastTrailTime >= TRAIL_INTERVAL) {
           lastTrailTime = time;
           FX.spawnTrail(world, playerPos.x, playerPos.y);
-        }
-        if (time - lastSnapshotTime >= SNAPSHOT_INTERVAL) {
-          lastSnapshotTime = time;
-          saveRunSnapshot();
         }
       }
     }
