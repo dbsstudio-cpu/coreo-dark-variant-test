@@ -1,5 +1,17 @@
 ﻿// js/fx.js
 const FX = {
+  // v0.5.24：動能軌跡 Trail——在 world 座標系生成一個小殘光點，動畫播完自行移除，
+  // 呼叫端要自行節流（不要每個 frame 都呼叫），避免大量 DOM 節點拖垮 Android 效能
+  spawnTrail: function(worldEl, x, y) {
+    if (!worldEl) return;
+    const dot = document.createElement('div');
+    dot.className = 'motion-trail';
+    dot.style.left = `${x}px`;
+    dot.style.top = `${y}px`;
+    worldEl.appendChild(dot);
+    dot.addEventListener('animationend', () => dot.remove(), { once: true });
+  },
+
   collectCore: function(coreDOM, spriteDOM, type) {
     const isBoost = type === 5;
     const uiCore = document.getElementById(isBoost ? 'ui-pulse-val' : 'ui-shard-val');

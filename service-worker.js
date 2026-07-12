@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v0522-path-brightness-revert-20260711';
+﻿const COREO_CACHE = 'coreo-dark-variant-v0524-color-and-trail-20260712';
 const COREO_ASSETS = [
   './',
   './index.html',

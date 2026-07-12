@@ -12,6 +12,8 @@ window.addEventListener('DOMContentLoaded', () => {
   let isGameOver = false;
   let isResetting = false;
   let lastTime = performance.now();
+  let lastTrailTime = 0;
+  const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
 
   // v0.5.14: Core Shard / Core Pulse 資源規則（GPT 裁決）
   const SHARDS_PER_PULSE = 5;
@@ -199,6 +201,11 @@ window.addEventListener('DOMContentLoaded', () => {
       if (movedX || movedY) {
         updatePlayerDOM();
         checkPickups();
+
+        if (time - lastTrailTime >= TRAIL_INTERVAL) {
+          lastTrailTime = time;
+          FX.spawnTrail(world, playerPos.x, playerPos.y);
+        }
       }
     }
 

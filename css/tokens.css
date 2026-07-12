@@ -8,17 +8,22 @@
   --coreo-path-edge: #4A4A50;
   --coreo-wall-side: #202024;
   --coreo-wall-face: #5A6275;
-  --coreo-edge-highlight: rgba(255, 255, 255, 0.15);
+  --coreo-edge-highlight: rgba(255, 255, 255, 0.22);
   --coreo-matrix-glow: rgba(0, 229, 255, 0.05);
   --coreo-text-primary: #F5F5F7;
   --coreo-text-secondary: #86868B;
   --coreo-glow-core: #00E5FF;
   --coreo-glow-hot: #8AF7FF;
   --coreo-credit: #CCFF00;
-  --coreo-core-basic: #EAFBFF;
+  /* v0.5.24：GPT/GEM 裁決，Core Shard 改用淡冰藍，跟主角冰藍色系更貼近 */
+  --coreo-core-basic: #D4F0FF;
   --coreo-core-basic-glow: rgba(0, 229, 255, 0.35);
-  --coreo-core-boost: #FFD60A;
-  --coreo-stage-secured: #D7C68A;
+  /* v0.5.24：Core Pulse 白金化，取代原本偏廉價的黃色，避免像金幣 */
+  --coreo-core-boost: #F9D976;
+  --coreo-core-boost-deep: #E5B235;
+  --coreo-stage-secured: #F9D976;
+  /* v0.5.24：主角走過路徑的短暫餘光（動能軌跡 Trail），低調、快速消退，不是可收集物 */
+  --coreo-trail: #D4F0FF;
   --coreo-path-rim: rgba(0, 229, 255, 0.18);
   --coreo-path-inner-glow: rgba(245, 245, 247, 0.06);
   --coreo-wall-edge-highlight: rgba(255, 255, 255, 0.08);
@@ -28,8 +33,9 @@
   --coreo-core-guide: #FFFFFF;
   --coreo-core-key: #9D00FF;
   --coreo-credit-hot: #FF007F;
-  --coreo-danger: #FF2D55;
-  --coreo-enemy-red: #FF2D55;
+  /* v0.5.24：GPT/GEM 裁決，EMBER/危險色從霓虹紅粉改為熔岩橘紅，暖化壓迫感、降低暗黑重的偏冷電光感 */
+  --coreo-danger: #FF5722;
+  --coreo-enemy-red: #FF5722;
   --coreo-enemy-red-orange: #FF453A;
   --coreo-danger-glow: #FFD1D8;
   --coreo-threat-dark: #7A1024;
@@ -53,10 +59,11 @@ body {
   width: 100%;
   height: 100%;
   min-height: 100%;
-  /* v0.5.19：牆體改冷藍灰後，原本的粉紅警戒環境光相對變搶戲，疊出偏粉紫的色偏，降低強度壓回去 */
+  /* v0.5.19：牆體改冷藍灰後，原本的警戒環境光相對變搶戲，降低強度壓回去 */
+  /* v0.5.24：環境光色相隨 EMBER 改為熔岩橘紅，強度維持低調，不整體調亮 */
   background:
     radial-gradient(circle at 50% 12%, rgba(0, 229, 255, 0.17), transparent 34%),
-    radial-gradient(circle at 82% 36%, rgba(255, 45, 85, 0.06), transparent 22%),
+    radial-gradient(circle at 82% 36%, rgba(255, 87, 34, 0.06), transparent 22%),
     linear-gradient(180deg, #151517 0%, var(--coreo-bg-base) 48%, #070708 100%);
   color: var(--coreo-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -196,8 +203,29 @@ body {
   transition: box-shadow 1.5s ease-in;
 }
 
+/* v0.5.24：動能軌跡 Trail——主角走過的格子留下極低調的淡冰藍餘光，快速消退，
+   不是獨立格子系統（路徑格已貪婪合併成大區塊），改用跟隨玩家座標生成的小型殘光點，
+   刻意做得小、暗、快消退，避免被誤認為可收集物或干擾 Core Shard 視覺 */
+.motion-trail {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--coreo-trail);
+  box-shadow: 0 0 7px rgba(212, 240, 255, 0.4);
+  opacity: 0.3;
+  pointer-events: none;
+  transform: translate(-50%, -50%) translateZ(3px);
+  animation: trail-fade 0.55s ease-out forwards;
+}
+@keyframes trail-fade {
+  0% { opacity: 0.3; transform: translate(-50%, -50%) translateZ(3px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateZ(3px) scale(0.35); }
+}
+
 .cell.wall {
   /* v0.5.18：GEM 冷鋼藍灰方向，牆體加入微弱藍紫色相，打破純中性灰的死板感 */
+  /* v0.5.24：GPT 裁決第一優先——牆體邊緣高光加強，讓牆體從深空背景與路徑中更清楚浮出來 */
   background: linear-gradient(145deg, #7A8398 0%, var(--coreo-wall-face) 60%, #434A5E 100%);
   border-radius: 14px;
   transform: translateZ(18px);
@@ -205,14 +233,14 @@ body {
   box-shadow:
     0 0 0 1px var(--coreo-matrix-glow),
     0 18px 34px rgba(4, 4, 6, 0.62),
-    inset 0 1px 0 rgba(245, 245, 247, 0.16),
+    inset 0 1px 0 rgba(245, 245, 247, 0.24),
     inset 0 0 0 1px var(--coreo-edge-highlight);
 }
 
 /* v0.5.19：拿到 Core Pulse 瞬間，迷宮矩陣接縫灌滿金色霓虹光，快速亮起、緩慢冷卻回常態 */
 #world.energized .cell.path,
 #world.energized .cell.wall {
-  --coreo-matrix-glow: rgba(255, 214, 10, 0.85);
+  --coreo-matrix-glow: rgba(249, 217, 118, 0.85);
   transition: box-shadow 0.1s ease-out;
 }
 
@@ -227,7 +255,7 @@ body {
       0 18px 34px rgba(4, 4, 6, 0.62),
       inset 0 1px 0 rgba(245, 245, 247, 0.16),
       inset 0 0 0 1px var(--coreo-edge-highlight),
-      inset 0 0 24px rgba(255, 214, 10, 0.6);
+      inset 0 0 24px rgba(249, 217, 118, 0.6);
   }
   25% {
     box-shadow:
@@ -235,7 +263,7 @@ body {
       0 18px 34px rgba(4, 4, 6, 0.62),
       inset 0 1px 0 rgba(245, 245, 247, 0.16),
       inset 0 0 0 1px var(--coreo-edge-highlight),
-      inset 0 0 16px rgba(255, 214, 10, 0.38);
+      inset 0 0 16px rgba(249, 217, 118, 0.38);
   }
   50% {
     box-shadow:
@@ -243,7 +271,7 @@ body {
       0 18px 34px rgba(4, 4, 6, 0.62),
       inset 0 1px 0 rgba(245, 245, 247, 0.16),
       inset 0 0 0 1px var(--coreo-edge-highlight),
-      inset 0 0 9px rgba(255, 214, 10, 0.2);
+      inset 0 0 9px rgba(249, 217, 118, 0.2);
   }
   75% {
     box-shadow:
@@ -251,7 +279,7 @@ body {
       0 18px 34px rgba(4, 4, 6, 0.62),
       inset 0 1px 0 rgba(245, 245, 247, 0.16),
       inset 0 0 0 1px var(--coreo-edge-highlight),
-      inset 0 0 3px rgba(255, 214, 10, 0.08);
+      inset 0 0 3px rgba(249, 217, 118, 0.08);
   }
   100% {
     box-shadow:
@@ -312,8 +340,11 @@ body {
 }
 
 /* v0.5.15：出口改為「白金光環 Core Ring」+ 底部光柱，取代原本綠色虛線框 */
+/* v0.5.24：GPT 裁決第四優先，白金光環改用 Core Pulse 白金色系，加一層淡冰藍內光跟 Core Pulse 建立視覺關聯 */
 .cell.exit {
-  box-shadow: inset 0 0 30px rgba(215, 198, 138, 0.28);
+  box-shadow:
+    inset 0 0 30px rgba(249, 217, 118, 0.28),
+    inset 0 0 46px rgba(212, 240, 255, 0.12);
 }
 
 .cell.exit::before,
@@ -333,17 +364,17 @@ body {
   border-top-color: transparent;
   border-radius: 50%;
   transform: translate(-50%, -50%) rotate(0deg);
-  box-shadow: 0 0 20px rgba(215, 198, 138, 0.55);
+  box-shadow: 0 0 20px rgba(249, 217, 118, 0.55);
   animation: exit-ring-spin 3.4s linear infinite;
 }
 
-/* 底部往上打的光柱 */
+/* 底部往上打的光柱：白金起頭、淡冰藍收尾，跟 Core Pulse 建立色彩關聯 */
 .cell.exit::after {
   width: 5px;
   height: 120px;
   bottom: 50%;
   top: auto;
-  background: linear-gradient(to top, rgba(215, 198, 138, 0.55), transparent);
+  background: linear-gradient(to top, rgba(249, 217, 118, 0.55), rgba(212, 240, 255, 0.28) 65%, transparent);
   transform: translate(-50%, 0);
 }
 
@@ -386,10 +417,11 @@ body {
   filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 229, 255, 0.5));
 }
 
-/* 反派內層視覺：EMBER｜熾核獵者專屬圖（暗黑版自己的霓虹紅 #FF2D55） */
+/* 反派內層視覺：EMBER｜熾核獵者專屬圖 */
+/* v0.5.24：GPT/GEM 裁決，主色從霓虹紅粉 #FF2D55 改為熔岩橘紅 #FF5722，光暈加強、壓迫感更明確 */
 #enemy .actor-sprite {
   background-image: url('../assets/enemy_ember.png');
-  filter: drop-shadow(0 0 16px rgba(255, 45, 85, 0.9)) drop-shadow(0 0 36px rgba(255, 45, 85, 0.6));
+  filter: drop-shadow(0 0 18px rgba(255, 87, 34, 0.95)) drop-shadow(0 0 42px rgba(255, 87, 34, 0.65));
 }
 
 /* --- 能量分級系統 (LIGHT CORE) --- */
@@ -411,15 +443,15 @@ body {
   animation: float-core-std 2s ease-in-out infinite;
 }
 
-/* 等級 5: 強化能量 (香檳金大菱形，死路支線獎勵) */
+/* 等級 5: 強化能量 (v0.5.24 白金菱形，取代原本偏黃廉價感，死路支線獎勵) */
  .light-core-item.upgraded,
 .light-core-item.boost {
   width: 24px;
   height: 24px;
-  background: var(--coreo-core-boost);
+  background: linear-gradient(145deg, var(--coreo-core-boost) 0%, var(--coreo-core-boost-deep) 100%);
   border-radius: 6px;
   transform: translate(-50%, -50%) translateZ(18px) rotate(45deg);
-  box-shadow: 0 0 15px rgba(255, 214, 10, 0.85), 0 0 34px rgba(255, 45, 85, 0.28);
+  box-shadow: 0 0 15px rgba(249, 217, 118, 0.85), 0 0 34px rgba(255, 87, 34, 0.22);
   animation: float-core-upg 2s ease-in-out infinite;
 }
 
@@ -588,8 +620,7 @@ body {
 
 /* ==============================================
    Gameplay Layer (Type 6, Enemy States, Effects)
-   顏色改用暗黑版自己的 --coreo-enemy-red (#FF2D55 = rgb(255,45,85))，
-   不沿用亮版的 rgb(255,59,48)
+   v0.5.24：顏色改用 --coreo-enemy-red 熔岩橘紅 (#FF5722 = rgb(255,87,34))
 ============================================== */
 
 /* 躲藏凹槽 Type 6 (暗化、稍微縮小產生凹陷感) */
@@ -600,14 +631,14 @@ body {
   box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
 }
 
-/* 反派狀態：巡邏 (微弱紅光，全部作用在內層 .actor-sprite) */
+/* 反派狀態：巡邏 (微弱橘紅光，全部作用在內層 .actor-sprite) */
 .actor-sprite.enemy-state-patrol {
-  filter: drop-shadow(0 0 10px rgba(255, 45, 85, 0.4)) drop-shadow(0 0 20px rgba(255, 45, 85, 0.2));
+  filter: drop-shadow(0 0 10px rgba(255, 87, 34, 0.4)) drop-shadow(0 0 20px rgba(255, 87, 34, 0.2));
 }
 
 /* 反派狀態：警戒 (亮度提升) */
 .actor-sprite.enemy-state-alert {
-  filter: drop-shadow(0 0 15px rgba(255, 45, 85, 0.9)) drop-shadow(0 0 30px rgba(255, 45, 85, 0.6));
+  filter: drop-shadow(0 0 17px rgba(255, 87, 34, 0.9)) drop-shadow(0 0 34px rgba(255, 87, 34, 0.6));
   animation: pulse-enemy-alert 0.5s infinite;
 }
 @keyframes pulse-enemy-alert {
@@ -617,12 +648,12 @@ body {
 
 /* 反派狀態：搜索（追丟玩家後，去最後出現位置附近找一下） */
 .actor-sprite.enemy-state-search {
-  filter: drop-shadow(0 0 13px rgba(255, 45, 85, 0.65)) drop-shadow(0 0 26px rgba(255, 45, 85, 0.35));
+  filter: drop-shadow(0 0 13px rgba(255, 87, 34, 0.65)) drop-shadow(0 0 26px rgba(255, 87, 34, 0.35));
 }
 
-/* 反派狀態：追逐 (強烈殘影與抖動) */
+/* 反派狀態：追逐 (強烈殘影與抖動，v0.5.24 光暈加強壓迫感) */
 .actor-sprite.enemy-state-chase {
-  filter: drop-shadow(0 0 20px rgba(255, 45, 85, 1)) drop-shadow(0 0 40px rgba(255, 45, 85, 0.8));
+  filter: drop-shadow(0 0 24px rgba(255, 87, 34, 1)) drop-shadow(0 0 46px rgba(255, 87, 34, 0.85));
 }
 .actor-sprite.enemy-state-chase::after {
   content: ''; position: absolute; inset: 0;
@@ -637,7 +668,7 @@ body {
 /* 全域警戒紅光 Overlay */
 #global-alert-overlay {
   position: fixed; inset: 0;
-  background: radial-gradient(circle, transparent 40%, rgba(255, 45, 85, 0.12) 100%);
+  background: radial-gradient(circle, transparent 40%, rgba(255, 87, 34, 0.12) 100%);
   pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 400;
 }
 #global-alert-overlay.active { opacity: 1; }
@@ -689,9 +720,9 @@ body {
   100% { filter: drop-shadow(0 0 25px var(--coreo-danger)) hue-rotate(140deg) brightness(2); }
 }
 
-/* 全域紅光閃現強化（暗黑版用自己的 #FF2D55，不沿用亮版色碼） */
+/* 全域紅光閃現強化（v0.5.24 改熔岩橘紅 #FF5722） */
 #global-alert-overlay.flash {
-  background: radial-gradient(circle, transparent 20%, rgba(255, 45, 85, 0.45) 100%);
+  background: radial-gradient(circle, transparent 20%, rgba(255, 87, 34, 0.45) 100%);
   opacity: 1;
   transition: opacity 0.05s;
 }
@@ -717,7 +748,7 @@ body {
   filter: brightness(1.28) drop-shadow(0 0 18px var(--coreo-core-basic-glow));
 }
 .actor-sprite.villain-hunt {
-  filter: brightness(1.18) drop-shadow(0 0 20px rgba(255, 45, 85, 1)) drop-shadow(0 0 44px rgba(255, 45, 85, 0.72));
+  filter: brightness(1.18) drop-shadow(0 0 20px rgba(255, 87, 34, 1)) drop-shadow(0 0 44px rgba(255, 87, 34, 0.72));
 }
 .actor-sprite.villain-guard {
   filter: drop-shadow(0 0 14px var(--coreo-actor-villain-guard-glow)) drop-shadow(0 0 28px rgba(193, 18, 31, 0.35));
@@ -772,7 +803,7 @@ body {
   right: -10%;
   width: 70vw;
   height: 70vw;
-  background: radial-gradient(circle, rgba(255, 59, 48, 0.1) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(255, 87, 34, 0.1) 0%, transparent 65%);
   filter: blur(50px);
 }
 
@@ -829,7 +860,7 @@ body {
 .cinematic-ember img {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 25px rgba(255, 59, 48, 0.65)); /* GEM 專屬橘紅 */
+  filter: drop-shadow(0 0 25px rgba(255, 87, 34, 0.7)); /* v0.5.24 統一 EMBER 熔岩橘紅 #FF5722 */
 }
 
 .cinematic-player {
@@ -854,7 +885,7 @@ body {
   margin-top: 8px;
 }
 .player-name { color: var(--coreo-glow-core); }
-.ember-name { color: #FF3B30; }
+.ember-name { color: var(--coreo-enemy-red); }
 
 /* GEM：兩者呼吸節奏刻意不同步（4s / 5s），避免同步跳動的廉價感 */
 @keyframes breathe-player {
