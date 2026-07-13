@@ -249,10 +249,11 @@ body {
   background-color: var(--coreo-wall-face-s2);
 }
 
-/* 核心凹槽區（代號7）牆體：白金邊緣微光，只做內側反射不整面發光 */
+/* 核心凹槽區（代號7）牆體：白金邊緣微光，只做內側反射不整面發光。
+   v0.6：座標判定修正後這組樣式終於會真的套用到牆上，順勢把強度調到肉眼可辨（原本太弱形同沒有） */
 .cell.wall.zone-vault {
-  box-shadow: inset 0 0 12px rgba(249, 217, 118, 0.15);
-  border: 1px solid rgba(249, 217, 118, 0.2);
+  box-shadow: inset 0 0 20px rgba(249, 217, 118, 0.32), 0 0 14px rgba(249, 217, 118, 0.18);
+  border: 1px solid rgba(249, 217, 118, 0.4);
 }
 
 /* EMBER 守護區牆體：熔岩暗湧底光，緩慢呼吸，克制不做滿地橘紅 */
@@ -260,23 +261,29 @@ body {
   animation: guard-breathing 4s infinite alternate ease-in-out;
 }
 @keyframes guard-breathing {
-  0% { box-shadow: inset 0 -4px 10px rgba(255, 87, 34, 0); }
-  100% { box-shadow: inset 0 -4px 15px rgba(255, 87, 34, 0.15); }
+  0% { box-shadow: inset 0 -6px 14px rgba(255, 87, 34, 0.05); }
+  100% { box-shadow: inset 0 -6px 22px rgba(255, 87, 34, 0.32); }
 }
 
-/* 誘敵通道牆體：極細冷藍引導線，非常克制 */
+/* 誘敵通道牆體：冷藍引導線，維持克制但要看得出來是一條線索 */
 .cell.wall.zone-lure {
-  border-top: 1px solid rgba(141, 169, 196, 0.3);
+  border-top: 2px solid rgba(141, 169, 196, 0.55);
+  box-shadow: inset 0 6px 10px rgba(141, 169, 196, 0.12);
 }
 
 /* v0.5.27：Core Pulse 後的全迷宮 cell 陰影重算會讓 iPhone/Android 累格。
-   改成容器層短暫脈衝，保留大光源回饋，但不讓每個牆體與路徑都一起重繪。 */
+   改成容器層短暫脈衝，保留大光源回饋，但不讓每個牆體與路徑都一起重繪。
+   v0.6：Sean 反映這個回饋太弱、幾乎感覺不到，加大光暈範圍與強度。
+   注意：#world 的 transform 是 camera.js 每一幀用 inline style 寫入的（負責鏡頭跟隨捲動），
+   這裡絕對不能用 CSS animation 去動 transform，否則會跟鏡頭捲動打架、瞬間跳位，
+   只加強 box-shadow/border-color，這兩個屬性跟 JS 控制的 transform 互不衝突 */
 #world.energized {
-  border-color: rgba(249, 217, 118, 0.34);
+  border-color: rgba(249, 217, 118, 0.55);
   box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.5),
-    0 0 26px rgba(249, 217, 118, 0.22),
-    inset 0 0 24px rgba(249, 217, 118, 0.10);
+    0 0 46px rgba(249, 217, 118, 0.4),
+    0 0 90px rgba(249, 217, 118, 0.18),
+    inset 0 0 36px rgba(249, 217, 118, 0.2);
   transition: box-shadow 0.12s ease-out, border-color 0.12s ease-out;
 }
 
@@ -610,6 +617,17 @@ body {
   0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
   45% { transform: scale(2.4) translateY(-150px); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
   100% { transform: scale(3.8) translateY(-340px); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
+}
+
+/* v0.6：出口方向不再固定在地圖上方（Stage02 刻意反過來，讓玩家摸不準出口方位），
+   放大脫離的方向要跟著出口實際方向走，往下的鏡射版本 */
+.actor-sprite.player-victory-zoom-down {
+  animation: victory-zoom-down 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes victory-zoom-down {
+  0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
+  45% { transform: scale(2.4) translateY(150px); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
+  100% { transform: scale(3.8) translateY(340px); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
 }
 
 .victory-burst {

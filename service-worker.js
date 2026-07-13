@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v06-stage02-launch-20260713';
+﻿const COREO_CACHE = 'coreo-dark-variant-v061-zone-fix-zoom-direction-20260713';
 const COREO_ASSETS = [
   './',
   './index.html',

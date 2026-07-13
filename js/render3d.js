@@ -116,13 +116,15 @@ const Render3D = {
     return startPos;
   },
 
-  // v0.6：Stage02 牆體分區判定，用合併區塊的左上角格子座標粗略判斷所屬分區（Edge Lighting/GEM 分區色彩用）。
-  // 這是視覺加分項，用左上角座標做近似判斷即可，不需要精準到每一格
+  // v0.6：Stage02 牆體分區判定，用合併區塊的左上角格子座標判斷所屬分區（Edge Lighting/GEM 分區色彩用）。
+  // 修正紀錄：原本拿凹槽「地板」的欄位範圍去判斷，但真正圍住凹槽的牆體座標跟地板不同，
+  // 導致 zone-vault/zone-lure 幾乎沒有機會被判定到；已對照 getStage02Map 實際牆體座標重新校正，
+  // 三個分區範圍互斥不重疊，避免順序判斷互相蓋掉
   getWallZoneClass: function(x, y, stageId) {
     if (stageId !== 2) return null;
-    if (y >= 19 && y <= 22 && x >= 3 && x <= 5) return 'zone-vault';
-    if (y >= 23 && y <= 27) return 'zone-guard';
-    if (y >= 25 && y <= 30 && (x === 1 || x === 5)) return 'zone-lure';
+    if (y >= 18 && y <= 22 && x >= 2 && x <= 5) return 'zone-vault';
+    if (y >= 23 && y <= 24) return 'zone-guard';
+    if (y >= 25 && y <= 31) return 'zone-lure';
     return null;
   },
 

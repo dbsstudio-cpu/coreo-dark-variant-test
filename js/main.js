@@ -62,6 +62,7 @@ window.addEventListener('DOMContentLoaded', () => {
         { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }
       ],
       pulseRequirement: 1,
+      exitDirection: 'up',
       briefing: {
         title: 'STAGE 01 | CORE AWAKENING',
         subtitle: '第一關｜核心甦醒',
@@ -78,6 +79,8 @@ window.addEventListener('DOMContentLoaded', () => {
         { x: 3.5 * CELL_SIZE, y: 28.5 * CELL_SIZE }
       ],
       pulseRequirement: 2,
+      // v0.6：Stage02 出口刻意設計在地圖下方（跟 Stage01 相反），過關放大要往下飄離，不是往上
+      exitDirection: 'down',
       briefing: {
         title: 'STAGE 02 | EMBER VAULT',
         subtitle: '第二關｜核心封鎖',
@@ -316,7 +319,7 @@ window.addEventListener('DOMContentLoaded', () => {
         isGameOver = true;
         clearRunSnapshot();
         ProgressManager.completeStage(currentStage);
-        FX.levelComplete(playerSprite, playerDiv);
+        FX.levelComplete(playerSprite, playerDiv, STAGE_CONFIG[currentStage].exitDirection);
       } else {
         FX.exitLocked(playerSprite, hudPulseVal);
       }

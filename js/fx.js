@@ -82,11 +82,12 @@ const FX = {
   },
 
   // v0.5.15: 過關 Cinematic Zoom——主角先放大 3~4 倍 + 冰藍衝擊波，播完才彈出 STAGE SECURED
-  levelComplete: function(spriteDOM, actorDOM) {
+  // v0.6：exitDirection 決定放大脫離的方向（'up' 或 'down'），因為出口不再固定在地圖上方
+  levelComplete: function(spriteDOM, actorDOM, exitDirection) {
     if ('vibrate' in navigator) navigator.vibrate([40, 30, 40, 30, 120]);
 
     if (spriteDOM) {
-      spriteDOM.classList.add('player-victory-zoom');
+      spriteDOM.classList.add(exitDirection === 'down' ? 'player-victory-zoom-down' : 'player-victory-zoom');
     }
 
     if (actorDOM) {
