@@ -2,7 +2,9 @@
 const Render3D = {
   CELL_SIZE: 58,
 
-  buildWorld: function(mazeData) {
+  // v0.6：stageId 為選填參數，只用來決定牆體要不要疊加 Stage02 專屬的分區 class（core-vault/guard/lure），
+  // 不影響既有的貪婪合併演算法本身
+  buildWorld: function(mazeData, stageId) {
     const world = document.getElementById('world');
     world.innerHTML = ''; // 清空
 
@@ -80,7 +82,10 @@ const Render3D = {
           }
           const isReactive = reactiveAssigned < maxReactiveBlocks && Math.max(blockW, blockH) >= 3;
           if (isReactive) reactiveAssigned++;
-          this.createBlock(world, x, y, blockW, blockH, isReactive ? 'wall reactive-block' : 'wall');
+          let wallClasses = isReactive ? 'wall reactive-block' : 'wall';
+          const zoneClass = this.getWallZoneClass(x, y, stageId);
+          if (zoneClass) wallClasses += ` ${zoneClass}`;
+          this.createBlock(world, x, y, blockW, blockH, wallClasses);
         }
       }
     }
@@ -109,6 +114,16 @@ const Render3D = {
     }
 
     return startPos;
+  },
+
+  // v0.6：Stage02 牆體分區判定，用合併區塊的左上角格子座標粗略判斷所屬分區（Edge Lighting/GEM 分區色彩用）。
+  // 這是視覺加分項，用左上角座標做近似判斷即可，不需要精準到每一格
+  getWallZoneClass: function(x, y, stageId) {
+    if (stageId !== 2) return null;
+    if (y >= 19 && y <= 22 && x >= 3 && x <= 5) return 'zone-vault';
+    if (y >= 23 && y <= 27) return 'zone-guard';
+    if (y >= 25 && y <= 30 && (x === 1 || x === 5)) return 'zone-lure';
+    return null;
   },
 
   createBlock: function(world, x, y, w, h, classes) {

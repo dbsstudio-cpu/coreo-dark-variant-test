@@ -12,6 +12,19 @@ const FX = {
     dot.addEventListener('animationend', () => dot.remove(), { once: true });
   },
 
+  // v0.6：Edge Lighting——局部生成一個小型發光元素貼在拾取點附近，播完自動移除，
+  // 不碰任何既有 .cell 元素本身的 CSS 屬性，效能成本固定不隨地圖大小增加
+  spawnEdgeLight: function(x, y, type) {
+    const world = document.getElementById('world');
+    if (!world) return;
+    const light = document.createElement('div');
+    light.className = `edge-light-fx fx-${type}`;
+    light.style.left = `${x}px`;
+    light.style.top = `${y}px`;
+    world.appendChild(light);
+    light.addEventListener('animationend', () => light.remove(), { once: true });
+  },
+
   collectCore: function(coreDOM, spriteDOM, type) {
     const isBoost = type === 5;
     const uiCore = document.getElementById(isBoost ? 'ui-pulse-val' : 'ui-shard-val');

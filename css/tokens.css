@@ -42,6 +42,12 @@
   --coreo-special-violet: #9D00FF;
   --coreo-success: #30D158;
   --coreo-gesture-safe-inset: 48px;
+
+  /* v0.6：Stage 02 專屬牆體色（獨立於 Stage01 的 --coreo-wall-face，兩關可各自調整） */
+  --coreo-wall-face-s2: #1c2128;
+  /* v0.6：Edge Lighting 牆體邊緣動態光效脈衝色 */
+  --coreo-edge-basic: rgba(212, 240, 255, 0.8);
+  --coreo-edge-pulse: rgba(249, 217, 118, 0.9);
 }
 
 * {
@@ -238,6 +244,31 @@ body {
     inset 0 0 0 1px var(--coreo-edge-highlight);
 }
 
+/* v0.6：Stage 02 專屬牆體與分區色彩，只在 #world 掛上 stage-02 class 時生效，不影響 Stage01 */
+.stage-02 .cell.wall {
+  background-color: var(--coreo-wall-face-s2);
+}
+
+/* 核心凹槽區（代號7）牆體：白金邊緣微光，只做內側反射不整面發光 */
+.cell.wall.zone-vault {
+  box-shadow: inset 0 0 12px rgba(249, 217, 118, 0.15);
+  border: 1px solid rgba(249, 217, 118, 0.2);
+}
+
+/* EMBER 守護區牆體：熔岩暗湧底光，緩慢呼吸，克制不做滿地橘紅 */
+.cell.wall.zone-guard {
+  animation: guard-breathing 4s infinite alternate ease-in-out;
+}
+@keyframes guard-breathing {
+  0% { box-shadow: inset 0 -4px 10px rgba(255, 87, 34, 0); }
+  100% { box-shadow: inset 0 -4px 15px rgba(255, 87, 34, 0.15); }
+}
+
+/* 誘敵通道牆體：極細冷藍引導線，非常克制 */
+.cell.wall.zone-lure {
+  border-top: 1px solid rgba(141, 169, 196, 0.3);
+}
+
 /* v0.5.27：Core Pulse 後的全迷宮 cell 陰影重算會讓 iPhone/Android 累格。
    改成容器層短暫脈衝，保留大光源回饋，但不讓每個牆體與路徑都一起重繪。 */
 #world.energized {
@@ -350,6 +381,14 @@ body {
   box-shadow:
     inset 0 0 30px rgba(249, 217, 118, 0.28),
     inset 0 0 46px rgba(212, 240, 255, 0.12);
+}
+
+/* v0.6：Stage02 出口漸進視覺——拿到部分但未達門檻的 Pulse 時，疊加暗化＋收斂邊框，
+   跟拿滿門檻後的完整白金光環做出明顯差異 */
+.cell.exit.partial-charged {
+  filter: brightness(0.8);
+  box-shadow: inset 0 0 15px rgba(249, 217, 118, 0.18);
+  border: 1px solid rgba(249, 217, 118, 0.35);
 }
 
 .cell.exit::before,
@@ -1010,5 +1049,72 @@ body {
 #briefing-enter-btn:active {
   background: rgba(0, 229, 255, 0.15);
   transform: scale(0.97);
+}
+
+/* =========================================
+   v0.6：Edge Lighting（局部生成，效能安全，見 js/fx.js spawnEdgeLight）
+========================================= */
+.edge-light-fx {
+  position: absolute;
+  width: 116px;
+  height: 116px;
+  transform: translate(-50%, -50%);
+  border-radius: 20px;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+}
+.edge-light-fx.fx-basic {
+  box-shadow: inset 0 0 20px var(--coreo-edge-basic), 0 0 10px var(--coreo-edge-basic);
+  animation: edge-pulse-anim 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+.edge-light-fx.fx-pulse {
+  box-shadow: inset 0 0 30px var(--coreo-edge-pulse), 0 0 20px var(--coreo-edge-pulse);
+  animation: edge-pulse-anim 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes edge-pulse-anim {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* =========================================
+   v0.6：最簡化 Stage Select
+========================================= */
+#stage-select-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--coreo-bg-base);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+#stage-select-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.stage-card {
+  width: 240px;
+  padding: 20px;
+  margin: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  text-align: center;
+  color: var(--coreo-text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.stage-card.locked {
+  opacity: 0.4;
+  pointer-events: none;
+  filter: grayscale(100%);
+}
+.stage-card:active {
+  transform: scale(0.95);
 }
 

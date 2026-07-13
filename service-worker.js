@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v0527-enemy-path-core-pulse-perf-20260712';
+const COREO_CACHE = 'coreo-dark-variant-v06-stage02-launch-20260713';
 const COREO_ASSETS = [
   './',
   './index.html',

@@ -1,4 +1,4 @@
-﻿// js/main.js
+// js/main.js
 window.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
   document.addEventListener('gesturestart', (event) => event.preventDefault(), { passive: false });
@@ -47,6 +47,79 @@ window.addEventListener('DOMContentLoaded', () => {
     return time < pulseEffectUntil;
   }
 
+  // v0.6：Stage 02 多關卡設定物件，兩關的地圖／巡邏路線／通關門檻／簡報文案在此集中管理，
+  // 不做成完整資料驅動引擎，兩關規模用這個簡化物件就夠
+  const STAGE_CONFIG = {
+    1: {
+      getMap: () => MazeLogic.getStage01Map(),
+      enemyRoute: [
+        { x: 1.5 * CELL_SIZE, y: 21.5 * CELL_SIZE },
+        { x: 1.5 * CELL_SIZE, y: 20.5 * CELL_SIZE },
+        { x: 1.5 * CELL_SIZE, y: 19.5 * CELL_SIZE },
+        { x: 1.5 * CELL_SIZE, y: 18.5 * CELL_SIZE },
+        { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
+        { x: 2.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
+        { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }
+      ],
+      pulseRequirement: 1,
+      briefing: {
+        title: 'STAGE 01 | CORE AWAKENING',
+        subtitle: '第一關｜核心甦醒',
+        mission: '收集核光碎片，形成 Core Pulse，避開 EMBER，抵達出口。',
+        btnText: 'ENTER STAGE 01'
+      }
+    },
+    2: {
+      getMap: () => MazeLogic.getStage02Map(),
+      enemyRoute: [
+        { x: 3.5 * CELL_SIZE, y: 24.5 * CELL_SIZE },
+        { x: 1.5 * CELL_SIZE, y: 26.5 * CELL_SIZE },
+        { x: 5.5 * CELL_SIZE, y: 26.5 * CELL_SIZE },
+        { x: 3.5 * CELL_SIZE, y: 28.5 * CELL_SIZE }
+      ],
+      pulseRequirement: 2,
+      briefing: {
+        title: 'STAGE 02 | EMBER VAULT',
+        subtitle: '第二關｜核心封鎖',
+        mission: '引開 EMBER 進入核心凹槽，形成 2 個 Core Pulse 以啟動出口。',
+        btnText: 'ENTER STAGE 02'
+      }
+    }
+  };
+
+  // v0.6：破關進度記憶，用 localStorage 永久保存，跟下面 sessionStorage 的「本局即時快照」
+  // 是完全獨立的兩個系統，key 不同、生命週期不同，不能共用
+  const ProgressManager = {
+    key: 'coreo-dark-progress-v1',
+    data: { highestUnlockedStage: 1, completedStages: [] },
+    load() {
+      try {
+        const raw = localStorage.getItem(this.key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed.highestUnlockedStage === 'number' && Array.isArray(parsed.completedStages)) {
+            this.data = parsed;
+          }
+        }
+      } catch (error) {
+        // 讀取失敗視為全新玩家，不影響遊戲啟動
+      }
+    },
+    save() {
+      try {
+        localStorage.setItem(this.key, JSON.stringify(this.data));
+      } catch (error) {
+        // 儲存失敗不影響本局遊戲
+      }
+    },
+    completeStage(stageId) {
+      if (!this.data.completedStages.includes(stageId)) this.data.completedStages.push(stageId);
+      if (stageId === this.data.highestUnlockedStage) this.data.highestUnlockedStage = stageId + 1;
+      this.save();
+    }
+  };
+  ProgressManager.load();
+
   function loadRunSnapshot() {
     try {
       const raw = sessionStorage.getItem(RUN_STATE_KEY);
@@ -60,13 +133,16 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const pristineMazeData = JSON.parse(JSON.stringify(MazeLogic.getTestCorridor()));
   const restoredRun = loadRunSnapshot();
+  let currentStage = (restoredRun && STAGE_CONFIG[restoredRun.stage]) ? restoredRun.stage : 1;
+  let pristineMazeData = JSON.parse(JSON.stringify(STAGE_CONFIG[currentStage].getMap()));
   let mazeData = restoredRun?.mazeData || JSON.parse(JSON.stringify(pristineMazeData));
-  let playerPos = Render3D.buildWorld(mazeData);
+  let playerPos = Render3D.buildWorld(mazeData, currentStage);
   if (restoredRun?.playerPos) playerPos = restoredRun.playerPos;
 
   const world = document.getElementById('world');
+  world.className = `stage-0${currentStage}`;
+
   const playerDiv = document.createElement('div');
   playerDiv.id = 'player';
   playerDiv.className = 'actor';
@@ -76,18 +152,7 @@ window.addEventListener('DOMContentLoaded', () => {
   playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
-  // v0.5.7: mid-left patrol with a right-side bypass. Keep the start lane safe.
-  const enemyRoute = [
-    { x: 1.5 * CELL_SIZE, y: 21.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 20.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 19.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 18.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
-    { x: 2.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
-    { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }
-  ];
-
-  EnemyLogic.init(enemyRoute, 'villainHunt');
+  EnemyLogic.init(STAGE_CONFIG[currentStage].enemyRoute, 'villainHunt');
   if (restoredRun?.enemy) {
     Object.assign(EnemyLogic, {
       x: restoredRun.enemy.x ?? EnemyLogic.x,
@@ -100,7 +165,8 @@ window.addEventListener('DOMContentLoaded', () => {
       searchTimer: restoredRun.enemy.searchTimer ?? EnemyLogic.searchTimer,
       lastKnownCell: restoredRun.enemy.lastKnownCell || EnemyLogic.lastKnownCell
     });
-    EnemyLogic.currentTarget = enemyRoute[EnemyLogic.patrolIndex % enemyRoute.length] || EnemyLogic.currentTarget;
+    const route = STAGE_CONFIG[currentStage].enemyRoute;
+    EnemyLogic.currentTarget = route[EnemyLogic.patrolIndex % route.length] || EnemyLogic.currentTarget;
     EnemyLogic.updateDOM();
   }
 
@@ -114,6 +180,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function saveRunSnapshot() {
     if (!hasGameStarted || isGameOver || isResetting) return;
     const snapshot = {
+      stage: currentStage,
       playerPos,
       mazeData,
       shardCount,
@@ -175,6 +242,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function isWall(cx, cy) {
     if (cy < 0 || cy >= mazeData.length || cx < 0 || cx >= mazeData[0].length) return true;
+    // 代號 7（核心凹槽）對玩家而言是可通行路徑，只有代號 0 才是牆
     return mazeData[cy][cx] === 0;
   }
 
@@ -189,6 +257,18 @@ window.addEventListener('DOMContentLoaded', () => {
   function updatePlayerDOM() {
     playerDiv.style.left = `${playerPos.x}px`;
     playerDiv.style.top = `${playerPos.y}px`;
+  }
+
+  // v0.6：出口漸進視覺——0 個 Pulse 維持既有的白金光環基礎樣式，
+  // 拿到部分但未達門檻時疊加 partial-charged 做出「還沒完全啟動」的視覺差異
+  function updateExitVisual() {
+    const exitDOM = document.querySelector('.cell.exit');
+    if (!exitDOM) return;
+    const req = STAGE_CONFIG[currentStage].pulseRequirement;
+    exitDOM.classList.remove('partial-charged');
+    if (pulseCount > 0 && pulseCount < req) {
+      exitDOM.classList.add('partial-charged');
+    }
   }
 
   function checkPickups() {
@@ -206,29 +286,36 @@ window.addEventListener('DOMContentLoaded', () => {
         shardCount++;
         if (hudShardVal) hudShardVal.textContent = shardCount.toString().padStart(2, '0');
         flashHud(hudShardVal);
+        FX.spawnEdgeLight(playerPos.x, playerPos.y, 'basic');
 
         if (shardCount % SHARDS_PER_PULSE === 0) {
           pulseCount++;
           if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
           flashHud(hudPulseVal);
           FX.corePulseFeedback(playerSprite);
+          FX.spawnEdgeLight(playerPos.x, playerPos.y, 'pulse');
           energizeMatrix();
+          updateExitVisual();
         }
       } else {
         pulseCount++;
         if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
         flashHud(hudPulseVal);
         FX.corePulseFeedback(playerSprite);
+        FX.spawnEdgeLight(playerPos.x, playerPos.y, 'pulse');
         energizeMatrix();
+        updateExitVisual();
       }
       saveRunSnapshot();
     }
 
     if (type === 3) {
-      // v0.5.14：通關條件改為「至少 1 個 Core Pulse ＋ 抵達出口」，不能單純衝到出口就過關
-      if (pulseCount >= 1) {
+      // v0.6：通關條件改為依關卡讀取設定值（Stage01=1、Stage02=2），不再寫死
+      const req = STAGE_CONFIG[currentStage].pulseRequirement;
+      if (pulseCount >= req) {
         isGameOver = true;
         clearRunSnapshot();
+        ProgressManager.completeStage(currentStage);
         FX.levelComplete(playerSprite, playerDiv);
       } else {
         FX.exitLocked(playerSprite, hudPulseVal);
@@ -259,11 +346,11 @@ window.addEventListener('DOMContentLoaded', () => {
   function resetLevel() {
     clearRunSnapshot();
     mazeData = JSON.parse(JSON.stringify(pristineMazeData));
-    playerPos = Render3D.buildWorld(mazeData);
+    playerPos = Render3D.buildWorld(mazeData, currentStage);
 
     world.appendChild(playerDiv);
     updatePlayerDOM();
-    EnemyLogic.init(enemyRoute, 'villainHunt');
+    EnemyLogic.init(STAGE_CONFIG[currentStage].enemyRoute, 'villainHunt');
 
     currentSpeed = baseSpeed;
     isGameOver = false;
@@ -273,6 +360,7 @@ window.addEventListener('DOMContentLoaded', () => {
     pulseCount = 0;
     if (hudShardVal) hudShardVal.textContent = '00';
     if (hudPulseVal) hudPulseVal.textContent = '0';
+    updateExitVisual();
 
     const globalAlert = document.getElementById('global-alert-overlay');
     if (globalAlert) globalAlert.classList.remove('flash', 'active');
@@ -339,10 +427,63 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   updatePlayerDOM();
+  updateExitVisual();
 
-  // v0.5.14: Stage Briefing 進場畫面，按下 ENTER STAGE 01 才開始遊戲迴圈
+  // v0.6：Stage Select（只在沒有救回快照、且已解鎖 Stage 02 時顯示）＋ Stage Briefing 文字改動態注入
+  const stageSelectUI = document.getElementById('stage-select-overlay');
   const briefingOverlay = document.getElementById('stage-briefing');
+  const briefingTitleEl = document.getElementById('briefing-title');
+  const briefingSubtitleEl = document.getElementById('briefing-subtitle');
+  const briefingMissionEl = document.getElementById('briefing-mission');
   const briefingEnterBtn = document.getElementById('briefing-enter-btn');
+
+  function applyBriefingText(stageId) {
+    const cfg = STAGE_CONFIG[stageId];
+    if (briefingTitleEl) briefingTitleEl.textContent = cfg.briefing.title;
+    if (briefingSubtitleEl) briefingSubtitleEl.textContent = cfg.briefing.subtitle;
+    if (briefingMissionEl) briefingMissionEl.textContent = cfg.briefing.mission;
+    if (briefingEnterBtn) briefingEnterBtn.textContent = cfg.briefing.btnText;
+  }
+
+  // 只有從 Stage Select 主動選關時才會呼叫，救回狀態不會走這條路徑，
+  // 所以這裡永遠是「乾淨開始新的一關」，不需要處理救回快照
+  function enterStage(stageId) {
+    currentStage = stageId;
+    pristineMazeData = JSON.parse(JSON.stringify(STAGE_CONFIG[stageId].getMap()));
+    mazeData = JSON.parse(JSON.stringify(pristineMazeData));
+    playerPos = Render3D.buildWorld(mazeData, stageId);
+    world.className = `stage-0${stageId}`;
+    world.appendChild(playerDiv);
+    updatePlayerDOM();
+
+    shardCount = 0;
+    pulseCount = 0;
+    if (hudShardVal) hudShardVal.textContent = '00';
+    if (hudPulseVal) hudPulseVal.textContent = '0';
+
+    EnemyLogic.init(STAGE_CONFIG[stageId].enemyRoute, 'villainHunt');
+    updateExitVisual();
+
+    if (stageSelectUI) stageSelectUI.classList.remove('show');
+    applyBriefingText(stageId);
+    if (briefingOverlay) {
+      briefingOverlay.style.display = 'flex';
+      briefingOverlay.classList.add('show');
+    }
+  }
+
+  if (!restoredRun && stageSelectUI && ProgressManager.data.highestUnlockedStage > 1) {
+    const btnS1 = document.getElementById('btn-stage-1');
+    const btnS2 = document.getElementById('btn-stage-2');
+    if (btnS2) btnS2.classList.remove('locked');
+    if (briefingOverlay) briefingOverlay.classList.remove('show');
+    stageSelectUI.classList.add('show');
+    if (btnS1) btnS1.addEventListener('click', () => enterStage(1));
+    if (btnS2) btnS2.addEventListener('click', () => enterStage(2));
+  } else {
+    // 全新玩家直接進 Stage 01，或救回狀態直接顯示救回時所在關卡的 Briefing 文字
+    applyBriefingText(currentStage);
+  }
 
   function startGame() {
     hasGameStarted = true;
