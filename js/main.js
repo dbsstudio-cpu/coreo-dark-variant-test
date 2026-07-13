@@ -17,7 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
   let lastTrailTime = 0;
   const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
   const MAX_FRAME_DT = 34; // Core Pulse 觸發後若掉幀，限制單幀補位，避免主角/反派瞬間跳格
-  const PULSE_EFFECT_DURATION = 950;
+  const PULSE_EFFECT_DURATION = 1250;
   const RUN_STATE_KEY = 'coreo-dark-run-state-v1';
   let pulseEffectUntil = 0;
 

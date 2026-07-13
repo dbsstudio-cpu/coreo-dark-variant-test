@@ -1,4 +1,4 @@
-﻿const COREO_CACHE = 'coreo-dark-variant-v061-zone-fix-zoom-direction-20260713';
+const COREO_CACHE = 'coreo-dark-variant-v062-glass-vault-route-20260713';
 const COREO_ASSETS = [
   './',
   './index.html',

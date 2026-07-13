@@ -6,6 +6,8 @@
   /* v0.5.22：深空玻璃底盤的「路徑趨近全黑」實測辨識度太低，退回 v0.5.18 驗證有效的深藍灰 */
   --coreo-path: #3D4251;
   --coreo-path-edge: #4A4A50;
+  --coreo-path-glass: rgba(212, 240, 255, 0.11);
+  --coreo-path-glass-hot: rgba(249, 217, 118, 0.62);
   --coreo-wall-side: #202024;
   --coreo-wall-face: #5A6275;
   --coreo-edge-highlight: rgba(255, 255, 255, 0.22);
@@ -202,12 +204,43 @@ body {
 }
 
 .cell.path {
-  background: var(--coreo-path);
+  overflow: hidden;
+  border-radius: 4px;
+  background:
+    linear-gradient(145deg, rgba(245, 245, 247, 0.09) 0%, rgba(245, 245, 247, 0.025) 32%, rgba(5, 5, 8, 0.02) 100%),
+    radial-gradient(circle at 50% 0%, rgba(212, 240, 255, 0.12), transparent 58%),
+    linear-gradient(180deg, #454B5C 0%, var(--coreo-path) 56%, #262B38 100%);
   box-shadow:
-    inset 0 0 0 1px rgba(245, 245, 247, 0.055),
+    inset 0 1px 0 rgba(245, 245, 247, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(212, 240, 255, 0.07),
     0 0 18px rgba(0, 229, 255, 0.045),
     inset 0 0 0 1px var(--coreo-matrix-glow);
-  transition: box-shadow 1.5s ease-in;
+  transition: box-shadow 0.16s ease-out, background 0.16s ease-out;
+}
+
+.cell.path::before,
+.cell.path::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cell.path::before {
+  background:
+    linear-gradient(115deg, transparent 0%, transparent 22%, rgba(245, 245, 247, 0.12) 33%, transparent 47%, transparent 100%),
+    linear-gradient(180deg, rgba(212, 240, 255, 0.08), transparent 54%);
+  opacity: 0.36;
+}
+
+.cell.path::after {
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(249, 217, 118, 0.0) 18%, var(--coreo-path-glass-hot) 48%, rgba(212, 240, 255, 0.28) 58%, transparent 82%),
+    radial-gradient(circle at 50% 50%, rgba(249, 217, 118, 0.32), transparent 60%);
+  opacity: 0;
+  transform: translateX(-34%);
+  will-change: opacity, transform;
 }
 
 /* v0.5.24：動能軌跡 Trail——主角走過的格子留下極低調的淡冰藍餘光，快速消退，
@@ -271,9 +304,9 @@ body {
   box-shadow: inset 0 6px 10px rgba(141, 169, 196, 0.12);
 }
 
-/* v0.5.27：Core Pulse 後的全迷宮 cell 陰影重算會讓 iPhone/Android 累格。
-   改成容器層短暫脈衝，保留大光源回饋，但不讓每個牆體與路徑都一起重繪。
-   v0.6：Sean 反映這個回饋太弱、幾乎感覺不到，加大光暈範圍與強度。
+/* v0.6.2：Core Pulse 後恢復「迷宮路線玻璃化被能量灌亮」的體感。
+   做法只針對已貪婪合併後的路徑大塊與 pseudo overlay 做 opacity/transform 動畫，
+   不再讓每一格牆體和路徑長時間重算重型陰影，保留手機效能保護。
    注意：#world 的 transform 是 camera.js 每一幀用 inline style 寫入的（負責鏡頭跟隨捲動），
    這裡絕對不能用 CSS animation 去動 transform，否則會跟鏡頭捲動打架、瞬間跳位，
    只加強 box-shadow/border-color，這兩個屬性跟 JS 控制的 transform 互不衝突 */
@@ -285,6 +318,30 @@ body {
     0 0 90px rgba(249, 217, 118, 0.18),
     inset 0 0 36px rgba(249, 217, 118, 0.2);
   transition: box-shadow 0.12s ease-out, border-color 0.12s ease-out;
+}
+
+#world.energized .cell.path {
+  background:
+    linear-gradient(145deg, rgba(245, 245, 247, 0.16) 0%, rgba(245, 245, 247, 0.045) 32%, rgba(5, 5, 8, 0.02) 100%),
+    radial-gradient(circle at 50% 0%, rgba(249, 217, 118, 0.2), transparent 58%),
+    linear-gradient(180deg, #5A6172 0%, #424858 52%, #2D3342 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(245, 245, 247, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.20),
+    inset 0 0 0 1px rgba(249, 217, 118, 0.26),
+    inset 0 0 24px rgba(249, 217, 118, 0.18),
+    0 0 24px rgba(249, 217, 118, 0.12);
+}
+
+#world.energized .cell.path::after {
+  animation: path-glass-pulse 1.25s cubic-bezier(0.2, 0.85, 0.3, 1) forwards;
+}
+
+@keyframes path-glass-pulse {
+  0% { opacity: 0; transform: translateX(-34%); }
+  16% { opacity: 0.92; transform: translateX(-16%); }
+  54% { opacity: 0.54; transform: translateX(10%); }
+  100% { opacity: 0; transform: translateX(34%); }
 }
 
 /* v0.5.20：反應裝甲牆體——最多 3 組長方形大牆體，觸發時跳秒式冷卻，製造動力爐啟動的心跳感 */
@@ -1135,4 +1192,3 @@ body {
 .stage-card:active {
   transform: scale(0.95);
 }
-
