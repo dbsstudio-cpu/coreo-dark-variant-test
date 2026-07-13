@@ -25,6 +25,16 @@ const FX = {
     light.addEventListener('animationend', () => light.remove(), { once: true });
   },
 
+  // v0.6.6：Core Pulse 矩陣線改成單一 overlay 圖層，不再讓所有 path/wall cell 同時改 box-shadow。
+  spawnMatrixPulse: function(stageId) {
+    const world = document.getElementById('world');
+    if (!world) return;
+    const pulse = document.createElement('div');
+    pulse.className = `matrix-pulse-fx stage-0${stageId}`;
+    world.appendChild(pulse);
+    pulse.addEventListener('animationend', () => pulse.remove(), { once: true });
+  },
+
   collectCore: function(coreDOM, spriteDOM, type) {
     const isBoost = type === 5;
     const uiCore = document.getElementById(isBoost ? 'ui-pulse-val' : 'ui-shard-val');
@@ -90,14 +100,29 @@ const FX = {
     // 遊戲此時已經停止主迴圈、之後只會走向重新整理，放寬裁切不影響任何操控判定
     const gameContainer = document.getElementById('game-container');
     const cameraRig = document.getElementById('camera-rig');
+    const world = document.getElementById('world');
     if (gameContainer) gameContainer.classList.add('victory-clear');
     if (cameraRig) cameraRig.classList.add('victory-clear');
+    if (world) world.classList.add('victory-clear');
 
     if (spriteDOM) {
+      spriteDOM.classList.remove(
+        'player-collect-anim-4',
+        'player-collect-anim-5',
+        'player-collect-basic',
+        'player-collect-boost',
+        'player-core-charged',
+        'player-pulse-feedback',
+        'player-speed-boost',
+        'player-boosted',
+        'shake'
+      );
+      void spriteDOM.offsetWidth;
       spriteDOM.classList.add(exitDirection === 'down' ? 'player-victory-zoom-down' : 'player-victory-zoom');
     }
 
     if (actorDOM) {
+      actorDOM.classList.add('victory-actor');
       const burst = document.createElement('div');
       burst.className = 'victory-burst';
       actorDOM.appendChild(burst);

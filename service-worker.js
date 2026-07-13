@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v065-matrix-language-return-20260713';
+const COREO_CACHE = 'coreo-dark-variant-v066-pulse-overlay-victory-fix-20260713';
 const COREO_ASSETS = [
   './',
   './index.html',

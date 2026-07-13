@@ -40,6 +40,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!world) return;
     pulseEffectUntil = performance.now() + PULSE_EFFECT_DURATION;
     world.classList.add('energized');
+    FX.spawnMatrixPulse(currentStage);
     setTimeout(() => world.classList.remove('energized'), PULSE_EFFECT_DURATION);
   }
 
