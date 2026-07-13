@@ -549,6 +549,28 @@ body {
   transition: none;
 }
 
+#player.actor.victory-source-hidden {
+  opacity: 0;
+}
+
+.victory-player-clone {
+  position: fixed;
+  width: 62px;
+  height: 62px;
+  left: 50%;
+  top: 50%;
+  z-index: 6500;
+  pointer-events: none;
+  border-radius: 50%;
+  background-image: url('../assets/player.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 229, 255, 0.5));
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: center center;
+}
+
 /* 內層視覺容器：負責圖片、發光、所有動畫縮放與旋轉 */
 .actor-sprite {
   position: relative;
@@ -713,10 +735,18 @@ body {
 .actor-sprite.player-victory-zoom {
   animation: victory-zoom 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+.victory-player-clone.player-victory-zoom {
+  animation: victory-clone-zoom-up 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 @keyframes victory-zoom {
   0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
   45% { transform: scale(2.4) translateY(-150px); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
   100% { transform: scale(3.8) translateY(-340px); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
+}
+@keyframes victory-clone-zoom-up {
+  0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
+  45% { transform: translate(-50%, calc(-50% - 16vh)) scale(2.4); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
+  100% { transform: translate(-50%, calc(-50% - 28vh)) scale(3.8); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
 }
 
 /* v0.6：出口方向不再固定在地圖上方（Stage02 刻意反過來，讓玩家摸不準出口方位），
@@ -724,10 +754,18 @@ body {
 .actor-sprite.player-victory-zoom-down {
   animation: victory-zoom-down 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+.victory-player-clone.player-victory-zoom-down {
+  animation: victory-clone-zoom-down 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 @keyframes victory-zoom-down {
   0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
   45% { transform: scale(2.4) translateY(150px); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
   100% { transform: scale(3.8) translateY(340px); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
+}
+@keyframes victory-clone-zoom-down {
+  0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
+  45% { transform: translate(-50%, calc(-50% + 14vh)) scale(2.4); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
+  100% { transform: translate(-50%, calc(-50% + 24vh)) scale(3.8); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
 }
 
 .victory-burst {

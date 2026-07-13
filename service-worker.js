@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v066-pulse-overlay-victory-fix-20260713';
+const COREO_CACHE = 'coreo-dark-variant-v067-fixed-victory-clone-20260714';
 const COREO_ASSETS = [
   './',
   './index.html',

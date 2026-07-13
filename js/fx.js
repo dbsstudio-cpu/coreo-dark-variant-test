@@ -105,6 +105,16 @@ const FX = {
     if (cameraRig) cameraRig.classList.add('victory-clear');
     if (world) world.classList.add('victory-clear');
 
+    // v0.6.7：過關主角放大改用 fixed clone，不再依賴 #world 內的 3D/camera/overflow 層。
+    const actorRect = actorDOM ? actorDOM.getBoundingClientRect() : null;
+    const clone = document.createElement('div');
+    clone.className = `victory-player-clone ${exitDirection === 'down' ? 'player-victory-zoom-down' : 'player-victory-zoom'}`;
+    if (actorRect) {
+      clone.style.left = `${actorRect.left + actorRect.width / 2}px`;
+      clone.style.top = `${actorRect.top + actorRect.height / 2}px`;
+    }
+    document.body.appendChild(clone);
+
     if (spriteDOM) {
       spriteDOM.classList.remove(
         'player-collect-anim-4',
@@ -117,15 +127,13 @@ const FX = {
         'player-boosted',
         'shake'
       );
-      void spriteDOM.offsetWidth;
-      spriteDOM.classList.add(exitDirection === 'down' ? 'player-victory-zoom-down' : 'player-victory-zoom');
     }
 
     if (actorDOM) {
-      actorDOM.classList.add('victory-actor');
+      actorDOM.classList.add('victory-actor', 'victory-source-hidden');
       const burst = document.createElement('div');
       burst.className = 'victory-burst';
-      actorDOM.appendChild(burst);
+      clone.appendChild(burst);
       burst.addEventListener('animationend', () => burst.remove(), { once: true });
     }
 
