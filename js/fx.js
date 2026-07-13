@@ -86,6 +86,13 @@ const FX = {
   levelComplete: function(spriteDOM, actorDOM, exitDirection) {
     if ('vibrate' in navigator) navigator.vibrate([40, 30, 40, 30, 120]);
 
+    // v0.6.4：往下飄的放大脫離動畫，下方可用空間比往上飄少，先解除 overflow:hidden 裁切，
+    // 遊戲此時已經停止主迴圈、之後只會走向重新整理，放寬裁切不影響任何操控判定
+    const gameContainer = document.getElementById('game-container');
+    const cameraRig = document.getElementById('camera-rig');
+    if (gameContainer) gameContainer.classList.add('victory-clear');
+    if (cameraRig) cameraRig.classList.add('victory-clear');
+
     if (spriteDOM) {
       spriteDOM.classList.add(exitDirection === 'down' ? 'player-victory-zoom-down' : 'player-victory-zoom');
     }

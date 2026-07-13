@@ -157,6 +157,15 @@ body {
   user-select: none;
 }
 
+/* v0.6.4：過關放大脫離動畫如果往下飄（Stage02 出口在下），可用的畫面空間比往上飄少
+   （鏡頭錨點固定在畫面 56% 高度，下方只剩約 44% 空間），原本的 overflow:hidden 會把往下
+   飄的放大特效直接裁掉，看起來像效果消失。遊戲在觸發過關的當下就已經停止主迴圈，
+   之後只會走向重新整理，這裡放寬 overflow 不會影響任何操控判定 */
+#game-container.victory-clear,
+#camera-rig.victory-clear {
+  overflow: visible;
+}
+
 #fog-overlay {
   position: absolute;
   top: 0;
@@ -208,14 +217,11 @@ body {
 .cell.path {
   overflow: hidden;
   border-radius: 2px;
-  background:
-    linear-gradient(145deg, rgba(245, 245, 247, 0.055) 0%, rgba(245, 245, 247, 0.015) 34%, rgba(5, 5, 8, 0.02) 100%),
-    linear-gradient(180deg, #3B4050 0%, var(--coreo-path) 58%, #252B38 100%);
+  background: var(--coreo-path);
   box-shadow:
-    inset 0 1px 0 rgba(245, 245, 247, 0.07),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.24),
-    inset 0 0 14px rgba(0, 0, 0, 0.12);
-  transition: box-shadow 0.16s ease-out, background 0.16s ease-out;
+    inset 0 0 0 1px rgba(245, 245, 247, 0.04),
+    inset 0 0 0 1px var(--coreo-matrix-glow);
+  transition: box-shadow 0.1s ease-out;
 }
 
 .cell.path::before,
@@ -227,18 +233,12 @@ body {
 }
 
 .cell.path::before {
-  background:
-    linear-gradient(115deg, transparent 0%, transparent 24%, rgba(245, 245, 247, 0.08) 34%, transparent 48%, transparent 100%),
-    linear-gradient(180deg, rgba(245, 245, 247, 0.035), transparent 54%);
-  opacity: 0.25;
+  display: none;
 }
 
 .cell.path::after {
-  background:
-    linear-gradient(90deg, transparent 0%, rgba(249, 217, 118, 0.0) 18%, var(--coreo-path-glass-hot) 48%, rgba(245, 245, 247, 0.18) 58%, transparent 82%),
-    radial-gradient(circle at 50% 50%, rgba(249, 217, 118, 0.28), transparent 60%);
+  background: none;
   opacity: 0;
-  transform: translateX(-34%);
 }
 
 /* v0.5.24：動能軌跡 Trail——主角走過的格子留下極低調的淡冰藍餘光，快速消退，
@@ -269,12 +269,24 @@ body {
   transform: translateZ(18px);
   transition: box-shadow 1.5s ease-in;
   box-shadow:
-    0 0 0 1px rgba(141, 169, 196, 0.28),
-    0 0 18px rgba(0, 229, 255, 0.08),
+    0 0 0 1px var(--coreo-matrix-glow),
+    0 0 16px rgba(0, 229, 255, 0.075),
     0 18px 34px rgba(4, 4, 6, 0.62),
     inset 0 1px 0 rgba(245, 245, 247, 0.28),
     inset 0 0 10px rgba(212, 240, 255, 0.10),
     inset 0 0 0 1px var(--coreo-edge-highlight);
+}
+
+.cell.wall::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 13px;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(249, 217, 118, 0.28) 50%, transparent 100%),
+    linear-gradient(180deg, rgba(212, 240, 255, 0.18), transparent 44%);
 }
 
 /* v0.6：Stage 02 專屬牆體與分區色彩，只在 #world 掛上 stage-02 class 時生效，不影響 Stage01 */
@@ -304,75 +316,38 @@ body {
   box-shadow: inset 0 6px 10px rgba(141, 169, 196, 0.12);
 }
 
-/* v0.6.2：Core Pulse 後恢復「迷宮路線玻璃化被能量灌亮」的體感。
-   做法只針對已貪婪合併後的路徑大塊與 pseudo overlay 做 opacity/transform 動畫，
-   不再讓每一格牆體和路徑長時間重算重型陰影，保留手機效能保護。
-   注意：#world 的 transform 是 camera.js 每一幀用 inline style 寫入的（負責鏡頭跟隨捲動），
-   這裡絕對不能用 CSS animation 去動 transform，否則會跟鏡頭捲動打架、瞬間跳位，
-   只加強 box-shadow/border-color，這兩個屬性跟 JS 控制的 transform 互不衝突 */
+/* v0.6.5：視覺語言回歸。
+   保留 v0.5.27 的效能判斷：不恢復 reactive-block 重型跳秒陰影動畫。
+   只局部恢復 v0.5.19~v0.5.26 的 1px matrix glow 細線，並依關卡拆開動態語言。 */
 #world.energized {
-  border-color: rgba(249, 217, 118, 0.55);
+  border-color: rgba(249, 217, 118, 0.34);
   box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.5),
-    0 0 46px rgba(249, 217, 118, 0.4),
-    0 0 90px rgba(249, 217, 118, 0.18),
-    inset 0 0 36px rgba(249, 217, 118, 0.2);
+    0 0 26px rgba(249, 217, 118, 0.22),
+    inset 0 0 24px rgba(249, 217, 118, 0.10);
   transition: box-shadow 0.12s ease-out, border-color 0.12s ease-out;
 }
 
-/* v0.6.3：兩關拆開視覺語言。
-   Stage01 保留路線上的線條式能量流；Stage02 才使用較厚的玻璃化灌亮感。 */
-#world.stage-01.energized .cell.path {
-  background:
-    linear-gradient(145deg, rgba(245, 245, 247, 0.075) 0%, rgba(245, 245, 247, 0.02) 34%, rgba(5, 5, 8, 0.02) 100%),
-    linear-gradient(180deg, #3E4555 0%, #363C4C 58%, #242A37 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(245, 245, 247, 0.10),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.24),
-    inset 0 0 12px rgba(249, 217, 118, 0.08);
+#world.stage-01.energized .cell.path,
+#world.stage-01.energized .cell.wall {
+  --coreo-matrix-glow: rgba(249, 217, 118, 0.85);
+  transition: box-shadow 0.1s ease-out;
 }
 
-#world.stage-01.energized .cell.path::after {
-  background:
-    repeating-linear-gradient(90deg,
-      transparent 0,
-      transparent 18px,
-      rgba(249, 217, 118, 0.72) 19px,
-      rgba(249, 217, 118, 0.72) 21px,
-      rgba(212, 240, 255, 0.32) 22px,
-      transparent 30px),
-    linear-gradient(90deg, transparent 0%, rgba(249, 217, 118, 0.22) 50%, transparent 100%);
-  animation: path-line-pulse 1.2s cubic-bezier(0.2, 0.85, 0.3, 1) forwards;
+#world.stage-02.energized .cell.wall {
+  --coreo-matrix-glow: rgba(249, 217, 118, 0.70);
+  transition: box-shadow 0.1s ease-out;
 }
 
-#world.stage-02.energized .cell.path {
-  background:
-    linear-gradient(145deg, rgba(245, 245, 247, 0.13) 0%, rgba(245, 245, 247, 0.035) 32%, rgba(5, 5, 8, 0.02) 100%),
-    radial-gradient(circle at 50% 0%, rgba(249, 217, 118, 0.16), transparent 58%),
-    linear-gradient(180deg, #505767 0%, #3D4352 52%, #2B3140 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(245, 245, 247, 0.17),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.20),
-    inset 0 0 0 1px rgba(249, 217, 118, 0.18),
-    inset 0 0 20px rgba(249, 217, 118, 0.14);
+#world.stage-02.energized .cell.wall::before {
+  animation: wall-rim-charge 1.15s cubic-bezier(0.2, 0.85, 0.3, 1) forwards;
 }
 
-#world.stage-02.energized .cell.path::after {
-  animation: path-glass-pulse 1.25s cubic-bezier(0.2, 0.85, 0.3, 1) forwards;
-}
-
-@keyframes path-line-pulse {
-  0% { opacity: 0; transform: translateX(-38%); }
-  15% { opacity: 0.86; transform: translateX(-18%); }
-  50% { opacity: 0.56; transform: translateX(12%); }
-  100% { opacity: 0; transform: translateX(42%); }
-}
-
-@keyframes path-glass-pulse {
-  0% { opacity: 0; transform: translateX(-34%); }
-  16% { opacity: 0.66; transform: translateX(-16%); }
-  54% { opacity: 0.38; transform: translateX(10%); }
-  100% { opacity: 0; transform: translateX(34%); }
+@keyframes wall-rim-charge {
+  0% { opacity: 0; }
+  18% { opacity: 0.88; }
+  58% { opacity: 0.44; }
+  100% { opacity: 0; }
 }
 
 /* v0.5.20：反應裝甲牆體——最多 3 組長方形大牆體，觸發時跳秒式冷卻，製造動力爐啟動的心跳感 */
