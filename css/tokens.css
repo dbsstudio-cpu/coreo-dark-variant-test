@@ -185,8 +185,10 @@ body {
   left: 50%;
   top: 50%;
   transform: rotateX(40deg) translateZ(-165px);
-  transition: transform 0.08s linear;
+  transition: none;
   will-change: transform;
+  backface-visibility: hidden;
+  contain: layout paint style;
   /* v0.5.21：深空玻璃底盤——整塊迷宮懸浮在透明玻璃板上，只用透明底色＋邊框做出反光邊緣，
      刻意不用 backdrop-filter（會隨鏡頭捲動持續做模糊取樣，Android 效能風險高） */
   background-color: rgba(255, 255, 255, 0.02);
@@ -205,17 +207,14 @@ body {
 
 .cell.path {
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: 2px;
   background:
-    linear-gradient(145deg, rgba(245, 245, 247, 0.09) 0%, rgba(245, 245, 247, 0.025) 32%, rgba(5, 5, 8, 0.02) 100%),
-    radial-gradient(circle at 50% 0%, rgba(212, 240, 255, 0.12), transparent 58%),
-    linear-gradient(180deg, #454B5C 0%, var(--coreo-path) 56%, #262B38 100%);
+    linear-gradient(145deg, rgba(245, 245, 247, 0.055) 0%, rgba(245, 245, 247, 0.015) 34%, rgba(5, 5, 8, 0.02) 100%),
+    linear-gradient(180deg, #3B4050 0%, var(--coreo-path) 58%, #252B38 100%);
   box-shadow:
-    inset 0 1px 0 rgba(245, 245, 247, 0.12),
+    inset 0 1px 0 rgba(245, 245, 247, 0.07),
     inset 0 -1px 0 rgba(0, 0, 0, 0.24),
-    inset 0 0 0 1px rgba(212, 240, 255, 0.07),
-    0 0 18px rgba(0, 229, 255, 0.045),
-    inset 0 0 0 1px var(--coreo-matrix-glow);
+    inset 0 0 14px rgba(0, 0, 0, 0.12);
   transition: box-shadow 0.16s ease-out, background 0.16s ease-out;
 }
 
@@ -229,18 +228,17 @@ body {
 
 .cell.path::before {
   background:
-    linear-gradient(115deg, transparent 0%, transparent 22%, rgba(245, 245, 247, 0.12) 33%, transparent 47%, transparent 100%),
-    linear-gradient(180deg, rgba(212, 240, 255, 0.08), transparent 54%);
-  opacity: 0.36;
+    linear-gradient(115deg, transparent 0%, transparent 24%, rgba(245, 245, 247, 0.08) 34%, transparent 48%, transparent 100%),
+    linear-gradient(180deg, rgba(245, 245, 247, 0.035), transparent 54%);
+  opacity: 0.25;
 }
 
 .cell.path::after {
   background:
-    linear-gradient(90deg, transparent 0%, rgba(249, 217, 118, 0.0) 18%, var(--coreo-path-glass-hot) 48%, rgba(212, 240, 255, 0.28) 58%, transparent 82%),
-    radial-gradient(circle at 50% 50%, rgba(249, 217, 118, 0.32), transparent 60%);
+    linear-gradient(90deg, transparent 0%, rgba(249, 217, 118, 0.0) 18%, var(--coreo-path-glass-hot) 48%, rgba(245, 245, 247, 0.18) 58%, transparent 82%),
+    radial-gradient(circle at 50% 50%, rgba(249, 217, 118, 0.28), transparent 60%);
   opacity: 0;
   transform: translateX(-34%);
-  will-change: opacity, transform;
 }
 
 /* v0.5.24：動能軌跡 Trail——主角走過的格子留下極低調的淡冰藍餘光，快速消退，
@@ -271,9 +269,11 @@ body {
   transform: translateZ(18px);
   transition: box-shadow 1.5s ease-in;
   box-shadow:
-    0 0 0 1px var(--coreo-matrix-glow),
+    0 0 0 1px rgba(141, 169, 196, 0.28),
+    0 0 18px rgba(0, 229, 255, 0.08),
     0 18px 34px rgba(4, 4, 6, 0.62),
-    inset 0 1px 0 rgba(245, 245, 247, 0.24),
+    inset 0 1px 0 rgba(245, 245, 247, 0.28),
+    inset 0 0 10px rgba(212, 240, 255, 0.10),
     inset 0 0 0 1px var(--coreo-edge-highlight);
 }
 
@@ -320,27 +320,58 @@ body {
   transition: box-shadow 0.12s ease-out, border-color 0.12s ease-out;
 }
 
-#world.energized .cell.path {
+/* v0.6.3：兩關拆開視覺語言。
+   Stage01 保留路線上的線條式能量流；Stage02 才使用較厚的玻璃化灌亮感。 */
+#world.stage-01.energized .cell.path {
   background:
-    linear-gradient(145deg, rgba(245, 245, 247, 0.16) 0%, rgba(245, 245, 247, 0.045) 32%, rgba(5, 5, 8, 0.02) 100%),
-    radial-gradient(circle at 50% 0%, rgba(249, 217, 118, 0.2), transparent 58%),
-    linear-gradient(180deg, #5A6172 0%, #424858 52%, #2D3342 100%);
+    linear-gradient(145deg, rgba(245, 245, 247, 0.075) 0%, rgba(245, 245, 247, 0.02) 34%, rgba(5, 5, 8, 0.02) 100%),
+    linear-gradient(180deg, #3E4555 0%, #363C4C 58%, #242A37 100%);
   box-shadow:
-    inset 0 1px 0 rgba(245, 245, 247, 0.22),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.20),
-    inset 0 0 0 1px rgba(249, 217, 118, 0.26),
-    inset 0 0 24px rgba(249, 217, 118, 0.18),
-    0 0 24px rgba(249, 217, 118, 0.12);
+    inset 0 1px 0 rgba(245, 245, 247, 0.10),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.24),
+    inset 0 0 12px rgba(249, 217, 118, 0.08);
 }
 
-#world.energized .cell.path::after {
+#world.stage-01.energized .cell.path::after {
+  background:
+    repeating-linear-gradient(90deg,
+      transparent 0,
+      transparent 18px,
+      rgba(249, 217, 118, 0.72) 19px,
+      rgba(249, 217, 118, 0.72) 21px,
+      rgba(212, 240, 255, 0.32) 22px,
+      transparent 30px),
+    linear-gradient(90deg, transparent 0%, rgba(249, 217, 118, 0.22) 50%, transparent 100%);
+  animation: path-line-pulse 1.2s cubic-bezier(0.2, 0.85, 0.3, 1) forwards;
+}
+
+#world.stage-02.energized .cell.path {
+  background:
+    linear-gradient(145deg, rgba(245, 245, 247, 0.13) 0%, rgba(245, 245, 247, 0.035) 32%, rgba(5, 5, 8, 0.02) 100%),
+    radial-gradient(circle at 50% 0%, rgba(249, 217, 118, 0.16), transparent 58%),
+    linear-gradient(180deg, #505767 0%, #3D4352 52%, #2B3140 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(245, 245, 247, 0.17),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.20),
+    inset 0 0 0 1px rgba(249, 217, 118, 0.18),
+    inset 0 0 20px rgba(249, 217, 118, 0.14);
+}
+
+#world.stage-02.energized .cell.path::after {
   animation: path-glass-pulse 1.25s cubic-bezier(0.2, 0.85, 0.3, 1) forwards;
+}
+
+@keyframes path-line-pulse {
+  0% { opacity: 0; transform: translateX(-38%); }
+  15% { opacity: 0.86; transform: translateX(-18%); }
+  50% { opacity: 0.56; transform: translateX(12%); }
+  100% { opacity: 0; transform: translateX(42%); }
 }
 
 @keyframes path-glass-pulse {
   0% { opacity: 0; transform: translateX(-34%); }
-  16% { opacity: 0.92; transform: translateX(-16%); }
-  54% { opacity: 0.54; transform: translateX(10%); }
+  16% { opacity: 0.66; transform: translateX(-16%); }
+  54% { opacity: 0.38; transform: translateX(10%); }
   100% { opacity: 0; transform: translateX(34%); }
 }
 
@@ -397,7 +428,10 @@ body {
   left: 0;
   width: 100%;
   height: 18px;
-  background: linear-gradient(180deg, #262B3A, #12141C);
+  background:
+    linear-gradient(180deg, rgba(141, 169, 196, 0.18), transparent 24%),
+    linear-gradient(180deg, #262B3A, #12141C);
+  box-shadow: inset 0 1px 0 rgba(212, 240, 255, 0.18);
   transform-origin: top;
   transform: rotateX(-90deg);
   border-radius: 0 0 14px 14px;

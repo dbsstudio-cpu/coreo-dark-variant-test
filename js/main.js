@@ -141,6 +141,7 @@ window.addEventListener('DOMContentLoaded', () => {
   let pristineMazeData = JSON.parse(JSON.stringify(STAGE_CONFIG[currentStage].getMap()));
   let mazeData = restoredRun?.mazeData || JSON.parse(JSON.stringify(pristineMazeData));
   let playerPos = Render3D.buildWorld(mazeData, currentStage);
+  CameraLogic.refreshMetrics();
   if (restoredRun?.playerPos) playerPos = restoredRun.playerPos;
 
   const world = document.getElementById('world');
@@ -350,6 +351,7 @@ window.addEventListener('DOMContentLoaded', () => {
     clearRunSnapshot();
     mazeData = JSON.parse(JSON.stringify(pristineMazeData));
     playerPos = Render3D.buildWorld(mazeData, currentStage);
+    CameraLogic.refreshMetrics();
 
     world.appendChild(playerDiv);
     updatePlayerDOM();
@@ -455,6 +457,7 @@ window.addEventListener('DOMContentLoaded', () => {
     pristineMazeData = JSON.parse(JSON.stringify(STAGE_CONFIG[stageId].getMap()));
     mazeData = JSON.parse(JSON.stringify(pristineMazeData));
     playerPos = Render3D.buildWorld(mazeData, stageId);
+    CameraLogic.refreshMetrics();
     world.className = `stage-0${stageId}`;
     world.appendChild(playerDiv);
     updatePlayerDOM();
