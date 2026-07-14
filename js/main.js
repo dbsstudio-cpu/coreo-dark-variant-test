@@ -34,10 +34,12 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => el.classList.remove('glow'), 200);
   }
 
-  // v0.6.7：GPT 裁決 Core Pulse 大光源改為 Supernova Burst（局部鈦白/極光青爆發），
-  // 不再套用 #world 全域 class 或全地圖 overlay，只在拾取點生成一個獨立元素
+  // v0.6.7：GPT 裁決 Core Pulse 大光源改為 Supernova Burst（局部鈦白/極光青爆發），拾取點生成一個獨立元素。
+  // v0.6.9：Sean 指定疊加找回 v0.5.19 的矩陣線條點亮感（白金色，非舊金黃），見 FX.pulseMatrixLines——
+  // 只切 #world 一個 class，實際發光靠 css/tokens.css 的 opacity transition，不是回到舊版全格 box-shadow 重算。
   function energizeMatrix() {
     FX.spawnSupernovaBurst(playerPos.x, playerPos.y);
+    FX.pulseMatrixLines();
     pulseEffectUntil = performance.now() + PULSE_EFFECT_DURATION;
   }
 

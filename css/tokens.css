@@ -12,6 +12,10 @@
   --coreo-wall-face: #5A6275;
   --coreo-edge-highlight: rgba(255, 255, 255, 0.22);
   --coreo-matrix-glow: rgba(0, 229, 255, 0.05);
+  /* v0.6.9：矩陣線條回歸——Sean 指定找回 v0.5.19 的「迷宮接縫矩陣點亮」效果，但顏色改白金非舊金黃，
+     跟 Supernova Burst 疊加觸發，不取代它。見 .cell.path::after／.cell.wall::before 與 #world.matrix-pulse */
+  --coreo-matrix-glow-platinum: rgba(255, 248, 218, 0.9);
+  --coreo-matrix-glow-platinum-soft: rgba(249, 217, 118, 0.38);
   --coreo-text-primary: #F5F5F7;
   --coreo-text-secondary: #86868B;
   --coreo-glow-core: #00E5FF;
@@ -247,9 +251,16 @@ body {
   display: none;
 }
 
+/* v0.6.9：矩陣線條回歸——這個偽元素原本是閒置佔位（background:none），
+   借用它畫路徑接縫的白金脈衝線，靜態 box-shadow 值不隨觸發改變，只切 opacity（合成層屬性，
+   不會像 v0.5.27 之前的全格 box-shadow 重算那樣拖垮 iPhone/Android） */
 .cell.path::after {
-  background: none;
+  border-radius: 2px;
+  box-shadow:
+    inset 0 0 0 1px var(--coreo-matrix-glow-platinum),
+    inset 0 0 10px var(--coreo-matrix-glow-platinum-soft);
   opacity: 0;
+  transition: opacity 1.1s ease-in;
 }
 
 /* v0.5.24：動能軌跡 Trail——主角走過的格子留下極低調的淡冰藍餘光，快速消退，
@@ -288,6 +299,8 @@ body {
     inset 0 0 0 1px var(--coreo-edge-highlight);
 }
 
+/* v0.6.9：這個偽元素原本也是閒置佔位（opacity 永遠 0，之前沒有任何觸發點），
+   借用它畫牆體接縫的白金脈衝，同樣只切 opacity，background 漸層值是靜態的 */
 .cell.wall::before {
   content: '';
   position: absolute;
@@ -295,9 +308,20 @@ body {
   border-radius: 13px;
   pointer-events: none;
   opacity: 0;
+  transition: opacity 1.2s ease-in;
   background:
-    linear-gradient(90deg, transparent 0%, rgba(249, 217, 118, 0.28) 50%, transparent 100%),
-    linear-gradient(180deg, rgba(212, 240, 255, 0.18), transparent 44%);
+    linear-gradient(90deg, transparent 0%, var(--coreo-matrix-glow-platinum-soft) 50%, transparent 100%),
+    linear-gradient(180deg, var(--coreo-matrix-glow-platinum), transparent 44%);
+}
+
+/* v0.6.9：Core Pulse 觸發瞬間，只切換 #world 這一個 class，實際發光靠上面兩個偽元素的
+   opacity transition 完成——快速亮起（0.12s）覆蓋掉 base rule 的慢速冷卻 transition，
+   跟 v0.5.19 「#world.energized 快進慢出」是同一個技巧，但改切 opacity 不改切 box-shadow，
+   不會重踩 v0.5.27 修過的全地圖重繪效能坑。與 Supernova Burst 疊加觸發，不取代它。 */
+#world.matrix-pulse .cell.path::after,
+#world.matrix-pulse .cell.wall::before {
+  opacity: 1;
+  transition: opacity 0.12s ease-out;
 }
 
 /* v0.6：Stage 02 專屬牆體與分區色彩，只在 #world 掛上 stage-02 class 時生效，不影響 Stage01 */

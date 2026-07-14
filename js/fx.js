@@ -38,6 +38,16 @@ const FX = {
     burst.addEventListener('animationend', () => burst.remove(), { once: true });
   },
 
+  // v0.6.9：矩陣線條回歸——Sean 指定找回 v0.5.19「迷宮接縫矩陣點亮」的線條感，改白金色，
+  // 跟 Supernova Burst 疊加觸發，不取代它。只切換 #world 的 class，實際發光靠 css/tokens.css
+  // 裡 .cell.path::after／.cell.wall::before 的 opacity transition 完成，不逐格寫入 box-shadow。
+  pulseMatrixLines: function() {
+    const world = document.getElementById('world');
+    if (!world) return;
+    world.classList.add('matrix-pulse');
+    setTimeout(() => world.classList.remove('matrix-pulse'), 130);
+  },
+
   collectCore: function(coreDOM, spriteDOM, type) {
     const isBoost = type === 5;
     const uiCore = document.getElementById(isBoost ? 'ui-pulse-val' : 'ui-shard-val');
