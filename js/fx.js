@@ -25,14 +25,17 @@ const FX = {
     light.addEventListener('animationend', () => light.remove(), { once: true });
   },
 
-  // v0.6.6：Core Pulse 矩陣線改成單一 overlay 圖層，不再讓所有 path/wall cell 同時改 box-shadow。
-  spawnMatrixPulse: function(stageId) {
+  // v0.6.7：GPT 裁決 Core Pulse 改為 Supernova Burst——以拾取點為中心的局部鈦白/極光青爆發，
+  // 取代舊版的黃色全地圖 overlay。單一元素、播完自動移除，效能成本固定。
+  spawnSupernovaBurst: function(x, y) {
     const world = document.getElementById('world');
     if (!world) return;
-    const pulse = document.createElement('div');
-    pulse.className = `matrix-pulse-fx stage-0${stageId}`;
-    world.appendChild(pulse);
-    pulse.addEventListener('animationend', () => pulse.remove(), { once: true });
+    const burst = document.createElement('div');
+    burst.className = 'supernova-burst-fx';
+    burst.style.left = `${x}px`;
+    burst.style.top = `${y}px`;
+    world.appendChild(burst);
+    burst.addEventListener('animationend', () => burst.remove(), { once: true });
   },
 
   collectCore: function(coreDOM, spriteDOM, type) {

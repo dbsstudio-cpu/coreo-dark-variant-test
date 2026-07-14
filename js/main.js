@@ -17,7 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
   let lastTrailTime = 0;
   const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
   const MAX_FRAME_DT = 34; // Core Pulse 觸發後若掉幀，限制單幀補位，避免主角/反派瞬間跳格
-  const PULSE_EFFECT_DURATION = 1250;
+  const PULSE_EFFECT_DURATION = 650; // v0.6.7：配合 Supernova Burst 的短促節奏，不再是舊版拖長的矩陣光效時長
   const RUN_STATE_KEY = 'coreo-dark-run-state-v1';
   let pulseEffectUntil = 0;
 
@@ -34,14 +34,11 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => el.classList.remove('glow'), 200);
   }
 
-  // v0.5.27: Core Pulse 只保留短暫矩陣回饋。iPhone/Android 在 Pulse 後會同時承受追逐與特效，
-  // 因此避免長時間全迷宮陰影動畫拖慢主迴圈。
+  // v0.6.7：GPT 裁決 Core Pulse 大光源改為 Supernova Burst（局部鈦白/極光青爆發），
+  // 不再套用 #world 全域 class 或全地圖 overlay，只在拾取點生成一個獨立元素
   function energizeMatrix() {
-    if (!world) return;
+    FX.spawnSupernovaBurst(playerPos.x, playerPos.y);
     pulseEffectUntil = performance.now() + PULSE_EFFECT_DURATION;
-    world.classList.add('energized');
-    FX.spawnMatrixPulse(currentStage);
-    setTimeout(() => world.classList.remove('energized'), PULSE_EFFECT_DURATION);
   }
 
   function isPulseEffectActive(time = performance.now()) {
@@ -298,7 +295,6 @@ window.addEventListener('DOMContentLoaded', () => {
           if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
           flashHud(hudPulseVal);
           FX.corePulseFeedback(playerSprite);
-          FX.spawnEdgeLight(playerPos.x, playerPos.y, 'pulse');
           energizeMatrix();
           updateExitVisual();
         }
@@ -307,7 +303,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
         flashHud(hudPulseVal);
         FX.corePulseFeedback(playerSprite);
-        FX.spawnEdgeLight(playerPos.x, playerPos.y, 'pulse');
         energizeMatrix();
         updateExitVisual();
       }

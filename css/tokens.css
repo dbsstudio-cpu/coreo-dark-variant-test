@@ -49,7 +49,8 @@
   --coreo-wall-face-s2: #1c2128;
   /* v0.6：Edge Lighting 牆體邊緣動態光效脈衝色 */
   --coreo-edge-basic: rgba(212, 240, 255, 0.8);
-  --coreo-edge-pulse: rgba(249, 217, 118, 0.9);
+  /* v0.6.7：不再用金色，Core Pulse 拾取瞬間改走 Supernova Burst 的白/青系（見 .supernova-burst-fx） */
+  --coreo-edge-pulse: rgba(0, 240, 255, 0.75);
 }
 
 * {
@@ -165,6 +166,15 @@ body {
 #camera-rig.victory-clear,
 #world.victory-clear {
   overflow: visible;
+}
+
+/* v0.6.7：#world 另外有 contain: layout paint style（camera.js 效能優化用），
+   其中 contain:paint 會獨立把超出 #world 自己邊界的子元素裁掉，跟 overflow 屬性無關。
+   過關當下主迴圈已停止，之後只會走向重新整理，解除 contain 不影響任何效能判斷。
+   （CX 後續改用 fixed 定位的 victory-player-clone 播放過關放大，已不受這層裁切影響，
+   但這裡還是保留修正，避免其他還留在 #world 內的過關視覺元素被裁到） */
+#world.victory-clear {
+  contain: none;
 }
 
 #fog-overlay {
@@ -317,112 +327,34 @@ body {
   box-shadow: inset 0 6px 10px rgba(141, 169, 196, 0.12);
 }
 
-/* v0.6.6：Core Pulse 視覺改為單一 overlay。
-   v0.6.5 重新讓所有 cell 改 --coreo-matrix-glow / box-shadow，在 iPhone 上仍會全圖重繪累格。
-   這裡只保留 world 容器短促脈衝，路線/牆面細線改交給 .matrix-pulse-fx 單一圖層處理。 */
-#world.energized {
-  border-color: rgba(249, 217, 118, 0.34);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.5),
-    0 0 26px rgba(249, 217, 118, 0.22),
-    inset 0 0 24px rgba(249, 217, 118, 0.10);
-  transition: box-shadow 0.12s ease-out, border-color 0.12s ease-out;
-}
-
-.matrix-pulse-fx {
+/* v0.6.7：GPT 正式裁決——Core Pulse 大光源改為 Supernova Burst（超新星冷爆發）。
+   不再用黃色地板/全地圖 overlay，改成以拾取點為中心的局部爆發：
+   鈦白 #FFFFFF 主爆發（0.1s 瞬間點亮）→ 快速收斂（0.4s）→ 極短極光青/深鈷藍餘暉（0.1-0.2s）後完全消退。
+   單一元素、生成後動畫播完自動移除，效能成本固定，不觸碰任何既有 .cell 元素。
+   黃金感保留給出口 Core Ring 與 Core Pulse 道具本身（.light-core-item.upgraded），
+   大光源「拾取瞬間」不再用黃色。 */
+.supernova-burst-fx {
   position: absolute;
-  inset: 0;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
   pointer-events: none;
-  z-index: 80;
+  z-index: 85;
+  transform: translate(-50%, -50%) translateZ(9px) scale(0.35);
   opacity: 0;
-  transform: translateZ(7px);
-  contain: strict;
+  background: radial-gradient(circle,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.5) 22%,
+    rgba(0, 240, 255, 0.32) 46%,
+    rgba(0, 85, 255, 0.14) 64%,
+    transparent 78%);
+  animation: supernova-burst-anim 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
-
-.matrix-pulse-fx.stage-01 {
-  background:
-    repeating-linear-gradient(90deg,
-      transparent 0,
-      transparent 56px,
-      rgba(249, 217, 118, 0.78) 57px,
-      rgba(249, 217, 118, 0.78) 58px),
-    repeating-linear-gradient(180deg,
-      transparent 0,
-      transparent 56px,
-      rgba(249, 217, 118, 0.54) 57px,
-      rgba(249, 217, 118, 0.54) 58px);
-  animation: matrix-line-flash 0.72s ease-out forwards;
-}
-
-.matrix-pulse-fx.stage-02 {
-  background:
-    radial-gradient(circle at 52% 52%, rgba(249, 217, 118, 0.28), transparent 24%),
-    repeating-linear-gradient(90deg,
-      transparent 0,
-      transparent 114px,
-      rgba(249, 217, 118, 0.36) 115px,
-      rgba(249, 217, 118, 0.36) 117px);
-  animation: matrix-vault-flash 0.9s ease-out forwards;
-}
-
-@keyframes matrix-line-flash {
-  0% { opacity: 0; }
-  18% { opacity: 0.9; }
-  48% { opacity: 0.48; }
-  100% { opacity: 0; }
-}
-
-@keyframes matrix-vault-flash {
-  0% { opacity: 0; }
-  22% { opacity: 0.68; }
-  62% { opacity: 0.32; }
-  100% { opacity: 0; }
-}
-
-/* v0.5.20：反應裝甲牆體——最多 3 組長方形大牆體，觸發時跳秒式冷卻，製造動力爐啟動的心跳感 */
-#world.energized .reactive-block {
-  animation: none;
-}
-@keyframes reactive-countdown {
-  0% {
-    box-shadow:
-      0 0 0 1px var(--coreo-matrix-glow),
-      0 18px 34px rgba(4, 4, 6, 0.62),
-      inset 0 1px 0 rgba(245, 245, 247, 0.16),
-      inset 0 0 0 1px var(--coreo-edge-highlight),
-      inset 0 0 24px rgba(249, 217, 118, 0.6);
-  }
-  25% {
-    box-shadow:
-      0 0 0 1px var(--coreo-matrix-glow),
-      0 18px 34px rgba(4, 4, 6, 0.62),
-      inset 0 1px 0 rgba(245, 245, 247, 0.16),
-      inset 0 0 0 1px var(--coreo-edge-highlight),
-      inset 0 0 16px rgba(249, 217, 118, 0.38);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1px var(--coreo-matrix-glow),
-      0 18px 34px rgba(4, 4, 6, 0.62),
-      inset 0 1px 0 rgba(245, 245, 247, 0.16),
-      inset 0 0 0 1px var(--coreo-edge-highlight),
-      inset 0 0 9px rgba(249, 217, 118, 0.2);
-  }
-  75% {
-    box-shadow:
-      0 0 0 1px var(--coreo-matrix-glow),
-      0 18px 34px rgba(4, 4, 6, 0.62),
-      inset 0 1px 0 rgba(245, 245, 247, 0.16),
-      inset 0 0 0 1px var(--coreo-edge-highlight),
-      inset 0 0 3px rgba(249, 217, 118, 0.08);
-  }
-  100% {
-    box-shadow:
-      0 0 0 1px var(--coreo-matrix-glow),
-      0 18px 34px rgba(4, 4, 6, 0.62),
-      inset 0 1px 0 rgba(245, 245, 247, 0.16),
-      inset 0 0 0 1px var(--coreo-edge-highlight);
-  }
+@keyframes supernova-burst-anim {
+  0% { opacity: 0; transform: translate(-50%, -50%) translateZ(9px) scale(0.35); }
+  15% { opacity: 1; transform: translate(-50%, -50%) translateZ(9px) scale(1); }
+  60% { opacity: 0.45; transform: translate(-50%, -50%) translateZ(9px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateZ(9px) scale(1.22); }
 }
 
 .cell.wall::after {
@@ -886,14 +818,14 @@ body {
   transform: translateX(-50%); opacity: 0.7; border-radius: 12px;
 }
 
-/* v0.5.27：Stage 01 Core Pulse 是出口啟動資源，不是加速道具。
-   保留短暫白金亮起，避免長時間光尾與多層 drop-shadow 影響手機幀率。 */
+/* v0.5.27：Core Pulse 是出口啟動資源，不是加速道具，保留短暫亮起，避免長時間光尾影響幀率。
+   v0.6.7：GPT 裁決 Core Pulse 不再用黃色，peak 瞬間改成鈦白高壓閃光，呼應 Supernova Burst */
 .actor-sprite.player-pulse-feedback {
   animation: pulse-feedback 0.52s ease-out both;
 }
 @keyframes pulse-feedback {
   0% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
-  36% { transform: scale(1.18); filter: brightness(1.22) drop-shadow(0 0 18px rgba(249, 217, 118, 0.72)); }
+  36% { transform: scale(1.18); filter: brightness(1.6) drop-shadow(0 0 22px rgba(255, 255, 255, 0.95)); }
   100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
 }
 
@@ -1224,10 +1156,8 @@ body {
   box-shadow: inset 0 0 20px var(--coreo-edge-basic), 0 0 10px var(--coreo-edge-basic);
   animation: edge-pulse-anim 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
-.edge-light-fx.fx-pulse {
-  box-shadow: inset 0 0 30px var(--coreo-edge-pulse), 0 0 20px var(--coreo-edge-pulse);
-  animation: edge-pulse-anim 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
+/* v0.6.7：Core Pulse 不再用這個小型金色 edge-light，統一由 .supernova-burst-fx 表現，
+   避免同一個拾取事件疊兩層視覺效果 */
 @keyframes edge-pulse-anim {
   0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }

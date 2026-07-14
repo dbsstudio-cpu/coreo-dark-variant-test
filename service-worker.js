@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v067-fixed-victory-clone-20260714';
+const COREO_CACHE = 'coreo-dark-variant-v068-supernova-restore-fix-20260714';
 const COREO_ASSETS = [
   './',
   './index.html',
