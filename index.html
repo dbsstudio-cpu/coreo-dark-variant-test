@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>COREO Dark Variant - v0.6.9</title>
+  <title>COREO Dark Variant - v0.7.2</title>
   <meta name="theme-color" content="#0A0A0C">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,7 +29,7 @@
   </div>
 
   <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
-  <div id="version-tag">COREO DARK v0.6.9</div>
+  <div id="version-tag">COREO DARK v0.7.2</div>
 
   <!-- v0.6：最簡化選關畫面，只在已解鎖 Stage 02 且非救回狀態時顯示 -->
   <div id="stage-select-overlay">
@@ -38,7 +38,7 @@
     <div id="btn-stage-2" class="stage-card locked">STAGE 02<br><small>EMBER VAULT</small></div>
   </div>
 
-  <!-- Stage Briefing (Cinematic Poster v1.0) -->
+  <!-- Stage Briefing (Cinematic Poster v1.1) -->
   <div id="stage-briefing" class="show">
     <!-- 深度空間背景與光效 -->
     <div class="briefing-bg">
@@ -47,27 +47,27 @@
     </div>
 
     <div class="briefing-content">
-      <!-- 頂部：極簡關卡代號，文字由 js/main.js 依關卡動態注入 -->
+      <!-- 頂部：極簡關卡代號 -->
       <div class="briefing-header">
         <h2 id="briefing-title">STAGE 01 | CORE AWAKENING</h2>
         <p id="briefing-subtitle">第一關｜核心甦醒</p>
       </div>
 
-      <!-- 中央：大型對峙懸浮 -->
+      <!-- 中央：平行並排對峙 -->
       <div class="briefing-cinematic">
-        <div class="cinematic-ember">
-          <img src="assets/enemy_ember.png" alt="EMBER" />
-          <div class="cinematic-name ember-name">EMBER</div>
-        </div>
         <div class="cinematic-player">
           <img src="assets/player.png" alt="COREO" />
           <div class="cinematic-name player-name">LIGHT CORE</div>
         </div>
+        <div class="cinematic-ember">
+          <img src="assets/enemy_ember.png" alt="EMBER" />
+          <div class="cinematic-name ember-name">EMBER</div>
+        </div>
       </div>
 
-      <!-- 底部：極簡資源與任務卡片 & 啟動按鈕 -->
+      <!-- 底部：無框極簡資源與任務 & 透明發光按鈕 -->
       <div class="briefing-footer">
-        <div class="briefing-info-card">
+        <div class="briefing-info-container">
           <div class="info-row">
             <span class="info-icon shard-icon"></span>
             <p><strong>Core Shard｜核光碎片</strong>：收集 5 個，可形成 1 個 Core Pulse。</p>

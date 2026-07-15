@@ -695,14 +695,20 @@ body {
   animation: victory-clone-zoom-up 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes victory-zoom {
-  0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
-  45% { transform: scale(2.4) translateY(-150px); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
-  100% { transform: scale(3.8) translateY(-340px); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
+  0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); opacity: 1; }
+  45% { transform: scale(2.4) translateY(-150px); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: scale(3.8) translateY(-340px); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); opacity: 0; }
 }
+/* v0.7.1：分身動畫原本只有 transform 變化，opacity 全程停在預設值 1，animation 又是 forwards
+   fill-mode，播完會停在最後一幀不會消失，導致跟 2050ms 後才出現的 STAGE SECURED 疊層同框——
+   Sean 截圖回報過關放大角色卡在文字正上方破壞美感。修法：最後一段淡出到 0，讓分身在放大到頂點
+   附近時自然消失，STAGE SECURED 才單獨浮現，不再兩者疊在一起。 */
 @keyframes victory-clone-zoom-up {
-  0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
-  45% { transform: translate(-50%, calc(-50% - 16vh)) scale(2.4); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
-  100% { transform: translate(-50%, calc(-50% - 28vh)) scale(3.8); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
+  0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); opacity: 1; }
+  45% { transform: translate(-50%, calc(-50% - 16vh)) scale(2.4); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translate(-50%, calc(-50% - 28vh)) scale(3.8); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); opacity: 0; }
 }
 
 /* v0.6：出口方向不再固定在地圖上方（Stage02 刻意反過來，讓玩家摸不準出口方位），
@@ -714,14 +720,17 @@ body {
   animation: victory-clone-zoom-down 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes victory-zoom-down {
-  0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
-  45% { transform: scale(2.4) translateY(150px); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
-  100% { transform: scale(3.8) translateY(340px); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
+  0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); opacity: 1; }
+  45% { transform: scale(2.4) translateY(150px); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: scale(3.8) translateY(340px); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); opacity: 0; }
 }
+/* v0.7.1：跟 victory-clone-zoom-up 同一個修法，最後淡出到 0，見上方註解 */
 @keyframes victory-clone-zoom-down {
-  0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); }
-  45% { transform: translate(-50%, calc(-50% + 14vh)) scale(2.4); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); }
-  100% { transform: translate(-50%, calc(-50% + 24vh)) scale(3.8); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); }
+  0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)); opacity: 1; }
+  45% { transform: translate(-50%, calc(-50% + 14vh)) scale(2.4); filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.95)); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translate(-50%, calc(-50% + 24vh)) scale(3.8); filter: drop-shadow(0 0 46px rgba(0, 229, 255, 1)); opacity: 0; }
 }
 
 .victory-burst {
@@ -926,14 +935,14 @@ body {
 }
 
 /* =========================================
-   STAGE BRIEFING (Cinematic Poster v1.0)
+   STAGE BRIEFING (Cinematic Poster v1.1)
 ========================================= */
 #stage-briefing {
   position: fixed;
   inset: 0;
   width: 100vw;
-  height: 100dvh; /* 使用 dvh 解決 iOS/Android 底部網址列與安全區露白問題 */
-  background-color: var(--coreo-bg-base); /* 強制深色底，防安全區露白 */
+  height: 100dvh;
+  background-color: var(--coreo-bg-base);
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -941,7 +950,7 @@ body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
-  overflow: hidden; /* 防止滾動 */
+  overflow: hidden;
 }
 
 #stage-briefing.show {
@@ -949,7 +958,7 @@ body {
   pointer-events: auto;
 }
 
-/* 背景與光暈融合 (效能友善處理，不使用持續動畫) */
+/* 背景與光暈：配合並排構圖置中放置 */
 .briefing-bg {
   position: absolute;
   inset: 0;
@@ -958,27 +967,33 @@ body {
 }
 .bg-glow-player {
   position: absolute;
-  bottom: 25%;
-  left: 10%;
-  width: 60vw;
-  height: 60vw;
+  top: 50%;
+  left: 15%;
+  transform: translateY(-50%);
+  width: 50vw;
+  height: 50vw;
   background: radial-gradient(circle, rgba(0, 229, 255, 0.12) 0%, transparent 65%);
   filter: blur(40px);
 }
 .bg-glow-ember {
   position: absolute;
-  top: 15%;
-  right: -10%;
-  width: 70vw;
-  height: 70vw;
+  top: 50%;
+  right: 15%;
+  transform: translateY(-50%);
+  width: 60vw;
+  height: 60vw;
   background: radial-gradient(circle, rgba(255, 87, 34, 0.1) 0%, transparent 65%);
   filter: blur(50px);
+  transition: all 0.4s ease;
 }
 
-/* 內容容器 (閃避系統瀏海與手勢列) */
-/* v0.5.25：手機瀏覽器網址列/手勢列高度變動時，內容可能比可視高度長，
-   原本 overflow:hidden 會把最底部的 ENTER STAGE 01 按鈕直接裁掉、點不到，
-   改為容器內可捲動，確保按鈕在任何高度下都摸得到 */
+/* Stage 02 專屬背景光效強化 */
+#stage-briefing.stage-02 .bg-glow-ember {
+  background: radial-gradient(circle, rgba(255, 87, 34, 0.18) 0%, transparent 70%);
+  filter: blur(45px);
+}
+
+/* 內容容器 (保留 env 安全區與 overflow 防禦機制) */
 .briefing-content {
   position: relative;
   z-index: 1;
@@ -989,66 +1004,57 @@ body {
   padding: env(safe-area-inset-top, 24px) 24px env(safe-area-inset-bottom, 32px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  min-height: 0; /* 讓 flex 子元素能真正縮小觸發捲動，不然 overflow-y:auto 不會生效 */
+  min-height: 0;
 }
 
 /* 頂部極簡標題 */
 .briefing-header {
   text-align: center;
-  margin-top: 2vh;
+  margin-top: 4vh;
 }
 .briefing-header h2 {
   font-size: 1.15rem;
   font-weight: 600;
-  letter-spacing: 2.5px;
-  color: var(--coreo-text-primary);
-  margin: 0 0 6px 0;
+  letter-spacing: 3.5px;
+  color: #F4F5F8;
+  margin: 0 0 8px 0;
 }
 .briefing-header p {
   font-size: 0.75rem;
   font-weight: 300;
-  color: var(--coreo-text-secondary);
+  color: #F4F5F8;
+  opacity: 0.6;
   margin: 0;
-  letter-spacing: 4px;
+  letter-spacing: 5px;
 }
 
-/* 中央對角線對峙 */
+/* 中央並排對峙 */
 .briefing-cinematic {
   flex: 1;
-  position: relative;
   width: 100%;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
+  gap: 12%;
 }
 
-/* v0.5.16：擂台對稱構圖——主角左上／反派右下對角拉開，兩者體積接近一比一，主角略大 */
-.cinematic-ember {
-  position: absolute;
-  bottom: 4%;
-  right: 4%;
-  width: 48%;
-  max-width: 212px;
-  animation: breathe-ember 5s ease-in-out infinite;
-}
-.cinematic-ember img {
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(0 0 25px rgba(255, 87, 34, 0.7)); /* v0.5.24 統一 EMBER 熔岩橘紅 #FF5722 */
+.cinematic-player, .cinematic-ember {
+  width: 42%;
+  max-width: 170px;
+  position: relative;
 }
 
-.cinematic-player {
-  position: absolute;
-  top: 4%;
-  left: 4%;
-  width: 54%;
-  max-width: 236px;
-  animation: breathe-player 4s ease-in-out infinite;
-}
+.cinematic-player { animation: breathe-player 4s ease-in-out infinite; }
 .cinematic-player img {
-  width: 100%;
-  height: auto;
+  width: 100%; height: auto;
   filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.5));
+}
+
+.cinematic-ember { animation: breathe-ember 5s ease-in-out infinite; }
+.cinematic-ember img {
+  width: 100%; height: auto;
+  filter: drop-shadow(0 0 25px rgba(255, 87, 34, 0.7));
 }
 
 .cinematic-name {
@@ -1056,12 +1062,11 @@ body {
   font-size: 10px;
   font-weight: 650;
   letter-spacing: 2px;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 .player-name { color: var(--coreo-glow-core); }
 .ember-name { color: var(--coreo-enemy-red); }
 
-/* GEM：兩者呼吸節奏刻意不同步（4s / 5s），避免同步跳動的廉價感 */
 @keyframes breathe-player {
   0%, 100% { transform: translateY(0) scale(1); }
   50% { transform: translateY(-7px) scale(1.03); }
@@ -1071,96 +1076,109 @@ body {
   50% { transform: translateY(-6px) scale(1.025); }
 }
 
-/* 底部資訊與按鈕 */
+/* 底部無框資訊區 */
 .briefing-footer {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
-.briefing-info-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.15); /* 高光框線 */
-  border-radius: 18px;
-  padding: 28px 24px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.briefing-info-container {
+  padding: 0 12px;
 }
 
 .info-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
 }
-.info-row:nth-child(2) { margin-bottom: 18px; }
+.info-row:nth-child(2) { margin-bottom: 16px; }
 
 .info-icon {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 .shard-icon {
   background: var(--coreo-core-basic);
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--coreo-core-basic-glow);
+  box-shadow: 0 0 8px var(--coreo-core-basic-glow);
 }
 .pulse-icon {
   background: var(--coreo-core-boost);
   transform: rotate(45deg);
-  box-shadow: 0 0 10px var(--coreo-core-boost);
+  box-shadow: 0 0 8px var(--coreo-core-boost);
 }
 
 .info-row p {
-  font-size: 0.8rem;
-  color: var(--coreo-text-secondary);
+  font-size: 0.75rem;
+  color: #8DA9C4;
   margin: 0;
-  line-height: 1.55;
+  line-height: 1.4;
+  letter-spacing: 0.5px;
 }
 .info-row p strong {
-  color: var(--coreo-text-primary);
-  font-weight: 700;
+  color: #F4F5F8;
+  font-weight: 600;
 }
 
 .info-mission {
-  border-top: 1px solid rgba(255,255,255,0.05);
-  padding-top: 18px;
-  margin-top: 2px;
+  padding-top: 8px;
+  text-align: center;
 }
 .info-mission p {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--coreo-text-primary);
   margin: 0;
-  font-weight: 500;
-  text-align: center;
-  letter-spacing: 0.5px;
+  font-weight: 400;
+  letter-spacing: 0.8px;
+  line-height: 1.5;
+  transition: color 0.3s ease;
 }
 
-/* 高級座艙啟動鍵 */
+/* Stage 02 任務文字低亮度警示暗示 */
+#stage-briefing.stage-02 .info-mission p {
+  color: rgba(249, 217, 118, 0.85);
+}
+
+/* 高級座艙透明啟動鍵 */
 #briefing-enter-btn {
   appearance: none;
   -webkit-appearance: none;
-  background: rgba(0, 229, 255, 0.08);
-  border: 1px solid rgba(0, 229, 255, 0.3);
-  color: var(--coreo-glow-core);
-  font-size: 0.95rem;
+  background: transparent;
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  color: rgba(0, 229, 255, 0.9);
+  font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 2px;
-  padding: 16px;
-  border-radius: 14px;
+  letter-spacing: 4px;
+  padding: 18px;
+  border-radius: 8px;
   width: 100%;
   text-align: center;
   cursor: pointer;
-  box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.05), 0 8px 20px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  transition: all 0.2s ease;
-  margin: 0; /* 重置原生 margin */
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  margin: 0;
 }
 
+/* 點擊時邊緣發光爆發，不填滿底色 */
 #briefing-enter-btn:active {
-  background: rgba(0, 229, 255, 0.15);
-  transform: scale(0.97);
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.7), inset 0 0 15px rgba(0, 229, 255, 0.3);
+  transform: scale(0.98);
+  border-color: rgba(0, 229, 255, 0.8);
+  color: #fff;
+}
+
+/* Stage 02 專屬按鈕配色 (白金 #F9D976) */
+#stage-briefing.stage-02 #briefing-enter-btn {
+  border-color: rgba(249, 217, 118, 0.4);
+  color: rgba(249, 217, 118, 0.9);
+}
+#stage-briefing.stage-02 #briefing-enter-btn:active {
+  box-shadow: 0 0 25px rgba(249, 217, 118, 0.7), inset 0 0 15px rgba(249, 217, 118, 0.3);
+  border-color: rgba(249, 217, 118, 0.8);
+  color: #fff;
 }
 
 /* =========================================

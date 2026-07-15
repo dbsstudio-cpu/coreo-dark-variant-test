@@ -72,11 +72,13 @@ window.addEventListener('DOMContentLoaded', () => {
     },
     2: {
       getMap: () => MazeLogic.getStage02Map(),
+      // v0.7.0：S 依新地圖拓撲重新設計，guardAnchor 落在 Vault 門口/中央交會區/誘敵迴圈的三角地帶
       enemyRoute: [
-        { x: 3.5 * CELL_SIZE, y: 24.5 * CELL_SIZE },
-        { x: 1.5 * CELL_SIZE, y: 26.5 * CELL_SIZE },
-        { x: 5.5 * CELL_SIZE, y: 26.5 * CELL_SIZE },
-        { x: 3.5 * CELL_SIZE, y: 28.5 * CELL_SIZE }
+        { x: 3.5 * CELL_SIZE, y: 11.5 * CELL_SIZE }, // P1: 中央交會區 (Hub)
+        { x: 5.5 * CELL_SIZE, y: 13.5 * CELL_SIZE }, // P2: 誘敵迴圈上段
+        { x: 5.5 * CELL_SIZE, y: 18.5 * CELL_SIZE }, // P3: 誘敵迴圈中段
+        { x: 3.5 * CELL_SIZE, y: 22.5 * CELL_SIZE }, // P4: 下方交會區
+        { x: 3.5 * CELL_SIZE, y: 15.5 * CELL_SIZE }  // P5: Vault 準備區 (拉回錨點)
       ],
       pulseRequirement: 2,
       // v0.6：Stage02 出口刻意設計在地圖下方（跟 Stage01 相反），過關放大要往下飄離，不是往上
@@ -142,6 +144,7 @@ window.addEventListener('DOMContentLoaded', () => {
   let mazeData = restoredRun?.mazeData || JSON.parse(JSON.stringify(pristineMazeData));
   let playerPos = Render3D.buildWorld(mazeData, currentStage);
   CameraLogic.refreshMetrics();
+  CameraLogic.setDirection(STAGE_CONFIG[currentStage].exitDirection);
   if (restoredRun?.playerPos) playerPos = restoredRun.playerPos;
 
   const world = document.getElementById('world');
@@ -446,6 +449,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (briefingSubtitleEl) briefingSubtitleEl.textContent = cfg.briefing.subtitle;
     if (briefingMissionEl) briefingMissionEl.textContent = cfg.briefing.mission;
     if (briefingEnterBtn) briefingEnterBtn.textContent = cfg.briefing.btnText;
+
+    // v0.7.1：依關卡套用專屬 CSS class，供 Stage 02 白金儀表板與光效使用
+    if (briefingOverlay) briefingOverlay.classList.toggle('stage-02', stageId === 2);
   }
 
   // 只有從 Stage Select 主動選關時才會呼叫，救回狀態不會走這條路徑，
@@ -456,6 +462,7 @@ window.addEventListener('DOMContentLoaded', () => {
     mazeData = JSON.parse(JSON.stringify(pristineMazeData));
     playerPos = Render3D.buildWorld(mazeData, stageId);
     CameraLogic.refreshMetrics();
+    CameraLogic.setDirection(STAGE_CONFIG[stageId].exitDirection);
     world.className = `stage-0${stageId}`;
     world.appendChild(playerDiv);
     updatePlayerDOM();
