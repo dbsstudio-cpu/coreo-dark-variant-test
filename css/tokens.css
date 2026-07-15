@@ -1246,3 +1246,58 @@ body {
 .stage-card:active {
   transform: scale(0.95);
 }
+
+/* =========================================
+   Stage 02 Circuit Pulse (線性通電光效) — v0.8.0
+   GPT 正式裁決：Core Pulse 回饋改成線性結構反應光，只影響 Stage02，
+   Stage01 的 Supernova Burst + 白金矩陣線條不受影響。
+   共用既有 .cell.wall::before／.cell.path::after 這兩個偽元素掛勾（跟 Stage01
+   的 matrix-pulse 效果共用同一組插槽，靠 #world.circuit-pulse 與 #world.matrix-pulse
+   互斥的觸發條件區分，不會同時生效），不新增 DOM，opacity/animation 驅動，效能安全。
+========================================= */
+#world.circuit-pulse .cell.wall.zone-vault::before,
+#world.circuit-pulse .cell.wall.zone-return::before,
+#world.circuit-pulse .cell.wall.zone-lure::before,
+#world.circuit-pulse .cell.path::after {
+  opacity: 0;
+  z-index: 10;
+}
+
+/* Vault：強烈鈦白邊緣 + 冰青內發光 */
+#world.circuit-pulse .cell.wall.zone-vault::before {
+  box-shadow: inset 0 0 0 1px #F4F8FF, inset 0 0 8px #64D2FF;
+  animation: circuit-flash 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+/* 回程與 Lure：冷色導光線，帶有節奏延遲 */
+#world.circuit-pulse .cell.wall.zone-return::before {
+  box-shadow: inset 0 0 0 1px #00F0FF, inset 0 0 4px #00F0FF;
+  animation: circuit-flash-delayed 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+#world.circuit-pulse .cell.wall.zone-lure::before {
+  box-shadow: inset 0 0 0 1px rgba(100, 210, 255, 0.6);
+  animation: circuit-flash 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+/* 路線邊緣：極細微電流痕跡 */
+#world.circuit-pulse .cell.path::after {
+  background: rgba(100, 210, 255, 0.05);
+  box-shadow: inset 0 0 1px #64D2FF;
+  animation: circuit-flash 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+/* 四段式高壓電脈衝動態 */
+@keyframes circuit-flash {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  25% { opacity: 0.15; }
+  35% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+@keyframes circuit-flash-delayed {
+  0%, 15% { opacity: 0; }
+  25% { opacity: 0.7; }
+  40% { opacity: 0.1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 0; }
+}

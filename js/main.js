@@ -35,11 +35,23 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // v0.6.7：GPT 裁決 Core Pulse 大光源改為 Supernova Burst（局部鈦白/極光青爆發），拾取點生成一個獨立元素。
-  // v0.6.9：Sean 指定疊加找回 v0.5.19 的矩陣線條點亮感（白金色，非舊金黃），見 FX.pulseMatrixLines——
-  // 只切 #world 一個 class，實際發光靠 css/tokens.css 的 opacity transition，不是回到舊版全格 box-shadow 重算。
+  // v0.6.9：Sean 指定疊加找回 v0.5.19 的矩陣線條點亮感（白金色，非舊金黃），見 FX.pulseMatrixLines。
+  // v0.8.0：GPT 正式裁決 Stage02 大光源回饋改為「線性通電光效」，取消 Supernova Burst，只影響 Stage02；
+  // Stage01 維持原本的 Supernova Burst + 白金矩陣線條不變。
   function energizeMatrix() {
-    FX.spawnSupernovaBurst(playerPos.x, playerPos.y);
-    FX.pulseMatrixLines();
+    if (currentStage === 2) {
+      // Stage 02：專屬線性通電光效（CSS class 驅動，見 css/tokens.css 的 #world.circuit-pulse）
+      const worldEl = document.getElementById('world');
+      if (worldEl) {
+        worldEl.classList.remove('circuit-pulse');
+        void worldEl.offsetWidth; // 強制重繪重置動畫
+        worldEl.classList.add('circuit-pulse');
+        setTimeout(() => worldEl.classList.remove('circuit-pulse'), 800);
+      }
+    } else {
+      FX.spawnSupernovaBurst(playerPos.x, playerPos.y);
+      FX.pulseMatrixLines();
+    }
     pulseEffectUntil = performance.now() + PULSE_EFFECT_DURATION;
   }
 
@@ -80,21 +92,21 @@ window.addEventListener('DOMContentLoaded', () => {
     },
     2: {
       getMap: () => MazeLogic.getStage02Map(),
-      // v0.7.3-cx-pressure-test：巡邏收斂在 Hub／Vault 主要入口／狹窄逃生口，不再鬆散跨越整張地圖
+      // v0.8.1：緊逼關鍵節點的死亡巡邏，涵蓋 Hub、Vault 入口，並新增 P5 深入回程之字陷阱區，
+      // 讓日常巡邏本身就有機會出現在回程路線上，不再只靠 armStage02ReturnPressure() 腳本撐場面
       enemyRoute: [
-        { x: 3.5 * CELL_SIZE, y: 11.5 * CELL_SIZE }, // Hub 左側咽喉
-        { x: 3.5 * CELL_SIZE, y: 16.5 * CELL_SIZE }, // Vault 主要入口
-        { x: 3.5 * CELL_SIZE, y: 20.5 * CELL_SIZE }, // Vault 內側守門線
-        { x: 5.5 * CELL_SIZE, y: 20.5 * CELL_SIZE }, // 狹窄逃生口
-        { x: 5.5 * CELL_SIZE, y: 18.5 * CELL_SIZE }, // 右側誘敵通道
-        { x: 5.5 * CELL_SIZE, y: 13.5 * CELL_SIZE }, // Hub 右側咽喉
-        { x: 5.5 * CELL_SIZE, y: 11.5 * CELL_SIZE }  // 回到中央交會區
+        { x: 3.5 * CELL_SIZE, y: 11.5 * CELL_SIZE }, // P1: Hub 咽喉
+        { x: 5.5 * CELL_SIZE, y: 14.5 * CELL_SIZE }, // P2: Lure 上段
+        { x: 5.5 * CELL_SIZE, y: 22.5 * CELL_SIZE }, // P3: Lure 下段
+        { x: 3.5 * CELL_SIZE, y: 24.5 * CELL_SIZE }, // P4: 下方交會區
+        { x: 3.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }, // P5: 回程之字陷阱區深度巡衛
+        { x: 3.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }  // P6: Vault 頂部主入口
       ],
       enemyTuning: {
         baseAlertRadius: 160,
         pathAlertLimit: 8,
-        patrolSpeed: 0.68,
-        chaseSpeed: 1.42,
+        patrolSpeed: 0.65,
+        chaseSpeed: 1.40,
         chaseDuration: 13000,
         maxChaseDistanceFromGuard: 1100
       },

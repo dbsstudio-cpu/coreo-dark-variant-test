@@ -120,11 +120,12 @@ const Render3D = {
   // 修正紀錄：原本拿凹槽「地板」的欄位範圍去判斷，但真正圍住凹槽的牆體座標跟地板不同，
   // 導致 zone-vault/zone-lure 幾乎沒有機會被判定到；已對照 getStage02Map 實際牆體座標重新校正，
   // 三個分區範圍互斥不重疊，避免順序判斷互相蓋掉
+  // v0.8.0：對照 getStage02Map 新地圖重新校正，新增 zone-return（回程路線）供線性通電光效使用
   getWallZoneClass: function(x, y, stageId) {
     if (stageId !== 2) return null;
-    if (y >= 18 && y <= 22 && x >= 2 && x <= 5) return 'zone-vault';
-    if (y >= 23 && y <= 24) return 'zone-guard';
-    if (y >= 25 && y <= 31) return 'zone-lure';
+    if (y >= 18 && y <= 22 && x >= 2 && x <= 4) return 'zone-vault';
+    if (y >= 24 && y <= 38) return 'zone-return';
+    if (y >= 11 && y <= 25 && x >= 4) return 'zone-lure';
     return null;
   },
 

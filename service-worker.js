@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v073-cx-stage02-pressure-test-20260715';
+const COREO_CACHE = 'coreo-dark-variant-v081-ab-branch-return-guard-fix-20260715';
 const COREO_ASSETS = [
   './',
   './index.html',
