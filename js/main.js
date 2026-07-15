@@ -28,10 +28,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const hudShardVal = document.getElementById('ui-shard-val');
   const hudPulseVal = document.getElementById('ui-pulse-val');
 
+  // v0.8.3：HUD 在 DOM 上跟 #world 是手足節點，沒辦法用 .stage-02 後代選擇器涵蓋，
+  // 這裡直接依 currentStage 切換 class 名稱，讓 Stage02 走冷白/冰青版本、Stage01 維持原本黃綠閃光
   function flashHud(el) {
     if (!el) return;
-    el.classList.add('glow');
-    setTimeout(() => el.classList.remove('glow'), 200);
+    const glowClass = currentStage === 2 ? 'glow-s2' : 'glow';
+    el.classList.add(glowClass);
+    setTimeout(() => el.classList.remove(glowClass), 200);
   }
 
   // v0.6.7：GPT 裁決 Core Pulse 大光源改為 Supernova Burst（局部鈦白/極光青爆發），拾取點生成一個獨立元素。

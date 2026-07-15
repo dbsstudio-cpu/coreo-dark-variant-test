@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v081-ab-branch-return-guard-fix-20260715';
+const COREO_CACHE = 'coreo-dark-variant-v084-circuit-flash-count-20260715';
 const COREO_ASSETS = [
   './',
   './index.html',

@@ -50,6 +50,10 @@ const FX = {
 
   collectCore: function(coreDOM, spriteDOM, type) {
     const isBoost = type === 5;
+    // v0.8.3：Sean/GPT 最高優先覆蓋裁決，Stage02 的 Core Pulse 飛行粒子也不能是白金黃，
+    // 這個粒子是 appendChild 到 document.body（不是 #world 底下），沒辦法用 CSS 後代選擇器
+    // 靠 .stage-02 自動切色，直接在 JS 判斷目前是哪一關
+    const isStage02 = document.getElementById('world')?.classList.contains('stage-02');
     const uiCore = document.getElementById(isBoost ? 'ui-pulse-val' : 'ui-shard-val');
     const rect = coreDOM.getBoundingClientRect();
     const uiRect = uiCore.getBoundingClientRect();
@@ -60,9 +64,9 @@ const FX = {
     particle.style.top = `${rect.top + rect.height / 2}px`;
     particle.style.width = isBoost ? '14px' : '12px';
     particle.style.height = isBoost ? '14px' : '12px';
-    particle.style.backgroundColor = isBoost ? 'var(--coreo-core-boost)' : 'var(--coreo-core-basic)';
+    particle.style.backgroundColor = isBoost ? (isStage02 ? '#64D2FF' : 'var(--coreo-core-boost)') : 'var(--coreo-core-basic)';
     particle.style.borderRadius = isBoost ? '4px' : '50%';
-    particle.style.boxShadow = isBoost ? '0 0 15px var(--coreo-core-boost)' : '0 0 15px var(--coreo-core-basic-glow)';
+    particle.style.boxShadow = isBoost ? `0 0 15px ${isStage02 ? '#64D2FF' : 'var(--coreo-core-boost)'}` : '0 0 15px var(--coreo-core-basic-glow)';
     particle.style.zIndex = '9999';
     particle.style.pointerEvents = 'none';
     document.body.appendChild(particle);
@@ -153,6 +157,8 @@ const FX = {
     setTimeout(() => {
       if ('vibrate' in navigator) navigator.vibrate([50, 50, 100]);
       const overlay = document.getElementById('level-complete-overlay');
+      // v0.8.3：Sean/GPT 最高優先覆蓋裁決，STAGE SECURED 底線在 Stage02 也不能帶黃色
+      overlay.classList.toggle('stage-02', document.getElementById('world')?.classList.contains('stage-02'));
       overlay.classList.add('show');
       overlay.addEventListener('click', () => {
         location.reload();

@@ -133,6 +133,15 @@ body {
   transform: scale(1.2);
 }
 
+/* v0.8.3：Sean/GPT 最高優先覆蓋裁決——HUD 是 #world 的手足節點不是子節點，沒辦法用
+   .stage-02 後代選擇器涵蓋，改由 js/main.js 的 flashHud() 依 currentStage 切換 class 名稱。
+   Stage01 沿用上面的 .glow（黃綠閃光），Stage02 改用這個冷白/冰青版本 */
+.hud-value.glow-s2 {
+  color: #F4F8FF;
+  text-shadow: 0 0 16px rgba(0, 240, 255, 0.76);
+  transform: scale(1.2);
+}
+
 #version-tag {
   position: fixed;
   bottom: max(env(safe-area-inset-bottom), 8px);
@@ -331,9 +340,12 @@ body {
 
 /* 核心凹槽區（代號7）牆體：白金邊緣微光，只做內側反射不整面發光。
    v0.6：座標判定修正後這組樣式終於會真的套用到牆上，順勢把強度調到肉眼可辨（原本太弱形同沒有） */
+/* v0.8.3：Sean/GPT 最高優先覆蓋裁決——Stage02 禁止黃色，凹槽內側反射不再是例外，
+   this class 只會套用在 Stage02 的牆（getWallZoneClass 對 Stage01 一律回傳 null），
+   不需要額外的 .stage-02 前綴，直接改色即可，不影響 Stage01 */
 .cell.wall.zone-vault {
-  box-shadow: inset 0 0 20px rgba(249, 217, 118, 0.32), 0 0 14px rgba(249, 217, 118, 0.18);
-  border: 1px solid rgba(249, 217, 118, 0.4);
+  box-shadow: inset 0 0 18px rgba(244, 248, 255, 0.22), 0 0 14px rgba(100, 210, 255, 0.22);
+  border: 1px solid rgba(100, 210, 255, 0.42);
 }
 
 /* EMBER 守護區牆體：熔岩暗湧底光，緩慢呼吸，克制不做滿地橘紅 */
@@ -480,6 +492,27 @@ body {
   transform: translate(-50%, 0);
 }
 
+/* v0.8.2：GPT 明確裁決 Stage02 不得是黃光關，出口光環是「永久旋轉、不是瞬間效果」，
+   之前每一輪任務包範圍都太窄沒人碰過這裡，才會一直看到白金色。Stage01 出口維持不動，
+   Stage02 出口改用線性通電光效同一套冷白/冰青色系，兩關视觉語言各自獨立不互相影響。 */
+.stage-02 .cell.exit {
+  box-shadow:
+    inset 0 0 30px rgba(0, 240, 255, 0.28),
+    inset 0 0 46px rgba(100, 210, 255, 0.16);
+}
+.stage-02 .cell.exit.partial-charged {
+  box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.18);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+}
+.stage-02 .cell.exit::before {
+  border: 2px solid #F4F8FF;
+  border-top-color: transparent;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+}
+.stage-02 .cell.exit::after {
+  background: linear-gradient(to top, rgba(0, 240, 255, 0.55), rgba(100, 210, 255, 0.28) 65%, transparent);
+}
+
 @keyframes exit-ring-spin {
   0% { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
@@ -582,6 +615,14 @@ body {
   transform: translate(-50%, -50%) translateZ(18px) rotate(45deg);
   box-shadow: 0 0 15px rgba(249, 217, 118, 0.85), 0 0 34px rgba(255, 87, 34, 0.22);
   animation: float-core-upg 2s ease-in-out infinite;
+}
+
+/* v0.8.3：Sean/GPT 最高優先覆蓋裁決——Stage02 的 Core Pulse 道具本體也不能是白金黃，
+   Stage01 維持原本白金外觀不動 */
+.stage-02 .light-core-item.upgraded,
+.stage-02 .light-core-item.boost {
+  background: linear-gradient(145deg, #F4F8FF 0%, #64D2FF 100%);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.85), 0 0 34px rgba(255, 87, 34, 0.22);
 }
 
 @keyframes float-core-std {
@@ -782,6 +823,11 @@ body {
   background: linear-gradient(90deg, var(--coreo-glow-core), var(--coreo-credit));
   margin: 12px 0;
   box-shadow: 0 0 14px rgba(48, 209, 88, 0.60);
+}
+
+/* v0.8.3：Stage02 版 STAGE SECURED 底線改冷白/冰青漸層，不用帶黃的 --coreo-credit */
+#level-complete-overlay.stage-02 .lc-line {
+  background: linear-gradient(90deg, var(--coreo-glow-core), #F4F8FF);
 }
 
 /* ==============================================
@@ -1113,6 +1159,12 @@ body {
   box-shadow: 0 0 8px var(--coreo-core-boost);
 }
 
+/* v0.8.3：Stage02 版 Stage Briefing 的 Core Pulse icon 也不能是白金黃 */
+#stage-briefing.stage-02 .pulse-icon {
+  background: #64D2FF;
+  box-shadow: 0 0 8px #64D2FF;
+}
+
 .info-row p {
   font-size: 0.75rem;
   color: #8DA9C4;
@@ -1139,9 +1191,10 @@ body {
   transition: color 0.3s ease;
 }
 
-/* Stage 02 任務文字低亮度警示暗示 */
+/* v0.8.2：Stage 02 任務文字低亮度警示暗示——改用 EMBER 熔岩橘紅系，不是白金，
+   GPT 明確裁決 Stage02 不是黃光關，這裡原本用白金色是舊方向殘留 */
 #stage-briefing.stage-02 .info-mission p {
-  color: rgba(249, 217, 118, 0.85);
+  color: rgba(255, 87, 34, 0.85);
 }
 
 /* 高級座艙透明啟動鍵 */
@@ -1171,14 +1224,15 @@ body {
   color: #fff;
 }
 
-/* Stage 02 專屬按鈕配色 (白金 #F9D976) */
+/* v0.8.2：Stage 02 專屬按鈕配色改冷白/冰青，不用白金——GPT 明確裁決 Stage02 不是黃光關，
+   舊版白金按鈕是 GEM 更早的 Stage Briefing 藍圖殘留，跟後來的色彩裁決衝突，這次一併修正 */
 #stage-briefing.stage-02 #briefing-enter-btn {
-  border-color: rgba(249, 217, 118, 0.4);
-  color: rgba(249, 217, 118, 0.9);
+  border-color: rgba(0, 240, 255, 0.4);
+  color: rgba(244, 248, 255, 0.9);
 }
 #stage-briefing.stage-02 #briefing-enter-btn:active {
-  box-shadow: 0 0 25px rgba(249, 217, 118, 0.7), inset 0 0 15px rgba(249, 217, 118, 0.3);
-  border-color: rgba(249, 217, 118, 0.8);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.7), inset 0 0 15px rgba(0, 240, 255, 0.3);
+  border-color: rgba(0, 240, 255, 0.8);
   color: #fff;
 }
 
@@ -1286,18 +1340,25 @@ body {
   animation: circuit-flash 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
 }
 
-/* 四段式高壓電脈衝動態 */
+/* v0.8.4：Sean 反映原本的雙峰曲線視覺上只讀得出「閃一次」，改成 3 個乾淨的完全歸零再點亮
+   循環，讓「電壓跳動 2~3 次」的效果真的看得出來是分開的閃爍，不是一條連續的亮度曲線 */
 @keyframes circuit-flash {
   0% { opacity: 0; }
-  12% { opacity: 1; }
-  25% { opacity: 0.15; }
-  35% { opacity: 0.9; }
+  8% { opacity: 1; }
+  16% { opacity: 0; }
+  24% { opacity: 1; }
+  32% { opacity: 0; }
+  42% { opacity: 0.85; }
+  55% { opacity: 0.15; }
   100% { opacity: 0; }
 }
 @keyframes circuit-flash-delayed {
   0%, 15% { opacity: 0; }
-  25% { opacity: 0.7; }
-  40% { opacity: 0.1; }
-  50% { opacity: 0.5; }
+  23% { opacity: 0.8; }
+  31% { opacity: 0; }
+  39% { opacity: 0.8; }
+  47% { opacity: 0; }
+  57% { opacity: 0.6; }
+  70% { opacity: 0.1; }
   100% { opacity: 0; }
 }
