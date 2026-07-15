@@ -1001,7 +1001,8 @@ body {
   flex-direction: column;
   height: 100%;
   justify-content: space-between;
-  padding: env(safe-area-inset-top, 24px) 24px env(safe-area-inset-bottom, 32px);
+  padding: env(safe-area-inset-top, 24px) 24px 20px;
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   min-height: 0;
