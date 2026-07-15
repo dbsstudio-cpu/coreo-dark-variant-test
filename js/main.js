@@ -61,6 +61,14 @@ window.addEventListener('DOMContentLoaded', () => {
         { x: 2.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
         { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }
       ],
+      enemyTuning: {
+        baseAlertRadius: 145,
+        pathAlertLimit: 7,
+        patrolSpeed: 0.62,
+        chaseSpeed: 1.30,
+        chaseDuration: 11000,
+        maxChaseDistanceFromGuard: 950
+      },
       pulseRequirement: 1,
       exitDirection: 'up',
       briefing: {
@@ -72,14 +80,25 @@ window.addEventListener('DOMContentLoaded', () => {
     },
     2: {
       getMap: () => MazeLogic.getStage02Map(),
-      // v0.7.0：S 依新地圖拓撲重新設計，guardAnchor 落在 Vault 門口/中央交會區/誘敵迴圈的三角地帶
+      // v0.7.3-cx-pressure-test：巡邏收斂在 Hub／Vault 主要入口／狹窄逃生口，不再鬆散跨越整張地圖
       enemyRoute: [
-        { x: 3.5 * CELL_SIZE, y: 11.5 * CELL_SIZE }, // P1: 中央交會區 (Hub)
-        { x: 5.5 * CELL_SIZE, y: 13.5 * CELL_SIZE }, // P2: 誘敵迴圈上段
-        { x: 5.5 * CELL_SIZE, y: 18.5 * CELL_SIZE }, // P3: 誘敵迴圈中段
-        { x: 3.5 * CELL_SIZE, y: 22.5 * CELL_SIZE }, // P4: 下方交會區
-        { x: 3.5 * CELL_SIZE, y: 15.5 * CELL_SIZE }  // P5: Vault 準備區 (拉回錨點)
+        { x: 3.5 * CELL_SIZE, y: 11.5 * CELL_SIZE }, // Hub 左側咽喉
+        { x: 3.5 * CELL_SIZE, y: 16.5 * CELL_SIZE }, // Vault 主要入口
+        { x: 3.5 * CELL_SIZE, y: 20.5 * CELL_SIZE }, // Vault 內側守門線
+        { x: 5.5 * CELL_SIZE, y: 20.5 * CELL_SIZE }, // 狹窄逃生口
+        { x: 5.5 * CELL_SIZE, y: 18.5 * CELL_SIZE }, // 右側誘敵通道
+        { x: 5.5 * CELL_SIZE, y: 13.5 * CELL_SIZE }, // Hub 右側咽喉
+        { x: 5.5 * CELL_SIZE, y: 11.5 * CELL_SIZE }  // 回到中央交會區
       ],
+      enemyTuning: {
+        baseAlertRadius: 160,
+        pathAlertLimit: 8,
+        patrolSpeed: 0.68,
+        chaseSpeed: 1.42,
+        chaseDuration: 13000,
+        maxChaseDistanceFromGuard: 1100
+      },
+      returnPressureDuration: 15000,
       pulseRequirement: 2,
       // v0.6：Stage02 出口刻意設計在地圖下方（跟 Stage01 相反），過關放大要往下飄離，不是往上
       exitDirection: 'down',
@@ -91,6 +110,13 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }
   };
+
+  // Stage01 保留原參數；只有進入 Stage02 時才套用小幅壓力補強，避免改壞共用 EnemyLogic。
+  function applyEnemyTuning(stageId) {
+    const tuning = STAGE_CONFIG[stageId].enemyTuning;
+    if (!tuning) return;
+    Object.assign(EnemyLogic, tuning);
+  }
 
   // v0.6：破關進度記憶，用 localStorage 永久保存，跟下面 sessionStorage 的「本局即時快照」
   // 是完全獨立的兩個系統，key 不同、生命週期不同，不能共用
@@ -159,6 +185,7 @@ window.addEventListener('DOMContentLoaded', () => {
   playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
+  applyEnemyTuning(currentStage);
   EnemyLogic.init(STAGE_CONFIG[currentStage].enemyRoute, 'villainHunt');
   if (restoredRun?.enemy) {
     Object.assign(EnemyLogic, {
@@ -278,6 +305,18 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // v0.7.3-cx-pressure-test：Vault Pulse 被取走時才啟動回程追逐。
+  // 不傳送 EMBER、不做全圖 GPS，只沿既有 BFS 追逐到守護錨點邊界，出口前仍保留短安全段。
+  function armStage02ReturnPressure() {
+    if (currentStage !== 2) return;
+    EnemyLogic.state = 'chase';
+    EnemyLogic.chaseTimer = STAGE_CONFIG[2].returnPressureDuration;
+    EnemyLogic.reactionTimer = 0;
+    EnemyLogic.lastKnownCell = EnemyLogic.toCell(playerPos, CELL_SIZE);
+    EnemyLogic.chaseMemoryTimer = EnemyLogic.chaseMemoryDuration;
+    FX.toggleGlobalAlert(true);
+  }
+
   function checkPickups() {
     const cx = Math.floor(playerPos.x / CELL_SIZE);
     const cy = Math.floor(playerPos.y / CELL_SIZE);
@@ -310,6 +349,7 @@ window.addEventListener('DOMContentLoaded', () => {
         FX.corePulseFeedback(playerSprite);
         energizeMatrix();
         updateExitVisual();
+        armStage02ReturnPressure();
       }
       saveRunSnapshot();
     }
@@ -356,12 +396,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     world.appendChild(playerDiv);
     updatePlayerDOM();
+    applyEnemyTuning(currentStage);
     EnemyLogic.init(STAGE_CONFIG[currentStage].enemyRoute, 'villainHunt');
 
     currentSpeed = baseSpeed;
     isGameOver = false;
-    EnemyLogic.alertRadius = EnemyLogic.baseAlertRadius;
-
     shardCount = 0;
     pulseCount = 0;
     if (hudShardVal) hudShardVal.textContent = '00';
@@ -472,6 +511,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (hudShardVal) hudShardVal.textContent = '00';
     if (hudPulseVal) hudPulseVal.textContent = '0';
 
+    applyEnemyTuning(stageId);
     EnemyLogic.init(STAGE_CONFIG[stageId].enemyRoute, 'villainHunt');
     updateExitVisual();
 

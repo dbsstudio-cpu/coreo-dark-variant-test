@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v072-briefing-minimal-dashboard-20260714';
+const COREO_CACHE = 'coreo-dark-variant-v073-cx-stage02-pressure-test-20260715';
 const COREO_ASSETS = [
   './',
   './index.html',
