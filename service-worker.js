@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v091-stage01-material-20260716';
+const COREO_CACHE = 'coreo-dark-variant-v092-stage02-material-20260716';
 const COREO_ASSETS = [
   './',
   './index.html',
