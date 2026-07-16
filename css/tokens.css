@@ -120,6 +120,16 @@ body {
   -webkit-overflow-scrolling: auto;
 }
 
+/* v0.9.3 Stage02：移除上方大面積青／紅環境暈染，保留乾淨的深黑藍空間與 HUD 對比。 */
+body.stage-02-active {
+  background: linear-gradient(180deg, #090D14 0%, #050810 44%, #04060A 100%);
+}
+
+body.stage-02-active #fog-overlay {
+  height: 14%;
+  background: linear-gradient(to bottom, rgba(6, 9, 15, 0.86) 0%, rgba(6, 9, 15, 0.22) 68%, transparent 100%);
+}
+
 /* =========================================
    HUD (極簡化，專注 Light Core 收集)
 ========================================= */
@@ -574,6 +584,35 @@ body {
   pointer-events: none;
 }
 
+/* Stage02 正式入口門檻：中央缺口提供真實入口，起點只做精密定位，不靠霧光撐場。 */
+.stage-02 .cell.start {
+  border: 1px solid rgba(115, 183, 255, 0.46);
+  border-top-color: rgba(229, 243, 255, 0.72);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(229, 243, 255, 0.08), transparent 28%),
+    linear-gradient(145deg, #17253A 0%, #0A101D 62%, #101D31 100%);
+  box-shadow:
+    inset 0 0 0 2px rgba(1, 3, 10, 0.88),
+    inset 0 0 0 3px rgba(47, 99, 255, 0.32),
+    0 2px 8px rgba(47, 99, 255, 0.12);
+}
+
+.stage-02 .cell.start::before {
+  width: 28px;
+  height: 28px;
+  border-color: var(--coreo-s2-guide-secondary);
+  border-top-color: var(--coreo-s2-highlight);
+  box-shadow: 0 0 5px rgba(229, 243, 255, 0.34), inset 0 0 8px rgba(47, 99, 255, 0.24);
+}
+
+.stage-02 .cell.start::after {
+  width: 9px;
+  height: 9px;
+  background: var(--coreo-s2-highlight);
+  box-shadow: 0 0 7px rgba(115, 183, 255, 0.62);
+}
+
 .cell.start::before {
   width: 30px;
   height: 30px;
@@ -643,23 +682,23 @@ body {
    之前每一輪任務包範圍都太窄沒人碰過這裡，才會一直看到白金色。Stage01 出口維持不動，
    Stage02 出口改用線性通電光效同一套冷白/冰青色系，兩關视觉語言各自獨立不互相影響。 */
 .stage-02 .cell.exit {
-  background: radial-gradient(circle at 50% 50%, rgba(0, 214, 199, 0.13) 0 22%, rgba(47, 99, 255, 0.08) 23% 48%, transparent 68%);
+  background: radial-gradient(circle at 50% 50%, rgba(229, 243, 255, 0.11) 0 18%, rgba(47, 99, 255, 0.12) 19% 46%, transparent 66%);
   box-shadow:
-    inset 0 0 30px rgba(47, 99, 255, 0.24),
-    inset 0 0 46px rgba(115, 183, 255, 0.12);
+    inset 0 0 26px rgba(47, 99, 255, 0.24),
+    inset 0 0 42px rgba(115, 183, 255, 0.12);
 }
 .stage-02 .cell.exit.partial-charged {
-  box-shadow: inset 0 0 15px rgba(0, 214, 199, 0.16);
-  border: 1px solid rgba(114, 242, 229, 0.32);
+  box-shadow: inset 0 0 15px rgba(47, 99, 255, 0.18);
+  border: 1px solid rgba(115, 183, 255, 0.34);
 }
 .stage-02 .cell.exit::before {
-  border: 2px solid var(--coreo-s2-core-boost-soft);
+  border: 2px solid var(--coreo-s2-highlight);
   border-top-color: transparent;
-  box-shadow: 0 0 5px rgba(229, 243, 255, 0.52), 0 0 16px rgba(0, 214, 199, 0.48);
+  box-shadow: 0 0 5px rgba(229, 243, 255, 0.5), 0 0 15px rgba(47, 99, 255, 0.52);
 }
 .stage-02 .cell.exit::after {
   width: 4px;
-  background: linear-gradient(to top, rgba(229, 243, 255, 0.72), rgba(0, 214, 199, 0.42) 38%, rgba(115, 183, 255, 0.16) 72%, transparent);
+  background: linear-gradient(to top, rgba(229, 243, 255, 0.78), rgba(115, 183, 255, 0.4) 42%, rgba(47, 99, 255, 0.14) 74%, transparent);
 }
 
 @keyframes exit-ring-spin {

@@ -239,6 +239,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const world = document.getElementById('world');
   world.className = `stage-0${currentStage}`;
+  document.body.classList.toggle('stage-02-active', currentStage === 2);
 
   const playerDiv = document.createElement('div');
   playerDiv.id = 'player';
@@ -567,6 +568,7 @@ window.addEventListener('DOMContentLoaded', () => {
     CameraLogic.refreshMetrics();
     CameraLogic.setDirection(STAGE_CONFIG[stageId].exitDirection);
     world.className = `stage-0${stageId}`;
+    document.body.classList.toggle('stage-02-active', stageId === 2);
     world.appendChild(playerDiv);
     updatePlayerDOM();
 
