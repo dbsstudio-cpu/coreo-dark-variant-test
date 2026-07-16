@@ -4,16 +4,18 @@
   --coreo-bg-secondary: #151517;
   --coreo-surface-raised: #3C3C40;
   /* v0.9.0：兩關色彩完全分離，避免單關調色污染另一關 */
-  --coreo-s1-path: #2A3240;
-  --coreo-s1-path-metal: #344052;
-  --coreo-s1-wall-top: #080A0E;
-  --coreo-s1-wall-side: #131821;
-  --coreo-s1-wall-shadow: #020306;
-  --coreo-s1-guide: #00E6FF;
-  --coreo-s1-guide-secondary: #64D2FF;
-  --coreo-s1-highlight: #F4F8FF;
-  --coreo-s1-core-basic: #DFF8FF;
-  --coreo-s1-core-boost: #7C5CFF;
+  --coreo-s1-path: #202936;
+  --coreo-s1-path-metal: #304055;
+  --coreo-s1-wall-top: #040506;
+  --coreo-s1-wall-side: #182230;
+  --coreo-s1-wall-shadow: rgba(1, 5, 10, 0.3);
+  --coreo-s1-shell: #DCE8F5;
+  --coreo-s1-shell-hot: #F6FBFF;
+  --coreo-s1-guide: #008CFF;
+  --coreo-s1-guide-secondary: #42C8FF;
+  --coreo-s1-highlight: #DDF7FF;
+  --coreo-s1-core-basic: #EAFBFF;
+  --coreo-s1-core-boost: #0878FF;
   --coreo-s2-path: #252C36;
   --coreo-s2-path-metal: #303A48;
   --coreo-s2-wall-top: #080A0E;
@@ -269,6 +271,16 @@ body {
   transition: box-shadow 0.1s ease-out;
 }
 
+/* v0.9.1 Stage01：低反光的冷黑金屬路面，只承接牆緣的藍光，不把整條路徑染亮。 */
+.stage-01 .cell.path {
+  background:
+    linear-gradient(145deg, rgba(48, 64, 85, 0.34), transparent 42%),
+    var(--coreo-s1-path);
+  box-shadow:
+    inset 0 0 0 1px rgba(221, 247, 255, 0.055),
+    inset 0 0 8px rgba(0, 140, 255, 0.045);
+}
+
 .stage-02 .cell.path {
   background: var(--coreo-s2-path);
   box-shadow:
@@ -334,6 +346,34 @@ body {
     inset 0 1px 0 rgba(245, 245, 247, 0.28),
     inset 0 0 10px rgba(212, 240, 255, 0.10),
     inset 0 0 0 1px var(--coreo-edge-highlight);
+}
+
+/* v0.9.1 Stage01：維持迷宮幾何，不仿造參考圖的膠囊外形；僅轉譯其材質層級。
+   外圈是冷白硬質護邊，內側依序為黑色接縫、電光藍能量槽、冰青細高光與黑色主體。 */
+.stage-01 .cell.wall {
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, #111924 0%, var(--coreo-s1-wall-top) 42%, #070B11 76%, #131D29 100%) padding-box,
+    linear-gradient(145deg,
+      var(--coreo-s1-shell-hot) 0%,
+      #B9C8D9 26%,
+      #62758B 58%,
+      var(--coreo-s1-shell) 82%,
+      #899CAF 100%) border-box;
+  box-shadow:
+    0 9px 20px rgba(0, 4, 10, 0.3),
+    0 2px 7px rgba(0, 140, 255, 0.12),
+    inset 0 0 0 1px #010308,
+    inset 0 0 0 3px rgba(0, 140, 255, 0.95),
+    inset 0 0 0 4px rgba(66, 200, 255, 0.72),
+    inset 0 0 0 5px rgba(221, 247, 255, 0.52),
+    inset 0 0 12px rgba(0, 140, 255, 0.13);
+}
+
+.stage-01 .cell.wall::before {
+  inset: 5px;
+  border-radius: 3px;
 }
 
 /* v0.6.9：這個偽元素原本也是閒置佔位（opacity 永遠 0，之前沒有任何觸發點），
@@ -415,6 +455,15 @@ body {
     transparent 78%);
   animation: supernova-burst-anim 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+.stage-01 .supernova-burst-fx {
+  background: radial-gradient(circle,
+    rgba(255, 255, 255, 0.82) 0%,
+    rgba(221, 247, 255, 0.58) 20%,
+    rgba(0, 140, 255, 0.28) 42%,
+    rgba(0, 207, 255, 0.1) 60%,
+    transparent 76%);
+}
 @keyframes supernova-burst-anim {
   0% { opacity: 0; transform: translate(-50%, -50%) translateZ(9px) scale(0.35); }
   15% { opacity: 1; transform: translate(-50%, -50%) translateZ(9px) scale(1); }
@@ -436,6 +485,22 @@ body {
   transform-origin: top;
   transform: rotateX(-90deg);
   border-radius: 0 0 14px 14px;
+}
+
+/* Stage01 的高度由清楚的冷黑藍側壁表現；柔影只負責接地，不再用純黑尖楔冒充厚度。 */
+.stage-01 .cell.wall::after {
+  bottom: -18px;
+  left: 2px;
+  width: calc(100% - 4px);
+  height: 18px;
+  background:
+    linear-gradient(180deg, rgba(221, 247, 255, 0.2) 0 1px, transparent 2px),
+    linear-gradient(180deg, #202D3D 0%, var(--coreo-s1-wall-side) 48%, #101722 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(66, 200, 255, 0.22),
+    0 7px 13px var(--coreo-s1-wall-shadow),
+    0 2px 8px rgba(0, 140, 255, 0.08);
+  border-radius: 0 0 5px 5px;
 }
 
 .stage-02 .cell.wall::after {
@@ -656,6 +721,22 @@ body {
   transform: translate(-50%, -50%) translateZ(18px) rotate(45deg);
   box-shadow: 0 0 15px rgba(124, 92, 255, 0.82), 0 0 30px rgba(100, 210, 255, 0.2);
   animation: float-core-upg 2s ease-in-out infinite;
+}
+
+/* Stage01 大光源：保留原菱形，改為高密度皇家電藍／冰青／冷白核心，避免藍紫軟糖感。 */
+.stage-01 .light-core-item.upgraded,
+.stage-01 .light-core-item.boost {
+  background:
+    radial-gradient(circle at 34% 28%, #FFFFFF 0 9%, #DDF7FF 10% 20%, transparent 21%),
+    linear-gradient(145deg, #00CFFF 0%, #0878FF 42%, #004FD6 76%, #001D58 100%);
+  border: 1px solid rgba(221, 247, 255, 0.92);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 2px rgba(0, 17, 43, 0.92),
+    0 0 0 3px rgba(66, 200, 255, 0.72),
+    0 0 12px rgba(0, 140, 255, 0.75),
+    0 0 22px rgba(0, 207, 255, 0.24),
+    inset 0 0 7px rgba(221, 247, 255, 0.48);
 }
 
 /* v0.8.3：Sean/GPT 最高優先覆蓋裁決——Stage02 的 Core Pulse 道具本體也不能是白金黃，
