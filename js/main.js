@@ -133,7 +133,9 @@ window.addEventListener('DOMContentLoaded', () => {
       briefing: {
         title: 'STAGE 01 | CORE AWAKENING',
         subtitle: '第一關｜核心甦醒',
-        mission: '收集核光碎片，形成 Core Pulse，避開 EMBER，抵達出口。',
+        shardRule: '收集 5 個，可形成 1 個 Core Pulse。',
+        pulseRule: '出口需要 1 個；可由碎片形成，或直接取得。',
+        mission: '收集 5 個碎片，或取得菱形 Core Pulse；避開 EMBER，啟動上方出口。',
         btnText: 'ENTER STAGE 01'
       }
     },
@@ -169,7 +171,9 @@ window.addEventListener('DOMContentLoaded', () => {
       briefing: {
         title: 'STAGE 02 | EMBER VAULT',
         subtitle: '第二關｜核心封鎖',
-        mission: '引開 EMBER 進入核心凹槽，形成 2 個 Core Pulse 以啟動出口。',
+        shardRule: '收集 5 個，可形成 1 個 Core Pulse。',
+        pulseRule: '出口需要 2 個；另一個菱形 Core Pulse 藏在 Vault 核心凹槽。',
+        mission: '收集 5 個碎片形成一個 Core Pulse；引開 EMBER，潛入 Vault 取得另一個，再前往下方出口。',
         btnText: 'ENTER STAGE 02'
       }
     }
@@ -544,6 +548,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const briefingOverlay = document.getElementById('stage-briefing');
   const briefingTitleEl = document.getElementById('briefing-title');
   const briefingSubtitleEl = document.getElementById('briefing-subtitle');
+  const briefingShardRuleEl = document.getElementById('briefing-shard-rule');
+  const briefingPulseRuleEl = document.getElementById('briefing-pulse-rule');
   const briefingMissionEl = document.getElementById('briefing-mission');
   const briefingEnterBtn = document.getElementById('briefing-enter-btn');
 
@@ -551,6 +557,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const cfg = STAGE_CONFIG[stageId];
     if (briefingTitleEl) briefingTitleEl.textContent = cfg.briefing.title;
     if (briefingSubtitleEl) briefingSubtitleEl.textContent = cfg.briefing.subtitle;
+    if (briefingShardRuleEl) briefingShardRuleEl.textContent = cfg.briefing.shardRule;
+    if (briefingPulseRuleEl) briefingPulseRuleEl.textContent = cfg.briefing.pulseRule;
     if (briefingMissionEl) briefingMissionEl.textContent = cfg.briefing.mission;
     if (briefingEnterBtn) briefingEnterBtn.textContent = cfg.briefing.btnText;
 

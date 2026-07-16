@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>COREO Dark Variant - v0.9.4</title>
+  <title>COREO Dark Variant - v0.9.5</title>
   <meta name="theme-color" content="#0A0A0C">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,7 +29,7 @@
   </div>
 
   <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
-  <div id="version-tag">COREO DARK v0.9.4</div>
+  <div id="version-tag">COREO DARK v0.9.5</div>
 
   <!-- v0.6：最簡化選關畫面，只在已解鎖 Stage 02 且非救回狀態時顯示 -->
   <div id="stage-select-overlay">
@@ -70,11 +70,11 @@
         <div class="briefing-info-container">
           <div class="info-row">
             <span class="info-icon shard-icon"></span>
-            <p><strong>Core Shard｜核光碎片</strong>：收集 5 個，可形成 1 個 Core Pulse。</p>
+            <p><strong>Core Shard｜核光碎片</strong>：<span id="briefing-shard-rule">收集 5 個，可形成 1 個 Core Pulse。</span></p>
           </div>
           <div class="info-row">
             <span class="info-icon pulse-icon"></span>
-            <p><strong>Core Pulse｜脈衝核心</strong>：啟動出口的必要能量。</p>
+            <p><strong>Core Pulse｜脈衝核心</strong>：<span id="briefing-pulse-rule">出口需要 1 個 Core Pulse。</span></p>
           </div>
           <div class="info-mission">
             <p id="briefing-mission">收集核光碎片，形成 Core Pulse，避開 EMBER，抵達出口。</p>

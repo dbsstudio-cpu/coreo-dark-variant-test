@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v094-stage02-entry-columns-20260716';
+const COREO_CACHE = 'coreo-dark-variant-v095-briefing-system-20260716';
 const COREO_ASSETS = [
   './',
   './index.html',
