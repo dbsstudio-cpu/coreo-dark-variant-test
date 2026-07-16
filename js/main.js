@@ -17,9 +17,10 @@ window.addEventListener('DOMContentLoaded', () => {
   let lastTrailTime = 0;
   const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
   const MAX_FRAME_DT = 34; // Core Pulse 觸發後若掉幀，限制單幀補位，避免主角/反派瞬間跳格
-  const PULSE_EFFECT_DURATION = 650; // v0.6.7：配合 Supernova Burst 的短促節奏，不再是舊版拖長的矩陣光效時長
-  const RUN_STATE_KEY = 'coreo-dark-run-state-v1';
+  const PULSE_EFFECT_DURATION = 2400; // v0.9.0：兩關共用五段式線性充電序列
+  const RUN_STATE_KEY = 'coreo-dark-run-state-v2'; // v0.9.0 地圖尺寸改變，舊快照不可沿用
   let pulseEffectUntil = 0;
+  let pulseEffectTimer = null;
 
   // v0.5.14: Core Shard / Core Pulse 資源規則（GPT 裁決）
   const SHARDS_PER_PULSE = 5;
@@ -37,24 +38,67 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => el.classList.remove(glowClass), 200);
   }
 
-  // v0.6.7：GPT 裁決 Core Pulse 大光源改為 Supernova Burst（局部鈦白/極光青爆發），拾取點生成一個獨立元素。
-  // v0.6.9：Sean 指定疊加找回 v0.5.19 的矩陣線條點亮感（白金色，非舊金黃），見 FX.pulseMatrixLines。
-  // v0.8.0：GPT 正式裁決 Stage02 大光源回饋改為「線性通電光效」，取消 Supernova Burst，只影響 Stage02；
-  // Stage01 維持原本的 Supernova Burst + 白金矩陣線條不變。
-  function energizeMatrix() {
-    if (currentStage === 2) {
-      // Stage 02：專屬線性通電光效（CSS class 驅動，見 css/tokens.css 的 #world.circuit-pulse）
-      const worldEl = document.getElementById('world');
-      if (worldEl) {
-        worldEl.classList.remove('circuit-pulse');
-        void worldEl.offsetWidth; // 強制重繪重置動畫
-        worldEl.classList.add('circuit-pulse');
-        setTimeout(() => worldEl.classList.remove('circuit-pulse'), 800);
+  function buildDistanceMap(startX, startY) {
+    const distances = mazeData.map((row) => row.map(() => -1));
+    if (!mazeData[startY] || mazeData[startY][startX] === 0) return distances;
+    const queue = [{ x: startX, y: startY }];
+    distances[startY][startX] = 0;
+    for (let head = 0; head < queue.length; head++) {
+      const current = queue[head];
+      for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        const nx = current.x + dx;
+        const ny = current.y + dy;
+        if (!mazeData[ny] || mazeData[ny][nx] === 0 || distances[ny][nx] !== -1) continue;
+        distances[ny][nx] = distances[current.y][current.x] + 1;
+        queue.push({ x: nx, y: ny });
       }
-    } else {
-      FX.spawnSupernovaBurst(playerPos.x, playerPos.y);
-      FX.pulseMatrixLines();
     }
+    return distances;
+  }
+
+  // v0.9.0：兩關共用真正沿可走拓撲傳導的五段式線性充電序列。
+  // 路徑仍使用既有貪婪合併 DOM；只以 data-grid 座標分組並切換 opacity，避免逐格 box-shadow。
+  function energizeMatrix() {
+    const worldEl = document.getElementById('world');
+    if (!worldEl) return;
+
+    const px = Math.floor(playerPos.x / CELL_SIZE);
+    const py = Math.floor(playerPos.y / CELL_SIZE);
+    const fromPlayer = buildDistanceMap(px, py);
+    let exit = null;
+    for (let y = 0; y < mazeData.length; y++) {
+      const x = mazeData[y].indexOf(3);
+      if (x !== -1) { exit = { x, y }; break; }
+    }
+    const fromExit = exit ? buildDistanceMap(exit.x, exit.y) : null;
+    const playerToExit = exit ? fromExit[py][px] : -1;
+    const pathBlocks = Array.from(worldEl.querySelectorAll('.cell.path'));
+    const eligible = [];
+
+    for (const block of pathBlocks) {
+      block.classList.remove('pulse-wave-1', 'pulse-wave-2', 'pulse-wave-3', 'pulse-wave-4', 'pulse-wave-5');
+      const x = Number(block.dataset.gridX);
+      const y = Number(block.dataset.gridY);
+      const distance = fromPlayer[y]?.[x] ?? -1;
+      if (distance < 0) continue;
+      if (currentStage === 1 && playerToExit >= 0 && (fromExit[y]?.[x] ?? Infinity) > playerToExit + 1) continue;
+      eligible.push({ block, distance });
+    }
+
+    const maxDistance = Math.max(1, ...eligible.map((item) => item.distance));
+    for (const { block, distance } of eligible) {
+      const wave = Math.min(5, Math.floor((distance / (maxDistance + 1)) * 5) + 1);
+      block.classList.add(`pulse-wave-${wave}`);
+    }
+
+    worldEl.classList.remove('circuit-pulse');
+    void worldEl.offsetWidth;
+    worldEl.classList.add('circuit-pulse');
+    if (pulseEffectTimer) clearTimeout(pulseEffectTimer);
+    pulseEffectTimer = setTimeout(() => {
+      worldEl.classList.remove('circuit-pulse');
+      pulseEffectTimer = null;
+    }, PULSE_EFFECT_DURATION);
     pulseEffectUntil = performance.now() + PULSE_EFFECT_DURATION;
   }
 
@@ -95,15 +139,20 @@ window.addEventListener('DOMContentLoaded', () => {
     },
     2: {
       getMap: () => MazeLogic.getStage02Map(),
-      // v0.8.1：緊逼關鍵節點的死亡巡邏，涵蓋 Hub、Vault 入口，並新增 P5 深入回程之字陷阱區，
-      // 讓日常巡邏本身就有機會出現在回程路線上，不再只靠 armStage02ReturnPressure() 腳本撐場面
+      // v0.9.0：巡邏點全部落在可走格，依序咬住 Hub、Vault 主入口、核心、Lure 與回程壓力區。
       enemyRoute: [
-        { x: 3.5 * CELL_SIZE, y: 11.5 * CELL_SIZE }, // P1: Hub 咽喉
-        { x: 5.5 * CELL_SIZE, y: 14.5 * CELL_SIZE }, // P2: Lure 上段
-        { x: 5.5 * CELL_SIZE, y: 22.5 * CELL_SIZE }, // P3: Lure 下段
-        { x: 3.5 * CELL_SIZE, y: 24.5 * CELL_SIZE }, // P4: 下方交會區
-        { x: 3.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }, // P5: 回程之字陷阱區深度巡衛
-        { x: 3.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }  // P6: Vault 頂部主入口
+        { x: 4.5 * CELL_SIZE, y: 11.5 * CELL_SIZE }, // Hub 咽喉
+        { x: 4.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }, // Vault 主入口
+        { x: 4.5 * CELL_SIZE, y: 19.5 * CELL_SIZE }, // Vault 內側
+        { x: 5.5 * CELL_SIZE, y: 22.5 * CELL_SIZE }, // 狹窄逃生口
+        { x: 7.5 * CELL_SIZE, y: 21.5 * CELL_SIZE }, // Lure 下段
+        { x: 4.5 * CELL_SIZE, y: 24.5 * CELL_SIZE }, // 下交會核心
+        { x: 4.5 * CELL_SIZE, y: 26.5 * CELL_SIZE }, // 回程分流
+        { x: 3.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }, // 回程 Z 字壓力點
+        { x: 1.5 * CELL_SIZE, y: 24.5 * CELL_SIZE }, // Bypass 下口
+        { x: 1.5 * CELL_SIZE, y: 21.5 * CELL_SIZE }, // Bypass 中段
+        { x: 1.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }, // Bypass 上口
+        { x: 4.5 * CELL_SIZE, y: 17.5 * CELL_SIZE }  // 返回 Vault 主入口
       ],
       enemyTuning: {
         baseAlertRadius: 160,

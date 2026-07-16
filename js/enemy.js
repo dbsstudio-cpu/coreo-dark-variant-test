@@ -191,7 +191,10 @@ const EnemyLogic = {
       this.patrolIndex = (this.patrolIndex + 1) % this.patrolRoute.length;
       this.currentTarget = this.patrolRoute[this.patrolIndex];
     }
-    this.moveToward(this.currentTarget, this.patrolSpeed, dt, mazeData, cellSize, true);
+    const targetCell = this.toCell(this.currentTarget, cellSize);
+    const path = this.findPathToCell(targetCell, mazeData, cellSize, this.pathSearchLimit);
+    const target = this.getPathStepTarget(path, this.currentTarget, cellSize);
+    this.moveToward(target, this.patrolSpeed, dt, mazeData, cellSize, true);
   },
 
   // 搜索：走向玩家最後已知位置附近，不是精準導航，到了就地徘徊直到 searchTimer 結束

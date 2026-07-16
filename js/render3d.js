@@ -1,6 +1,6 @@
 ﻿// js/render3d.js
 const Render3D = {
-  CELL_SIZE: 58,
+  CELL_SIZE: 50,
 
   // v0.6：stageId 為選填參數，只用來決定牆體要不要疊加 Stage02 專屬的分區 class（core-vault/guard/lure），
   // 不影響既有的貪婪合併演算法本身
@@ -83,7 +83,7 @@ const Render3D = {
           const isReactive = reactiveAssigned < maxReactiveBlocks && Math.max(blockW, blockH) >= 3;
           if (isReactive) reactiveAssigned++;
           let wallClasses = isReactive ? 'wall reactive-block' : 'wall';
-          const zoneClass = this.getWallZoneClass(x, y, stageId);
+          const zoneClass = this.getWallZoneClass(x, y, stageId, blockW, blockH);
           if (zoneClass) wallClasses += ` ${zoneClass}`;
           this.createBlock(world, x, y, blockW, blockH, wallClasses);
         }
@@ -116,16 +116,15 @@ const Render3D = {
     return startPos;
   },
 
-  // v0.6：Stage02 牆體分區判定，用合併區塊的左上角格子座標判斷所屬分區（Edge Lighting/GEM 分區色彩用）。
-  // 修正紀錄：原本拿凹槽「地板」的欄位範圍去判斷，但真正圍住凹槽的牆體座標跟地板不同，
-  // 導致 zone-vault/zone-lure 幾乎沒有機會被判定到；已對照 getStage02Map 實際牆體座標重新校正，
-  // 三個分區範圍互斥不重疊，避免順序判斷互相蓋掉
-  // v0.8.0：對照 getStage02Map 新地圖重新校正，新增 zone-return（回程路線）供線性通電光效使用
-  getWallZoneClass: function(x, y, stageId) {
+  // v0.9.0：以合併牆體矩形和設計分區的交集判斷，不能只看區塊左上角，
+  // 否則貪婪合併後可能完全漏掉 Vault/Lure/Return 的導光 class。
+  getWallZoneClass: function(x, y, stageId, w = 1, h = 1) {
     if (stageId !== 2) return null;
-    if (y >= 18 && y <= 22 && x >= 2 && x <= 4) return 'zone-vault';
-    if (y >= 24 && y <= 38) return 'zone-return';
-    if (y >= 11 && y <= 25 && x >= 4) return 'zone-lure';
+    const overlaps = (minX, minY, maxX, maxY) =>
+      x <= maxX && x + w - 1 >= minX && y <= maxY && y + h - 1 >= minY;
+    if (overlaps(2, 18, 6, 22)) return 'zone-vault';
+    if (overlaps(0, 25, 8, 38)) return 'zone-return';
+    if (overlaps(6, 13, 8, 24)) return 'zone-lure';
     return null;
   },
 
@@ -136,6 +135,10 @@ const Render3D = {
     block.style.top = `${y * this.CELL_SIZE}px`;
     block.style.width = `${w * this.CELL_SIZE}px`;
     block.style.height = `${h * this.CELL_SIZE}px`;
+    block.dataset.gridX = x;
+    block.dataset.gridY = y;
+    block.dataset.gridW = w;
+    block.dataset.gridH = h;
     world.appendChild(block);
   },
 

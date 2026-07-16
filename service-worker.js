@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v084-circuit-flash-count-20260715';
+const COREO_CACHE = 'coreo-dark-variant-v090-maze-charging-20260716';
 const COREO_ASSETS = [
   './',
   './index.html',

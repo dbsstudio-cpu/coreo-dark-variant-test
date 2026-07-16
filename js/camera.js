@@ -5,6 +5,8 @@ const CameraLogic = {
   targetY: 0,
   worldHeight: 0,
   viewportHeight: 0,
+  viewportWidth: 0,
+  worldScale: 1,
   exitDirection: 'up',
 
   init: function() {
@@ -18,6 +20,9 @@ const CameraLogic = {
   refreshMetrics: function() {
     this.worldHeight = this.worldDOM ? this.worldDOM.offsetHeight || 0 : 0;
     this.viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    this.viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const worldWidth = this.worldDOM ? this.worldDOM.offsetWidth || 0 : 0;
+    this.worldScale = worldWidth > 0 ? Math.min(1, Math.max(0.78, (this.viewportWidth - 16) / worldWidth)) : 1;
   },
 
   // v0.7.1：關卡出口方向決定「前方視野」該留在螢幕的哪一側，
@@ -35,14 +40,15 @@ const CameraLogic = {
 
     const worldHeight = this.worldHeight || this.worldDOM.offsetHeight || 0;
     const viewportHeight = this.viewportHeight || window.innerHeight || document.documentElement.clientHeight || 0;
+    const scale = this.worldScale || 1;
     const anchorY = viewportHeight * (this.exitDirection === 'down' ? 0.44 : 0.56);
-    const unshiftedPlayerY = (viewportHeight * 0.5) - (worldHeight * 0.5) + playerWorldY;
+    const unshiftedPlayerY = (viewportHeight * 0.5) - (worldHeight * scale * 0.5) + (playerWorldY * scale);
 
     this.targetY = anchorY - unshiftedPlayerY;
     this.currentY += (this.targetY - this.currentY) * 0.16;
 
     const stableY = Math.round(this.currentY);
-    this.worldDOM.style.transform = `rotateX(40deg) translate3d(0, ${stableY}px, -165px)`;
+    this.worldDOM.style.transform = `rotateX(40deg) translate3d(0, ${stableY}px, -165px) scale(${scale})`;
   }
 };
 
