@@ -90,6 +90,15 @@ const Render3D = {
       }
     }
 
+    // v0.9.4：Stage02 地圖頂端延伸門柱。
+    // 只補足入口建築的視覺高度，不加入可碰撞格，也不改 9x39 拓撲與玩家座標。
+    if (stageId === 2) {
+      const entryExtension = document.createElement('div');
+      entryExtension.className = 'stage-entry-extension';
+      entryExtension.setAttribute('aria-hidden', 'true');
+      world.appendChild(entryExtension);
+    }
+
     // 3. 獨立功能實體疊加：起點、出口、分級能量
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {

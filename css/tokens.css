@@ -446,6 +446,56 @@ body.stage-02-active #fog-overlay {
   border-radius: 3px;
 }
 
+/* v0.9.4 Stage02 正式入口：讓左右門柱穿出地圖上緣，進入原本的黑色留白。
+   #world 必須只解除 Stage02 的 paint containment，否則負座標門柱會在地圖邊界被裁切。 */
+#world.stage-02 {
+  contain: layout style;
+  overflow: visible;
+}
+
+.stage-entry-extension {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  z-index: 2;
+  pointer-events: none;
+  transform-style: preserve-3d;
+}
+
+.stage-entry-extension::before,
+.stage-entry-extension::after {
+  content: '';
+  position: absolute;
+  top: -306px;
+  width: calc((100% - 50px) / 2);
+  height: 312px;
+  border: 2px solid transparent;
+  border-radius: 8px 8px 2px 2px;
+  background:
+    linear-gradient(145deg, #101A2A 0%, var(--coreo-s2-wall-top) 43%, #070C18 76%, #14223A 100%) padding-box,
+    linear-gradient(145deg,
+      var(--coreo-s2-shell-hot) 0%,
+      #AABCD2 27%,
+      #536B88 58%,
+      var(--coreo-s2-shell) 82%,
+      #748BA5 100%) border-box;
+  box-shadow:
+    0 9px 20px rgba(0, 4, 12, 0.28),
+    0 2px 7px rgba(47, 99, 255, 0.14),
+    inset 0 0 0 1px #01030A,
+    inset 0 0 0 3px rgba(47, 99, 255, 0.96),
+    inset 0 0 0 4px rgba(115, 183, 255, 0.72),
+    inset 0 0 0 5px rgba(229, 243, 255, 0.48),
+    inset 0 0 12px rgba(47, 99, 255, 0.14);
+  transform: translateZ(18px) scale(0.92);
+  transform-origin: center bottom;
+}
+
+.stage-entry-extension::before { left: 0; }
+.stage-entry-extension::after { right: 0; }
+
 /* 核心凹槽區（代號7）牆體：白金邊緣微光，只做內側反射不整面發光。
    v0.6：座標判定修正後這組樣式終於會真的套用到牆上，順勢把強度調到肉眼可辨（原本太弱形同沒有） */
 /* v0.8.3：Sean/GPT 最高優先覆蓋裁決——Stage02 禁止黃色，凹槽內側反射不再是例外，
