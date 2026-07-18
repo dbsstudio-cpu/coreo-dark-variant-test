@@ -7,6 +7,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const CELL_SIZE = Render3D.CELL_SIZE;
   const PLAYER_RADIUS = 21;
+  const RAIL_NODE_EPSILON = 0.05;
+  const RAIL_BACK_WINDOW = CELL_SIZE * 0.42;
   let baseSpeed = 4.2;
   let currentSpeed = baseSpeed;
   let isGameOver = false;
@@ -18,7 +20,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
   const MAX_FRAME_DT = 34; // Core Pulse 觸發後若掉幀，限制單幀補位，避免主角/反派瞬間跳格
   const PULSE_EFFECT_DURATION = 2400; // v0.9.0：兩關共用五段式線性充電序列
-  const RUN_STATE_KEY = 'coreo-dark-run-state-v2'; // v0.9.0 地圖尺寸改變，舊快照不可沿用
+  const RUN_STATE_KEY = 'coreo-dark-run-state-v3'; // v0.9.7 軌道操控上線，舊自由移動座標快照不可沿用
   let pulseEffectUntil = 0;
   let pulseEffectTimer = null;
 
@@ -237,6 +239,10 @@ window.addEventListener('DOMContentLoaded', () => {
   let pristineMazeData = JSON.parse(JSON.stringify(STAGE_CONFIG[currentStage].getMap()));
   let mazeData = restoredRun?.mazeData || JSON.parse(JSON.stringify(pristineMazeData));
   let playerPos = Render3D.buildWorld(mazeData, currentStage);
+  let railDirection = null;
+  let queuedDirection = null;
+  let lastRailDirection = null;
+  let lastControlCommandId = ControlLogic.commandId;
   CameraLogic.refreshMetrics();
   CameraLogic.setDirection(STAGE_CONFIG[currentStage].exitDirection);
   if (restoredRun?.playerPos) playerPos = restoredRun.playerPos;
@@ -362,6 +368,151 @@ window.addEventListener('DOMContentLoaded', () => {
     playerDiv.style.top = `${playerPos.y}px`;
   }
 
+  // v0.9.7：正式版改採中心線軌道移動。輸入只決定方向，碰撞與轉角不再要求玩家
+  // 在 4px 容錯內手動對準；提前轉向保留到第一個合法路口，同軸反向立即生效。
+  function railCellOf(value) { return Math.floor(value / CELL_SIZE); }
+  function railCenterOf(cell) { return cell * CELL_SIZE + CELL_SIZE / 2; }
+  function currentRailCell() { return { x: railCellOf(playerPos.x), y: railCellOf(playerPos.y) }; }
+  function isRailCentered(value) { return Math.abs(value - railCenterOf(railCellOf(value))) <= RAIL_NODE_EPSILON; }
+  function isAtRailNode() { return isRailCentered(playerPos.x) && isRailCentered(playerPos.y); }
+  function isSameDirection(a, b) { return !!(a && b && a.x === b.x && a.y === b.y); }
+  function isOppositeDirection(a, b) { return !!(a && b && a.x === -b.x && a.y === -b.y); }
+  function isPerpendicularDirection(a, b) { return !!(a && b && (a.x !== 0) !== (b.x !== 0)); }
+  function isSameAxis(a, b) { return !!(a && b && (a.x !== 0) === (b.x !== 0)); }
+  function isOpenFrom(cell, direction) {
+    return !!(direction && !isWall(cell.x + direction.x, cell.y + direction.y));
+  }
+
+  function resetRailControl() {
+    railDirection = null;
+    queuedDirection = null;
+    lastRailDirection = null;
+    lastControlCommandId = ControlLogic.commandId;
+  }
+
+  function applyControlDirection(direction) {
+    if (!direction) return;
+
+    if (!railDirection) {
+      if (isAtRailNode()) {
+        if (isOpenFrom(currentRailCell(), direction)) {
+          railDirection = { ...direction };
+          lastRailDirection = { ...direction };
+          queuedDirection = null;
+        } else {
+          queuedDirection = { ...direction };
+        }
+        return;
+      }
+
+      // 放開後可能停在兩個節點之間；只能沿原軌道軸重新起步，避免橫切牆體。
+      if (lastRailDirection && isSameAxis(direction, lastRailDirection)) {
+        railDirection = { ...direction };
+        lastRailDirection = { ...direction };
+        queuedDirection = null;
+      } else {
+        queuedDirection = { ...direction };
+      }
+      return;
+    }
+
+    if (isSameDirection(direction, railDirection)) {
+      queuedDirection = null;
+      return;
+    }
+    if (isOppositeDirection(direction, railDirection)) {
+      railDirection = { ...direction };
+      lastRailDirection = { ...direction };
+      queuedDirection = null;
+      return;
+    }
+
+    if (isPerpendicularDirection(direction, railDirection)) {
+      const oldDirection = { ...railDirection };
+      const axis = oldDirection.x !== 0 ? 'x' : 'y';
+      const sign = axis === 'x' ? oldDirection.x : oldDirection.y;
+      const center = railCenterOf(railCellOf(playerPos[axis]));
+      const passed = (playerPos[axis] - center) * sign;
+      const canTurnHere = isOpenFrom(currentRailCell(), direction);
+
+      if (isAtRailNode() && canTurnHere) {
+        railDirection = { ...direction };
+        lastRailDirection = { ...direction };
+        queuedDirection = null;
+      } else if (passed > RAIL_NODE_EPSILON && passed <= RAIL_BACK_WINDOW && canTurnHere) {
+        playerPos[axis] = center;
+        railDirection = { ...direction };
+        lastRailDirection = { ...direction };
+        queuedDirection = null;
+      } else {
+        queuedDirection = { ...direction };
+      }
+    }
+  }
+
+  function consumeControlCommands() {
+    const commands = ControlLogic.getCommandsAfter(lastControlCommandId);
+    for (const command of commands) {
+      lastControlCommandId = command.id;
+      if (command.type === 'stop') {
+        railDirection = null;
+        queuedDirection = null;
+      } else {
+        applyControlDirection(command.direction);
+      }
+    }
+  }
+
+  function movePlayerAlongRails(distance) {
+    let remaining = distance;
+    let moved = false;
+    let hitWall = false;
+    let guard = 0;
+
+    while (remaining > 0.01 && railDirection && guard++ < 8) {
+      const axis = railDirection.x !== 0 ? 'x' : 'y';
+      const sign = axis === 'x' ? railDirection.x : railDirection.y;
+      const center = railCenterOf(railCellOf(playerPos[axis]));
+      const delta = center - playerPos[axis];
+
+      if (Math.abs(delta) <= RAIL_NODE_EPSILON) {
+        playerPos[axis] = center;
+        const cell = currentRailCell();
+        if (queuedDirection && isOpenFrom(cell, queuedDirection)) {
+          railDirection = { ...queuedDirection };
+          lastRailDirection = { ...railDirection };
+          queuedDirection = null;
+          continue;
+        }
+        if (!isOpenFrom(cell, railDirection)) {
+          railDirection = null;
+          hitWall = true;
+          break;
+        }
+        const step = Math.min(remaining, CELL_SIZE);
+        playerPos[axis] += sign * step;
+        remaining -= step;
+        moved = moved || step > 0;
+        continue;
+      }
+
+      if (delta * sign > 0) {
+        const step = Math.min(remaining, Math.abs(delta));
+        playerPos[axis] += sign * step;
+        remaining -= step;
+        moved = moved || step > 0;
+        continue;
+      }
+
+      const nextCenter = center + sign * CELL_SIZE;
+      const step = Math.min(remaining, Math.abs(nextCenter - playerPos[axis]));
+      playerPos[axis] += sign * step;
+      remaining -= step;
+      moved = moved || step > 0;
+    }
+    return { moved, hitWall };
+  }
+
   // v0.6：出口漸進視覺——0 個 Pulse 維持既有的白金光環基礎樣式，
   // 拿到部分但未達門檻時疊加 partial-charged 做出「還沒完全啟動」的視覺差異
   function updateExitVisual() {
@@ -461,6 +612,8 @@ window.addEventListener('DOMContentLoaded', () => {
     clearRunSnapshot();
     mazeData = JSON.parse(JSON.stringify(pristineMazeData));
     playerPos = Render3D.buildWorld(mazeData, currentStage);
+    ControlLogic.stop('level-reset');
+    resetRailControl();
     CameraLogic.refreshMetrics();
 
     world.appendChild(playerDiv);
@@ -498,22 +651,11 @@ window.addEventListener('DOMContentLoaded', () => {
     lastTime = time;
     const timeScale = dt / 16.66;
 
-    const vec = ControlLogic.getVector();
-    if (vec.x !== 0 || vec.y !== 0) {
-      const nextX = playerPos.x + vec.x * currentSpeed * timeScale;
-      const nextY = playerPos.y + vec.y * currentSpeed * timeScale;
-      let movedX = false;
-      let movedY = false;
-      let hitWall = false;
-
-      if (!checkCollision(nextX, playerPos.y)) { playerPos.x = nextX; movedX = true; }
-      else { hitWall = true; }
-
-      if (!checkCollision(playerPos.x, nextY)) { playerPos.y = nextY; movedY = true; }
-      else { hitWall = true; }
-
-      if (hitWall) FX.wallBump(playerSprite);
-      if (movedX || movedY) {
+    consumeControlCommands();
+    if (railDirection) {
+      const movement = movePlayerAlongRails(currentSpeed * timeScale);
+      if (movement.hitWall) FX.wallBump(playerSprite);
+      if (movement.moved) {
         updatePlayerDOM();
         checkPickups();
 
@@ -573,6 +715,8 @@ window.addEventListener('DOMContentLoaded', () => {
     pristineMazeData = JSON.parse(JSON.stringify(STAGE_CONFIG[stageId].getMap()));
     mazeData = JSON.parse(JSON.stringify(pristineMazeData));
     playerPos = Render3D.buildWorld(mazeData, stageId);
+    ControlLogic.stop('stage-change');
+    resetRailControl();
     CameraLogic.refreshMetrics();
     CameraLogic.setDirection(STAGE_CONFIG[stageId].exitDirection);
     world.className = `stage-0${stageId}`;
