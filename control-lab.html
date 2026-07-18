@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>COREO Control Lab R2</title>
+  <meta name="theme-color" content="#0A0A0C">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="COREO Dark">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/tokens.css">
+  <style>
+    /* 獨立測試版：操作區存在但完全不顯示操控盤；正式 v0.9.5 不受影響。 */
+    body.control-lab-mode #joystick-zone {
+      height: max(30%, 220px);
+      left: max(env(safe-area-inset-left), var(--coreo-gesture-safe-inset));
+      right: max(env(safe-area-inset-right), var(--coreo-gesture-safe-inset));
+    }
+    body.control-lab-mode .joystick-base { display: none !important; }
+    body.control-lab-mode #player.actor { transition: none; }
+    body.control-lab-mode #version-tag { color: rgba(126, 220, 255, 0.74); }
+  </style>
+</head>
+<body class="control-lab-mode">
+
+  <!-- 極簡 HUD：Core Shard / Core Pulse 分開顯示 -->
+  <div id="hud">
+    <div class="hud-group">
+      <div class="hud-label">CORE SHARD</div>
+      <div class="hud-value" id="ui-shard-val">00</div>
+    </div>
+    <div class="hud-group">
+      <div class="hud-label">CORE PULSE</div>
+      <div class="hud-value" id="ui-pulse-val">0</div>
+    </div>
+  </div>
+
+  <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
+  <div id="version-tag">COREO CONTROL LAB R2</div>
+
+  <!-- v0.6：最簡化選關畫面，只在已解鎖 Stage 02 且非救回狀態時顯示 -->
+  <div id="stage-select-overlay">
+    <h2 style="color: var(--coreo-text-primary); letter-spacing: 2px; margin-bottom: 30px;">SELECT MISSION</h2>
+    <div id="btn-stage-1" class="stage-card">STAGE 01<br><small>CORE AWAKENING</small></div>
+    <div id="btn-stage-2" class="stage-card locked">STAGE 02<br><small>EMBER VAULT</small></div>
+  </div>
+
+  <!-- Stage Briefing (Cinematic Poster v1.1) -->
+  <div id="stage-briefing" class="show">
+    <!-- 深度空間背景與光效 -->
+    <div class="briefing-bg">
+      <div class="bg-glow-player"></div>
+      <div class="bg-glow-ember"></div>
+    </div>
+
+    <div class="briefing-content">
+      <!-- 頂部：極簡關卡代號 -->
+      <div class="briefing-header">
+        <h2 id="briefing-title">STAGE 01 | CORE AWAKENING</h2>
+        <p id="briefing-subtitle">第一關｜核心甦醒</p>
+      </div>
+
+      <!-- 中央：平行並排對峙 -->
+      <div class="briefing-cinematic">
+        <div class="cinematic-player">
+          <img src="assets/player.png" alt="COREO" />
+          <div class="cinematic-name player-name">LIGHT CORE</div>
+        </div>
+        <div class="cinematic-ember">
+          <img src="assets/enemy_ember.png" alt="EMBER" />
+          <div class="cinematic-name ember-name">EMBER</div>
+        </div>
+      </div>
+
+      <!-- 底部：無框極簡資源與任務 & 透明發光按鈕 -->
+      <div class="briefing-footer">
+        <div class="briefing-info-container">
+          <div class="info-row">
+            <span class="info-icon shard-icon"></span>
+            <p><strong>Core Shard｜核光碎片</strong>：<span id="briefing-shard-rule">收集 5 個，可形成 1 個 Core Pulse。</span></p>
+          </div>
+          <div class="info-row">
+            <span class="info-icon pulse-icon"></span>
+            <p><strong>Core Pulse｜脈衝核心</strong>：<span id="briefing-pulse-rule">出口需要 1 個 Core Pulse。</span></p>
+          </div>
+          <div class="info-mission">
+            <p id="briefing-mission">收集核光碎片，形成 Core Pulse，避開 EMBER，抵達出口。</p>
+          </div>
+        </div>
+
+        <button id="briefing-enter-btn">ENTER STAGE 01</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D 遊戲世界 -->
+  <div id="game-container">
+    <div id="fog-overlay"></div>
+    <div id="camera-rig">
+      <div id="world"></div>
+    </div>
+  </div>
+
+  <!-- 隱形相對短滑接收區：測試版不渲染操控盤 -->
+  <div id="joystick-zone">
+    <div class="joystick-base" id="joystick-base">
+      <div class="joystick-knob" id="joystick-knob"></div>
+    </div>
+  </div>
+
+  <!-- 過關收束動畫 (無 alert) -->
+  <div id="level-complete-overlay">
+    <div class="lc-title">STAGE SECURED</div>
+    <div class="lc-line"></div>
+    <div class="hud-label" style="margin-top:20px;">TAP TO RESTART</div>
+  </div>
+
+  <!-- CORE SIGNAL LOST：被反派碰到時的失敗疊層（不是死亡/HP，無 alert） -->
+  <div id="signal-lost-overlay">
+    <div class="lc-title" style="color: var(--coreo-danger);">CORE SIGNAL LOST</div>
+    <div class="lc-line" style="background: var(--coreo-danger); box-shadow: 0 0 12px var(--coreo-danger);"></div>
+    <div class="hud-label" style="margin-top:20px;">RECONNECTING...</div>
+  </div>
+
+  <script src="js/maze.js"></script>
+  <script src="js/control-relative.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/render3d.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/enemy.js"></script>
+  <script src="js/main-control-lab.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+          console.warn('COREO service worker registration failed:', error);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
