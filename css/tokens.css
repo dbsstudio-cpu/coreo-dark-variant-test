@@ -884,63 +884,111 @@ body.stage-02-active #fog-overlay {
 }
 
 /* =========================================
-   Floating Thumb Control (高級透明感)
+   v0.10.0 Digital Four-Direction Control
 ========================================= */
 #joystick-zone {
   position: fixed;
   bottom: 0;
-  left: max(env(safe-area-inset-left), var(--coreo-gesture-safe-inset));
-  right: max(env(safe-area-inset-right), var(--coreo-gesture-safe-inset));
-  width: auto;
-  height: max(52%, 360px);
+  left: 0;
+  right: 0;
+  height: 230px;
   z-index: 2000;
+  pointer-events: none;
   touch-action: none;
-  overscroll-behavior-x: none;
+  overscroll-behavior: none;
   -webkit-user-select: none;
   user-select: none;
 }
 
-.joystick-base {
+.digital-dpad {
   position: absolute;
-  width: 132px;
-  height: 132px;
-  border: 1px solid rgba(245, 245, 247, 0.16);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+  left: 50%;
+  bottom: max(calc(env(safe-area-inset-bottom) + 14px), 22px);
+  width: 188px;
+  height: 188px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 5px;
+  transform: translate(-50%, 10px) scale(0.96);
   opacity: 0;
-  transition: opacity 0.18s ease;
+  visibility: hidden;
+  pointer-events: auto;
+  touch-action: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+}
+
+body.game-started .digital-dpad {
+  opacity: 0.78;
+  visibility: visible;
+  transform: translate(-50%, 0) scale(1);
+  transition-delay: 0s;
+}
+
+.digital-dpad.engaged {
+  opacity: 0.94;
+}
+
+.dpad-key,
+.dpad-center {
+  min-width: 0;
+  min-height: 0;
+  border-radius: 18px;
+}
+
+.dpad-key {
+  border: 1px solid rgba(245, 245, 247, 0.2);
+  background: linear-gradient(145deg, rgba(245, 245, 247, 0.16), rgba(87, 109, 130, 0.08));
+  color: rgba(245, 245, 247, 0.82);
+  font: 500 25px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 18px rgba(0, 0, 0, 0.16);
+  transition: background 70ms linear, border-color 70ms linear, color 70ms linear, transform 70ms linear, box-shadow 70ms linear;
+}
+
+.dpad-key span {
+  transform: translateY(-1px);
   pointer-events: none;
-  box-shadow: 0 16px 36px rgba(60, 75, 92, 0.13);
 }
 
-.joystick-base.active { opacity: 1; }
-
-.joystick-knob {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  background-color: #F5F5F7;
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 5px 15px rgba(60, 75, 92, 0.18), inset 0 0 0 1px rgba(0, 191, 255, 0.25);
+.dpad-key.active {
+  color: #FFFFFF;
+  border-color: rgba(0, 229, 255, 0.9);
+  background: linear-gradient(145deg, rgba(0, 229, 255, 0.48), rgba(0, 125, 170, 0.28));
+  transform: scale(0.94);
+  box-shadow: 0 0 22px rgba(0, 229, 255, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
-.joystick-knob::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 9px;
-  height: 9px;
-  background-color: var(--coreo-glow-core);
+.dpad-up { grid-column: 2; grid-row: 1; }
+.dpad-left { grid-column: 1; grid-row: 2; }
+.dpad-right { grid-column: 3; grid-row: 2; }
+.dpad-down { grid-column: 2; grid-row: 3; }
+
+.dpad-center {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 8px;
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(0, 191, 255, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.18), rgba(20, 28, 36, 0.2) 62%, transparent 65%);
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.08);
+}
+
+@media (max-height: 700px) {
+  #joystick-zone { height: 200px; }
+  .digital-dpad {
+    width: 166px;
+    height: 166px;
+    bottom: max(calc(env(safe-area-inset-bottom) + 8px), 14px);
+  }
 }
 
 .actor-sprite.shake {
