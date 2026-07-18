@@ -8,7 +8,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const CELL_SIZE = Render3D.CELL_SIZE;
   const PLAYER_RADIUS = 21;
   const RAIL_NODE_EPSILON = 0.05;
-  const RAIL_BACK_WINDOW = CELL_SIZE * 0.42;
+  const RAIL_BACK_WINDOW = 8;
+  const TURN_BUFFER_MS = 550;
   let baseSpeed = 4.2;
   let currentSpeed = baseSpeed;
   let isGameOver = false;
@@ -20,7 +21,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
   const MAX_FRAME_DT = 34; // Core Pulse 觸發後若掉幀，限制單幀補位，避免主角/反派瞬間跳格
   const PULSE_EFFECT_DURATION = 2400; // v0.9.0：兩關共用五段式線性充電序列
-  const RUN_STATE_KEY = 'coreo-dark-run-state-v3'; // v0.9.7 軌道操控上線，舊自由移動座標快照不可沿用
+  const RUN_STATE_KEY = 'coreo-dark-run-state-v4'; // v0.9.8 分段滑動與短效轉向緩衝
   let pulseEffectUntil = 0;
   let pulseEffectTimer = null;
 
@@ -241,6 +242,7 @@ window.addEventListener('DOMContentLoaded', () => {
   let playerPos = Render3D.buildWorld(mazeData, currentStage);
   let railDirection = null;
   let queuedDirection = null;
+  let queuedDirectionAt = 0;
   let lastRailDirection = null;
   let lastControlCommandId = ControlLogic.commandId;
   CameraLogic.refreshMetrics();
@@ -383,14 +385,28 @@ window.addEventListener('DOMContentLoaded', () => {
     return !!(direction && !isWall(cell.x + direction.x, cell.y + direction.y));
   }
 
+  function clearQueuedDirection() {
+    queuedDirection = null;
+    queuedDirectionAt = 0;
+  }
+
+  function queueDirection(direction, timestamp) {
+    queuedDirection = direction ? { ...direction } : null;
+    queuedDirectionAt = queuedDirection ? timestamp : 0;
+  }
+
+  function expireQueuedDirection(now) {
+    if (queuedDirection && now - queuedDirectionAt > TURN_BUFFER_MS) clearQueuedDirection();
+  }
+
   function resetRailControl() {
     railDirection = null;
-    queuedDirection = null;
+    clearQueuedDirection();
     lastRailDirection = null;
     lastControlCommandId = ControlLogic.commandId;
   }
 
-  function applyControlDirection(direction) {
+  function applyControlDirection(direction, timestamp = performance.now()) {
     if (!direction) return;
 
     if (!railDirection) {
@@ -398,9 +414,9 @@ window.addEventListener('DOMContentLoaded', () => {
         if (isOpenFrom(currentRailCell(), direction)) {
           railDirection = { ...direction };
           lastRailDirection = { ...direction };
-          queuedDirection = null;
+          clearQueuedDirection();
         } else {
-          queuedDirection = { ...direction };
+          queueDirection(direction, timestamp);
         }
         return;
       }
@@ -409,21 +425,21 @@ window.addEventListener('DOMContentLoaded', () => {
       if (lastRailDirection && isSameAxis(direction, lastRailDirection)) {
         railDirection = { ...direction };
         lastRailDirection = { ...direction };
-        queuedDirection = null;
+        clearQueuedDirection();
       } else {
-        queuedDirection = { ...direction };
+        queueDirection(direction, timestamp);
       }
       return;
     }
 
     if (isSameDirection(direction, railDirection)) {
-      queuedDirection = null;
+      clearQueuedDirection();
       return;
     }
     if (isOppositeDirection(direction, railDirection)) {
       railDirection = { ...direction };
       lastRailDirection = { ...direction };
-      queuedDirection = null;
+      clearQueuedDirection();
       return;
     }
 
@@ -438,14 +454,14 @@ window.addEventListener('DOMContentLoaded', () => {
       if (isAtRailNode() && canTurnHere) {
         railDirection = { ...direction };
         lastRailDirection = { ...direction };
-        queuedDirection = null;
+        clearQueuedDirection();
       } else if (passed > RAIL_NODE_EPSILON && passed <= RAIL_BACK_WINDOW && canTurnHere) {
         playerPos[axis] = center;
         railDirection = { ...direction };
         lastRailDirection = { ...direction };
-        queuedDirection = null;
+        clearQueuedDirection();
       } else {
-        queuedDirection = { ...direction };
+        queueDirection(direction, timestamp);
       }
     }
   }
@@ -456,14 +472,15 @@ window.addEventListener('DOMContentLoaded', () => {
       lastControlCommandId = command.id;
       if (command.type === 'stop') {
         railDirection = null;
-        queuedDirection = null;
+        clearQueuedDirection();
       } else {
-        applyControlDirection(command.direction);
+        applyControlDirection(command.direction, command.timestamp);
       }
     }
   }
 
-  function movePlayerAlongRails(distance) {
+  function movePlayerAlongRails(distance, now = performance.now()) {
+    expireQueuedDirection(now);
     let remaining = distance;
     let moved = false;
     let hitWall = false;
@@ -481,7 +498,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (queuedDirection && isOpenFrom(cell, queuedDirection)) {
           railDirection = { ...queuedDirection };
           lastRailDirection = { ...railDirection };
-          queuedDirection = null;
+          clearQueuedDirection();
           continue;
         }
         if (!isOpenFrom(cell, railDirection)) {
@@ -653,7 +670,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     consumeControlCommands();
     if (railDirection) {
-      const movement = movePlayerAlongRails(currentSpeed * timeScale);
+      const movement = movePlayerAlongRails(currentSpeed * timeScale, time);
       if (movement.hitWall) FX.wallBump(playerSprite);
       if (movement.moved) {
         updatePlayerDOM();

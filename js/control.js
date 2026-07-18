@@ -1,7 +1,7 @@
-// js/control.js — COREO DARK v0.9.7
+// js/control.js — COREO DARK v0.9.8
 // 最近手指增量 -> 一次性四方向命令；不再以按下中心或跟隨錨點判斷反向。
 const ControlLogic = {
-  VERSION: 'v0.9.7',
+  VERSION: 'v0.9.8',
   dx: 0,
   dy: 0,
   isActive: false,
@@ -17,9 +17,10 @@ const ControlLogic = {
   baseElement: null,
   knobElement: null,
   edgeSafeInset: 48,
-  REVERSE_THRESHOLD: 5,
-  TURN_THRESHOLD: 7,
-  AXIS_BIAS: 1.06,
+  REVERSE_THRESHOLD: 11,
+  TURN_THRESHOLD: 13,
+  AXIS_BIAS: 1.3,
+  REVERSE_AXIS_BIAS: 1.15,
   KNOB_OFFSET: 22,
 
   refreshSafeInset: function() {
@@ -83,10 +84,10 @@ const ControlLogic = {
     const ay = Math.abs(dy);
     const current = this.acceptedDirection;
 
-    if (current && current.x !== 0 && dx * current.x < 0 && ax >= this.REVERSE_THRESHOLD && ax >= ay * 0.85) {
+    if (current && current.x !== 0 && dx * current.x < 0 && ax >= this.REVERSE_THRESHOLD && ax >= ay * this.REVERSE_AXIS_BIAS) {
       return { x: dx > 0 ? 1 : -1, y: 0 };
     }
-    if (current && current.y !== 0 && dy * current.y < 0 && ay >= this.REVERSE_THRESHOLD && ay >= ax * 0.85) {
+    if (current && current.y !== 0 && dy * current.y < 0 && ay >= this.REVERSE_THRESHOLD && ay >= ax * this.REVERSE_AXIS_BIAS) {
       return { x: 0, y: dy > 0 ? 1 : -1 };
     }
 
@@ -103,8 +104,10 @@ const ControlLogic = {
     if (current.y !== 0 && ax >= this.TURN_THRESHOLD && ax >= ay * this.AXIS_BIAS) {
       return { x: dx > 0 ? 1 : -1, y: 0 };
     }
-    if (current.x !== 0 && ax >= this.TURN_THRESHOLD && ax >= ay) return { x: dx > 0 ? 1 : -1, y: 0 };
-    if (current.y !== 0 && ay >= this.TURN_THRESHOLD && ay >= ax) return { x: 0, y: dy > 0 ? 1 : -1 };
+    // Continuing along the current axis only recentres the gesture segment. It never emits
+    // another command, so a held thumb stays quiet until a deliberate cross-axis stroke.
+    if (current.x !== 0 && ax >= this.TURN_THRESHOLD && ax >= ay * this.AXIS_BIAS) return { x: dx > 0 ? 1 : -1, y: 0 };
+    if (current.y !== 0 && ay >= this.TURN_THRESHOLD && ay >= ax * this.AXIS_BIAS) return { x: 0, y: dy > 0 ? 1 : -1 };
     return null;
   },
 
