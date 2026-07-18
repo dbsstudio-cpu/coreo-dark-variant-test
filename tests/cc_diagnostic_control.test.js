@@ -20,6 +20,7 @@ function loadControl() {
 
 test('反向只需最近 5px，不必跨回 30+9px 舊錨點', () => {
   const control = loadControl();
+  assert.equal(control.VERSION, 'v0.9.7-D1');
   control.debugStart(100, 100, 100);
 
   const up = control.debugMove(100, 93, 116);
