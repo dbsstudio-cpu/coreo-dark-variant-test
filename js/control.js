@@ -1,7 +1,7 @@
-// js/control.js — COREO DARK v0.9.8
+// js/control.js — COREO DARK v0.9.9
 // 最近手指增量 -> 一次性四方向命令；不再以按下中心或跟隨錨點判斷反向。
 const ControlLogic = {
-  VERSION: 'v0.9.8',
+  VERSION: 'v0.9.9',
   dx: 0,
   dy: 0,
   isActive: false,

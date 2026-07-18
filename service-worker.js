@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v098-control-20260719';
+const COREO_CACHE = 'coreo-dark-variant-v099-precision-turn-20260719';
 const COREO_ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const COREO_ASSETS = [
   './css/tokens.css',
   './js/maze.js',
   './js/control.js',
+  './js/rail-assist.js',
   './js/camera.js',
   './js/render3d.js',
   './js/fx.js',

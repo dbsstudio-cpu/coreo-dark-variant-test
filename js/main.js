@@ -8,8 +8,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const CELL_SIZE = Render3D.CELL_SIZE;
   const PLAYER_RADIUS = 21;
   const RAIL_NODE_EPSILON = 0.05;
-  const RAIL_BACK_WINDOW = 8;
-  const TURN_BUFFER_MS = 550;
   let baseSpeed = 4.2;
   let currentSpeed = baseSpeed;
   let isGameOver = false;
@@ -21,7 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
   const MAX_FRAME_DT = 34; // Core Pulse 觸發後若掉幀，限制單幀補位，避免主角/反派瞬間跳格
   const PULSE_EFFECT_DURATION = 2400; // v0.9.0：兩關共用五段式線性充電序列
-  const RUN_STATE_KEY = 'coreo-dark-run-state-v4'; // v0.9.8 分段滑動與短效轉向緩衝
+  const RUN_STATE_KEY = 'coreo-dark-run-state-v5'; // v0.9.9 跨平台短路口與凹槽入口輔助
   let pulseEffectUntil = 0;
   let pulseEffectTimer = null;
 
@@ -242,7 +240,7 @@ window.addEventListener('DOMContentLoaded', () => {
   let playerPos = Render3D.buildWorld(mazeData, currentStage);
   let railDirection = null;
   let queuedDirection = null;
-  let queuedDirectionAt = 0;
+  let queuedTurn = null;
   let lastRailDirection = null;
   let lastControlCommandId = ControlLogic.commandId;
   CameraLogic.refreshMetrics();
@@ -387,16 +385,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function clearQueuedDirection() {
     queuedDirection = null;
-    queuedDirectionAt = 0;
+    queuedTurn = null;
   }
 
   function queueDirection(direction, timestamp) {
     queuedDirection = direction ? { ...direction } : null;
-    queuedDirectionAt = queuedDirection ? timestamp : 0;
+    queuedTurn = queuedDirection ? {
+      timestamp,
+      origin: { x: playerPos.x, y: playerPos.y }
+    } : null;
   }
 
   function expireQueuedDirection(now) {
-    if (queuedDirection && now - queuedDirectionAt > TURN_BUFFER_MS) clearQueuedDirection();
+    if (queuedDirection && RailAssist.queueExpired(queuedTurn, playerPos, now)) clearQueuedDirection();
   }
 
   function resetRailControl() {
@@ -450,12 +451,13 @@ window.addEventListener('DOMContentLoaded', () => {
       const center = railCenterOf(railCellOf(playerPos[axis]));
       const passed = (playerPos[axis] - center) * sign;
       const canTurnHere = isOpenFrom(currentRailCell(), direction);
+      const cornerGrace = RailAssist.cornerGrace(mazeData, currentRailCell(), direction);
 
       if (isAtRailNode() && canTurnHere) {
         railDirection = { ...direction };
         lastRailDirection = { ...direction };
         clearQueuedDirection();
-      } else if (passed > RAIL_NODE_EPSILON && passed <= RAIL_BACK_WINDOW && canTurnHere) {
+      } else if (passed > RAIL_NODE_EPSILON && passed <= cornerGrace && canTurnHere) {
         playerPos[axis] = center;
         railDirection = { ...direction };
         lastRailDirection = { ...direction };
@@ -670,7 +672,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     consumeControlCommands();
     if (railDirection) {
-      const movement = movePlayerAlongRails(currentSpeed * timeScale, time);
+      const entrySpeedScale = RailAssist.entrySpeedScale(mazeData, currentRailCell(), railDirection);
+      const movement = movePlayerAlongRails(currentSpeed * entrySpeedScale * timeScale, time);
       if (movement.hitWall) FX.wallBump(playerSprite);
       if (movement.moved) {
         updatePlayerDOM();
