@@ -1,10 +1,10 @@
-// js/cc_diagnostic_main.js — COREO CC Diagnostic v0.9.7-D1
+// js/cc_diagnostic_main.js — COREO CC Diagnostic v0.9.7-D2
 // 一次性命令消費 + rail 狀態機；正式 v0.9.5、R1 與 R3 均不引用本檔。
 window.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
   document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
 
-  const VERSION = 'COREO CC DIAGNOSTIC v0.9.7-D1';
+  const VERSION = 'COREO CC DIAGNOSTIC v0.9.7-D2';
   const CELL = Render3D.CELL_SIZE;
   const SPEED = 4.2;
   const MAX_FRAME_DT = 34;

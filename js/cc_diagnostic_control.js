@@ -1,7 +1,7 @@
-// js/cc_diagnostic_control.js — COREO CC Diagnostic v0.9.7-D1
+// js/cc_diagnostic_control.js — COREO CC Diagnostic v0.9.7-D2
 // 最近手指增量 -> 一次性方向命令。沒有固定中心、跟隨錨點或 FOLLOW 半徑。
 const CCDiagnosticControl = {
-  VERSION: 'v0.9.7-D1',
+  VERSION: 'v0.9.7-D2',
   isActive: false,
   pointerId: null,
   lastPointerX: 0,
