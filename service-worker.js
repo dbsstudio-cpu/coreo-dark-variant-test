@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v0100-digital-dpad-20260719';
+const COREO_CACHE = 'coreo-dark-variant-v0101-discrete-swipe-20260719';
 const COREO_ASSETS = [
   './',
   './index.html',

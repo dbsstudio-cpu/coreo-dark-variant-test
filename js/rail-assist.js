@@ -1,8 +1,8 @@
-// js/rail-assist.js — COREO DARK v0.10.0
+// js/rail-assist.js — COREO DARK v0.10.1
 // Spatial turn assistance for short mobile gestures. A turn is assisted only after
 // ControlLogic has accepted an explicit direction command.
 const RailAssist = {
-  VERSION: 'v0.10.0',
+  VERSION: 'v0.10.1',
   NORMAL_CORNER_GRACE: 14,
   HIDE_POCKET_CORNER_GRACE: 18,
   TURN_BUFFER_MS: 750,

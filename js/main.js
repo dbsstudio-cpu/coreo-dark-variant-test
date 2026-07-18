@@ -19,7 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const TRAIL_INTERVAL = 90; // v0.5.24：動能軌跡節流間隔(ms)，避免每個 frame 都生成殘光點
   const MAX_FRAME_DT = 34; // Core Pulse 觸發後若掉幀，限制單幀補位，避免主角/反派瞬間跳格
   const PULSE_EFFECT_DURATION = 2400; // v0.9.0：兩關共用五段式線性充電序列
-  const RUN_STATE_KEY = 'coreo-dark-run-state-v6'; // v0.10.0 固定數位四方向控制
+  const RUN_STATE_KEY = 'coreo-dark-run-state-v7'; // v0.10.1 無介面離散滑動控制
   let pulseEffectUntil = 0;
   let pulseEffectTimer = null;
 
