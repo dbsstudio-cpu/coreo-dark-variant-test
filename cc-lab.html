@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>COREO CC Control Lab R1</title>
+  <meta name="theme-color" content="#0A0A0C">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="css/tokens.css">
+  <style>
+    /* Lab 專用：不動 tokens.css，樣式全部寫在頁內 */
+    #cc-topbar {
+      position: fixed;
+      top: max(env(safe-area-inset-top), 12px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 5000;
+    }
+    .cc-btn {
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      color: rgba(244, 248, 255, 0.9);
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .cc-btn:active {
+      background: rgba(0, 229, 255, 0.2);
+    }
+    #cc-scenario-label {
+      position: fixed;
+      top: max(env(safe-area-inset-top), 12px);
+      left: max(env(safe-area-inset-left), 12px);
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: rgba(134, 134, 139, 0.9);
+      z-index: 5000;
+      pointer-events: none;
+    }
+    #cc-debug {
+      position: fixed;
+      top: max(env(safe-area-inset-top), 12px);
+      right: max(env(safe-area-inset-right), 12px);
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: rgba(0, 229, 255, 0.8);
+      z-index: 5000;
+      pointer-events: none;
+      font-variant-numeric: tabular-nums;
+    }
+    /* 觸控區：鎖在畫面底部 32%，拇指不需要離開這個範圍。
+       僅頂端一條極淡分隔線提示範圍，不放常駐操控盤（Sean 已否決常駐盤）。 */
+    #cc-touch-zone {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: max(32%, 250px);
+      z-index: 2000;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      border-top: 1px solid rgba(0, 229, 255, 0.14);
+      background: linear-gradient(to bottom, rgba(0, 229, 255, 0.025), transparent 30%);
+    }
+    #cc-zone-hint {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: rgba(134, 134, 139, 0.55);
+      pointer-events: none;
+    }
+    #cc-lab-tag {
+      position: fixed;
+      bottom: max(env(safe-area-inset-bottom), 8px);
+      left: max(env(safe-area-inset-left), 8px);
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      color: var(--coreo-text-secondary);
+      opacity: 0.6;
+      z-index: 5000;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cc-scenario-label">STAGE 02</div>
+
+  <div id="cc-topbar">
+    <button class="cc-btn" data-scenario="s1">STAGE 01</button>
+    <button class="cc-btn" data-scenario="s2">STAGE 02</button>
+    <button class="cc-btn" data-scenario="pocket">凹槽急轉</button>
+  </div>
+
+  <div id="cc-debug">DIR ·  BUF ·</div>
+
+  <div id="cc-lab-tag">COREO CC CONTROL LAB R1｜rail movement</div>
+
+  <!-- 3D 遊戲世界（沿用正式版結構與 tokens.css 樣式） -->
+  <div id="game-container">
+    <div id="fog-overlay"></div>
+    <div id="camera-rig">
+      <div id="world"></div>
+    </div>
+  </div>
+
+  <!-- 底部固定觸控區：手指按下位置即錨點，錨點會跟隨手指，短撥換向 -->
+  <div id="cc-touch-zone">
+    <div id="cc-zone-hint">CONTROL ZONE</div>
+  </div>
+
+  <script src="js/maze.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/render3d.js"></script>
+  <script src="js/cc_control.js"></script>
+  <script src="js/cc_main.js"></script>
+</body>
+</html>
