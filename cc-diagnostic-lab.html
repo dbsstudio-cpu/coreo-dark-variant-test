@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>COREO CC Diagnostic Lab R2.0</title>
+  <meta name="theme-color" content="#0A0A0C">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="css/tokens.css">
+  <style>
+    html, body {
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    [hidden] { display: none !important; }
+    #cc-scenario-label {
+      position: fixed;
+      top: max(env(safe-area-inset-top), 10px);
+      left: max(env(safe-area-inset-left), 10px);
+      right: max(env(safe-area-inset-right), 10px);
+      z-index: 5200;
+      color: rgba(244, 248, 255, 0.76);
+      font-size: 10px;
+      line-height: 1.35;
+      letter-spacing: 0.08em;
+      pointer-events: none;
+    }
+    #cc-topbar {
+      position: fixed;
+      top: calc(max(env(safe-area-inset-top), 10px) + 28px);
+      left: max(env(safe-area-inset-left), 8px);
+      right: max(env(safe-area-inset-right), 8px);
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 5px;
+      z-index: 5200;
+    }
+    .cc-btn {
+      appearance: none;
+      -webkit-appearance: none;
+      min-height: 38px;
+      padding: 5px 3px;
+      border: 1px solid rgba(100, 210, 255, 0.28);
+      border-radius: 7px;
+      background: rgba(7, 12, 24, 0.82);
+      color: rgba(244, 248, 255, 0.72);
+      font-size: 9px;
+      line-height: 1.2;
+      letter-spacing: 0.03em;
+    }
+    .cc-btn.active {
+      border-color: rgba(0, 240, 255, 0.82);
+      background: rgba(0, 160, 190, 0.2);
+      color: #F4F8FF;
+      box-shadow: 0 0 13px rgba(0, 229, 255, 0.18);
+    }
+    #cc-debug {
+      position: fixed;
+      top: calc(max(env(safe-area-inset-top), 10px) + 76px);
+      left: max(env(safe-area-inset-left), 8px);
+      right: max(env(safe-area-inset-right), 8px);
+      z-index: 5100;
+      margin: 0;
+      padding: 8px 10px;
+      border: 1px solid rgba(100, 210, 255, 0.18);
+      border-radius: 7px;
+      background: rgba(3, 7, 16, 0.82);
+      color: rgba(156, 232, 255, 0.9);
+      font: 10px/1.42 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: 0;
+      white-space: pre-wrap;
+      pointer-events: none;
+      font-variant-numeric: tabular-nums;
+    }
+    #cc-touch-zone {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: max(34%, 260px);
+      z-index: 3000;
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      border-top: 1px solid rgba(0, 229, 255, 0.14);
+      background: linear-gradient(to bottom, rgba(0, 229, 255, 0.035), rgba(0, 0, 0, 0) 42%);
+    }
+    #cc-zone-hint {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(134, 190, 207, 0.58);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    #cc-version-tag {
+      position: fixed;
+      left: max(env(safe-area-inset-left), 8px);
+      bottom: max(env(safe-area-inset-bottom), 8px);
+      z-index: 5200;
+      color: rgba(100, 210, 255, 0.72);
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      pointer-events: none;
+    }
+    #cc-input-visual {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    #cc-input-cross {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      width: min(52vw, 220px);
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border: 1px solid rgba(100, 210, 255, 0.16);
+      border-radius: 50%;
+      background:
+        linear-gradient(90deg, transparent 49.6%, rgba(100, 210, 255, 0.18) 49.6% 50.4%, transparent 50.4%),
+        linear-gradient(0deg, transparent 49.6%, rgba(100, 210, 255, 0.18) 49.6% 50.4%, transparent 50.4%);
+      box-shadow: 0 0 30px rgba(0, 229, 255, 0.06);
+    }
+    #cc-input-arrow {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(134, 134, 139, 0.42);
+      font-size: 76px;
+      line-height: 1;
+      text-shadow: none;
+    }
+    #cc-input-arrow[data-active="true"] {
+      color: #F4F8FF;
+      text-shadow: 0 0 12px #00E6FF, 0 0 34px rgba(0, 229, 255, 0.72);
+    }
+    @media (max-height: 720px) {
+      #cc-debug { font-size: 9px; line-height: 1.32; }
+      #cc-input-cross { top: 51%; width: min(42vw, 180px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="cc-scenario-label">01 純輸入｜無牆、無 rail、無 Camera</div>
+  <div id="cc-topbar" aria-label="診斷場景">
+    <button class="cc-btn" data-scenario="input">01<br>純輸入</button>
+    <button class="cc-btn" data-scenario="rail">02<br>單一路口</button>
+    <button class="cc-btn" data-scenario="pocketRight">03A<br>凹槽右轉</button>
+    <button class="cc-btn" data-scenario="pocketLeft">03B<br>鏡像左轉</button>
+  </div>
+  <pre id="cc-debug">COREO CC DIAGNOSTIC LAB R2.0</pre>
+
+  <div id="cc-input-visual">
+    <div id="cc-input-cross"><div id="cc-input-arrow" data-active="false">·</div></div>
+  </div>
+
+  <div id="game-container" hidden>
+    <div id="fog-overlay"></div>
+    <div id="camera-rig"><div id="world"></div></div>
+  </div>
+
+  <div id="cc-touch-zone" aria-label="底部手勢診斷區">
+    <div id="cc-zone-hint">SHORT SWIPE CONTROL ZONE</div>
+  </div>
+  <div id="cc-version-tag">COREO CC DIAGNOSTIC LAB R2.0｜20260718</div>
+
+  <script src="js/maze.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/render3d.js"></script>
+  <script src="js/cc_diagnostic_control.js"></script>
+  <script src="js/cc_diagnostic_main.js"></script>
+</body>
+</html>
