@@ -25,10 +25,10 @@ window.addEventListener('DOMContentLoaded', () => {
     left: { x: -1, y: 0 },
     right: { x: 1, y: 0 }
   };
-  const LAB_TURN_WINDOW = 14;
-  const LAB_ALIGNMENT_TOLERANCE = 10;
-  const LAB_RECOVERY_WINDOW = 20;
-  const LAB_CENTERING_SPEED = 1.55;
+  const LAB_TURN_WINDOW = CELL_SIZE * 0.48;
+  const LAB_ALIGNMENT_TOLERANCE = 18;
+  const LAB_RECOVERY_WINDOW = CELL_SIZE * 0.56;
+  const LAB_CENTERING_SPEED = 2.35;
   let labMoveDirection = null;
   let labQueuedDirection = null;
   let labLastCommandId = 0;
@@ -232,6 +232,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   };
   ProgressManager.load();
+  // The isolated control lab must always expose both stages for real-device QA.
+  // This is intentionally not saved and cannot unlock Stage 02 in the formal game.
+  if (document.body.classList.contains('control-lab-mode')) {
+    ProgressManager.data.highestUnlockedStage = Math.max(2, ProgressManager.data.highestUnlockedStage);
+  }
 
   function loadRunSnapshot() {
     try {
@@ -246,11 +251,21 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const restoredRun = loadRunSnapshot();
-  let currentStage = (restoredRun && STAGE_CONFIG[restoredRun.stage]) ? restoredRun.stage : 1;
+  const isControlLab = document.body.classList.contains('control-lab-mode');
+  const labScenario = isControlLab ? new URLSearchParams(location.search).get('scenario') : null;
+  if (isControlLab) sessionStorage.removeItem(RUN_STATE_KEY);
+  const restoredRun = isControlLab ? null : loadRunSnapshot();
+  let currentStage = labScenario === 'stage2-pocket'
+    ? 2
+    : ((restoredRun && STAGE_CONFIG[restoredRun.stage]) ? restoredRun.stage : 1);
   let pristineMazeData = JSON.parse(JSON.stringify(STAGE_CONFIG[currentStage].getMap()));
   let mazeData = restoredRun?.mazeData || JSON.parse(JSON.stringify(pristineMazeData));
   let playerPos = Render3D.buildWorld(mazeData, currentStage);
+  if (labScenario === 'stage2-pocket') {
+    playerPos = { x: 1.5 * CELL_SIZE, y: 16.5 * CELL_SIZE };
+    const versionTag = document.getElementById('version-tag');
+    if (versionTag) versionTag.textContent = 'COREO CONTROL LAB R3 · S2 POCKET';
+  }
   CameraLogic.refreshMetrics();
   CameraLogic.setDirection(STAGE_CONFIG[currentStage].exitDirection);
   if (restoredRun?.playerPos) playerPos = restoredRun.playerPos;
@@ -388,6 +403,23 @@ window.addEventListener('DOMContentLoaded', () => {
       (a === 'up' && b === 'down') || (a === 'down' && b === 'up');
   }
 
+  function labIsPerpendicular(a, b) {
+    if (!a || !b) return false;
+    return labIsHorizontal(a) !== labIsHorizontal(b);
+  }
+
+  function queueLabDirection(requestedDirection) {
+    if (!requestedDirection) return;
+
+    // Once an emergency perpendicular turn has been accepted, small thumb drift
+    // along the old axis cannot erase it before the player reaches the corner.
+    const hasProtectedTurn = labQueuedDirection && labMoveDirection &&
+      labIsPerpendicular(labMoveDirection, labQueuedDirection);
+    if (hasProtectedTurn && !labIsPerpendicular(labMoveDirection, requestedDirection)) return;
+
+    labQueuedDirection = requestedDirection;
+  }
+
   function labCanMove(direction, distance = 1) {
     const vector = LAB_DIRECTIONS[direction];
     if (!vector) return false;
@@ -496,7 +528,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (commandId !== labLastCommandId) {
       labLastCommandId = commandId;
       const requestedDirection = ControlLogic.getDirection?.();
-      if (requestedDirection) labQueuedDirection = requestedDirection;
+      queueLabDirection(requestedDirection);
     }
 
     let moved = applyLabQueuedTurn();
@@ -750,7 +782,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (!restoredRun && stageSelectUI && ProgressManager.data.highestUnlockedStage > 1) {
+  if (!restoredRun && !labScenario && stageSelectUI && ProgressManager.data.highestUnlockedStage > 1) {
     const btnS1 = document.getElementById('btn-stage-1');
     const btnS2 = document.getElementById('btn-stage-2');
     if (btnS2) btnS2.classList.remove('locked');

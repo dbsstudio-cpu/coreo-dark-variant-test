@@ -1,5 +1,4 @@
-// js/control-relative.js
-// CONTROL LAB R2：底部隱形相對短滑；每次接受方向後立即以當下拇指位置重新定錨。
+// CONTROL LAB R3: invisible relative-swipe steering tuned for mobile corners.
 const ControlLogic = {
   direction: null,
   commandId: 0,
@@ -7,11 +6,12 @@ const ControlLogic = {
   activePointerId: null,
   anchorX: 0,
   anchorY: 0,
-  gestureThreshold: 13,
+  gestureThreshold: 7,
+  perpendicularBias: 0.58,
   edgeSafeInset: 36,
 
   refreshSafeInset: function() {
-    this.edgeSafeInset = Math.min(52, Math.max(32, Math.round(window.innerWidth * 0.06)));
+    this.edgeSafeInset = Math.min(48, Math.max(28, Math.round(window.innerWidth * 0.055)));
     document.documentElement.style.setProperty('--coreo-gesture-safe-inset', `${this.edgeSafeInset}px`);
   },
 
@@ -27,17 +27,34 @@ const ControlLogic = {
     this.direction = null;
   },
 
+  chooseDirection: function(deltaX, deltaY) {
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    const wasVertical = this.direction === 'up' || this.direction === 'down';
+    const wasHorizontal = this.direction === 'left' || this.direction === 'right';
+
+    // A short perpendicular swipe wins over the previous axis. This makes a
+    // pocket exit followed by an immediate left/right turn register reliably.
+    if (wasVertical && absX >= this.gestureThreshold && absX >= absY * this.perpendicularBias) {
+      return deltaX < 0 ? 'left' : 'right';
+    }
+    if (wasHorizontal && absY >= this.gestureThreshold && absY >= absX * this.perpendicularBias) {
+      return deltaY < 0 ? 'up' : 'down';
+    }
+    return absX > absY
+      ? (deltaX < 0 ? 'left' : 'right')
+      : (deltaY < 0 ? 'up' : 'down');
+  },
+
   update: function(clientX, clientY) {
     const deltaX = clientX - this.anchorX;
     const deltaY = clientY - this.anchorY;
     if (Math.hypot(deltaX, deltaY) < this.gestureThreshold) return;
 
-    this.direction = Math.abs(deltaX) > Math.abs(deltaY)
-      ? (deltaX < 0 ? 'left' : 'right')
-      : (deltaY < 0 ? 'up' : 'down');
+    this.direction = this.chooseDirection(deltaX, deltaY);
     this.commandId += 1;
 
-    // 接受指令後立即重新定錨；下一次轉向只需再短滑，不必跨回最初圓心。
+    // Every accepted short swipe becomes the origin of the next command.
     this.anchorX = clientX;
     this.anchorY = clientY;
   },
@@ -95,17 +112,13 @@ const ControlLogic = {
       this.update(touch.clientX, touch.clientY);
     }, { passive: false });
 
-    document.addEventListener('touchend', (event) => {
+    const endTouch = (event) => {
       if (!this.isActive) return;
       event.preventDefault();
       this.stop();
-    }, { passive: false });
-
-    document.addEventListener('touchcancel', (event) => {
-      if (!this.isActive) return;
-      event.preventDefault();
-      this.stop();
-    }, { passive: false });
+    };
+    document.addEventListener('touchend', endTouch, { passive: false });
+    document.addEventListener('touchcancel', endTouch, { passive: false });
   },
 
   isPressed: function() {
@@ -120,7 +133,6 @@ const ControlLogic = {
     return this.commandId;
   },
 
-  // 保留相容介面，測試版實際移動由 main-control-lab.js 的方向狀態機處理。
   getVector: function() {
     return {
       x: this.direction === 'left' ? -1 : this.direction === 'right' ? 1 : 0,
