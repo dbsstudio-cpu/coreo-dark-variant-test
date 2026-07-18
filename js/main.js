@@ -19,19 +19,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const MAX_FRAME_DT = 34; // Core Pulse 觸發後若掉幀，限制單幀補位，避免主角/反派瞬間跳格
   const PULSE_EFFECT_DURATION = 2400; // v0.9.0：兩關共用五段式線性充電序列
   const RUN_STATE_KEY = 'coreo-dark-run-state-v2'; // v0.9.0 地圖尺寸改變，舊快照不可沿用
-  const DIRECTION_VECTORS = {
-    up: { x: 0, y: -1 },
-    down: { x: 0, y: 1 },
-    left: { x: -1, y: 0 },
-    right: { x: 1, y: 0 }
-  };
-  const TURN_WINDOW = 12;
-  const TURN_ALIGNMENT_TOLERANCE = 10;
-  const TURN_RECOVERY_WINDOW = 20;
-  const LANE_CENTERING_SPEED = 1.45;
-  let moveDirection = null;
-  let queuedDirection = null;
-  let blockedDirection = null;
   let pulseEffectUntil = 0;
   let pulseEffectTimer = null;
 
@@ -370,157 +357,6 @@ window.addEventListener('DOMContentLoaded', () => {
     return isWall(left, top) || isWall(right, top) || isWall(left, bottom) || isWall(right, bottom);
   }
 
-  function resetMovementControl() {
-    moveDirection = null;
-    queuedDirection = null;
-    blockedDirection = null;
-    ControlLogic.stop?.();
-  }
-
-  function isHorizontal(direction) {
-    return direction === 'left' || direction === 'right';
-  }
-
-  function isOppositeDirection(a, b) {
-    return (a === 'left' && b === 'right') || (a === 'right' && b === 'left') ||
-      (a === 'up' && b === 'down') || (a === 'down' && b === 'up');
-  }
-
-  function canMoveDirection(direction, distance = 1) {
-    const vector = DIRECTION_VECTORS[direction];
-    if (!vector) return false;
-    return !checkCollision(playerPos.x + vector.x * distance, playerPos.y + vector.y * distance);
-  }
-
-  function isNeighborOpen(direction) {
-    const vector = DIRECTION_VECTORS[direction];
-    if (!vector) return false;
-    const cellX = Math.floor(playerPos.x / CELL_SIZE);
-    const cellY = Math.floor(playerPos.y / CELL_SIZE);
-    return !isWall(cellX + vector.x, cellY + vector.y);
-  }
-
-  // v0.9.6：把提早輸入的轉向保留到路口中心；只做像素容錯，不替玩家選路。
-  function tryQueuedTurn() {
-    if (!queuedDirection) return false;
-
-    if (!moveDirection) {
-      if (!canMoveDirection(queuedDirection)) {
-        const cellX = Math.floor(playerPos.x / CELL_SIZE);
-        const cellY = Math.floor(playerPos.y / CELL_SIZE);
-        const centerX = cellX * CELL_SIZE + CELL_SIZE / 2;
-        const centerY = cellY * CELL_SIZE + CELL_SIZE / 2;
-        const crossOffset = isHorizontal(queuedDirection) ? playerPos.y - centerY : playerPos.x - centerX;
-
-        // 玩家在路口稍晚放開再轉向時，允許回到同一格中心；鄰格不是路徑就絕不吸附。
-        if (
-          Math.abs(crossOffset) > TURN_RECOVERY_WINDOW ||
-          !isNeighborOpen(queuedDirection) ||
-          checkCollision(centerX, centerY)
-        ) return false;
-        playerPos.x = centerX;
-        playerPos.y = centerY;
-      }
-      moveDirection = queuedDirection;
-      blockedDirection = null;
-      return true;
-    }
-
-    if (queuedDirection === moveDirection) return false;
-
-    if (isOppositeDirection(moveDirection, queuedDirection)) {
-      if (!canMoveDirection(queuedDirection)) return false;
-      moveDirection = queuedDirection;
-      blockedDirection = null;
-      return true;
-    }
-
-    const cellX = Math.floor(playerPos.x / CELL_SIZE);
-    const cellY = Math.floor(playerPos.y / CELL_SIZE);
-    const centerX = cellX * CELL_SIZE + CELL_SIZE / 2;
-    const centerY = cellY * CELL_SIZE + CELL_SIZE / 2;
-    const alongOffset = isHorizontal(moveDirection) ? playerPos.x - centerX : playerPos.y - centerY;
-    const crossOffset = isHorizontal(moveDirection) ? playerPos.y - centerY : playerPos.x - centerX;
-
-    if (
-      Math.abs(alongOffset) > TURN_WINDOW ||
-      Math.abs(crossOffset) > TURN_ALIGNMENT_TOLERANCE ||
-      !isNeighborOpen(queuedDirection) ||
-      checkCollision(centerX, centerY)
-    ) return false;
-
-    playerPos.x = centerX;
-    playerPos.y = centerY;
-    moveDirection = queuedDirection;
-    blockedDirection = null;
-    return true;
-  }
-
-  function centerPlayerInLane(direction, timeScale) {
-    if (!direction) return false;
-    const cellX = Math.floor(playerPos.x / CELL_SIZE);
-    const cellY = Math.floor(playerPos.y / CELL_SIZE);
-    const centerX = cellX * CELL_SIZE + CELL_SIZE / 2;
-    const centerY = cellY * CELL_SIZE + CELL_SIZE / 2;
-    const maxCorrection = LANE_CENTERING_SPEED * timeScale;
-
-    if (isHorizontal(direction)) {
-      const correction = Math.sign(centerY - playerPos.y) * Math.min(Math.abs(centerY - playerPos.y), maxCorrection);
-      if (!correction || checkCollision(playerPos.x, playerPos.y + correction)) return false;
-      playerPos.y += correction;
-      return true;
-    }
-
-    const correction = Math.sign(centerX - playerPos.x) * Math.min(Math.abs(centerX - playerPos.x), maxCorrection);
-    if (!correction || checkCollision(playerPos.x + correction, playerPos.y)) return false;
-    playerPos.x += correction;
-    return true;
-  }
-
-  function updatePlayerMovement(time, timeScale) {
-    const inputDirection = ControlLogic.getDirection?.() || null;
-    if (!inputDirection) {
-      moveDirection = null;
-      queuedDirection = null;
-      blockedDirection = null;
-      return false;
-    }
-
-    queuedDirection = inputDirection;
-    tryQueuedTurn();
-    if (!moveDirection) return false;
-
-    let moved = centerPlayerInLane(moveDirection, timeScale);
-    const vector = DIRECTION_VECTORS[moveDirection];
-    const distance = currentSpeed * timeScale;
-    const nextX = playerPos.x + vector.x * distance;
-    const nextY = playerPos.y + vector.y * distance;
-
-    if (!checkCollision(nextX, nextY)) {
-      playerPos.x = nextX;
-      playerPos.y = nextY;
-      moved = true;
-      blockedDirection = null;
-    } else {
-      // 只有真正正面撞牆的第一幀給一次回饋；預轉等待與沿牆前進不再反覆震動。
-      if (blockedDirection !== moveDirection && queuedDirection === moveDirection) {
-        blockedDirection = moveDirection;
-        FX.wallBump(playerSprite);
-      }
-      tryQueuedTurn();
-    }
-
-    if (moved) {
-      updatePlayerDOM();
-      checkPickups();
-      if (!isPulseEffectActive(time) && time - lastTrailTime >= TRAIL_INTERVAL) {
-        lastTrailTime = time;
-        FX.spawnTrail(world, playerPos.x, playerPos.y);
-      }
-    }
-    return moved;
-  }
-
   function updatePlayerDOM() {
     playerDiv.style.left = `${playerPos.x}px`;
     playerDiv.style.top = `${playerPos.y}px`;
@@ -604,7 +440,6 @@ window.addEventListener('DOMContentLoaded', () => {
   function triggerSignalLost() {
     if (isResetting || isGameOver) return;
     isResetting = true;
-    resetMovementControl();
 
     const globalAlert = document.getElementById('global-alert-overlay');
     if (globalAlert) globalAlert.classList.add('flash');
@@ -624,7 +459,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function resetLevel() {
     clearRunSnapshot();
-    resetMovementControl();
     mazeData = JSON.parse(JSON.stringify(pristineMazeData));
     playerPos = Render3D.buildWorld(mazeData, currentStage);
     CameraLogic.refreshMetrics();
@@ -664,7 +498,31 @@ window.addEventListener('DOMContentLoaded', () => {
     lastTime = time;
     const timeScale = dt / 16.66;
 
-    updatePlayerMovement(time, timeScale);
+    const vec = ControlLogic.getVector();
+    if (vec.x !== 0 || vec.y !== 0) {
+      const nextX = playerPos.x + vec.x * currentSpeed * timeScale;
+      const nextY = playerPos.y + vec.y * currentSpeed * timeScale;
+      let movedX = false;
+      let movedY = false;
+      let hitWall = false;
+
+      if (!checkCollision(nextX, playerPos.y)) { playerPos.x = nextX; movedX = true; }
+      else { hitWall = true; }
+
+      if (!checkCollision(playerPos.x, nextY)) { playerPos.y = nextY; movedY = true; }
+      else { hitWall = true; }
+
+      if (hitWall) FX.wallBump(playerSprite);
+      if (movedX || movedY) {
+        updatePlayerDOM();
+        checkPickups();
+
+        if (!isPulseEffectActive(time) && time - lastTrailTime >= TRAIL_INTERVAL) {
+          lastTrailTime = time;
+          FX.spawnTrail(world, playerPos.x, playerPos.y);
+        }
+      }
+    }
 
     const cx = Math.floor(playerPos.x / CELL_SIZE);
     const cy = Math.floor(playerPos.y / CELL_SIZE);
@@ -754,7 +612,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function startGame() {
     hasGameStarted = true;
-    resetMovementControl();
     armBackGestureGuard();
 
     if (briefingOverlay) {

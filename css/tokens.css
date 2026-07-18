@@ -724,8 +724,7 @@ body.stage-02-active #fog-overlay {
   z-index: 100;
 }
 
-/* v0.9.6：玩家畫面位置必須與碰撞位置同幀，不可用 transition 追趕舊座標。 */
-#player.actor { z-index: 120; transition: none; }
+#player.actor { z-index: 120; transition: top 0.045s linear, left 0.045s linear; }
 #enemy.actor { z-index: 100; pointer-events: none; }
 
 #player.actor.victory-actor {
@@ -889,12 +888,11 @@ body.stage-02-active #fog-overlay {
 ========================================= */
 #joystick-zone {
   position: fixed;
-  bottom: max(env(safe-area-inset-bottom), 0px);
+  bottom: 0;
   left: max(env(safe-area-inset-left), var(--coreo-gesture-safe-inset));
   right: max(env(safe-area-inset-right), var(--coreo-gesture-safe-inset));
   width: auto;
-  /* v0.9.6：只保留下方拇指安全區，避免手指一路移到主角與前方路線。 */
-  height: max(24%, 190px);
+  height: max(52%, 360px);
   z-index: 2000;
   touch-action: none;
   overscroll-behavior-x: none;
@@ -904,30 +902,27 @@ body.stage-02-active #fog-overlay {
 
 .joystick-base {
   position: absolute;
-  width: 116px;
-  height: 116px;
-  border: 1px solid rgba(151, 222, 255, 0.48);
-  background: radial-gradient(circle, rgba(18, 42, 64, 0.48) 0%, rgba(4, 11, 20, 0.3) 66%, rgba(0, 0, 0, 0.12) 100%);
+  width: 132px;
+  height: 132px;
+  border: 1px solid rgba(245, 245, 247, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  opacity: 0.26;
-  transition: opacity 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  opacity: 0;
+  transition: opacity 0.18s ease;
   pointer-events: none;
-  box-shadow: inset 0 0 18px rgba(0, 153, 255, 0.12), 0 0 18px rgba(0, 153, 255, 0.1);
+  box-shadow: 0 16px 36px rgba(60, 75, 92, 0.13);
 }
 
-.joystick-base.idle { opacity: 0.26; }
-.joystick-base.active {
-  opacity: 0.94;
-  border-color: rgba(196, 239, 255, 0.88);
-  box-shadow: inset 0 0 24px rgba(0, 174, 255, 0.22), 0 0 28px rgba(0, 174, 255, 0.24);
-}
+.joystick-base.active { opacity: 1; }
 
 .joystick-knob {
   position: absolute;
-  width: 38px;
-  height: 38px;
-  background: radial-gradient(circle at 42% 36%, #ffffff 0%, #dff6ff 38%, #73cfff 100%);
+  width: 44px;
+  height: 44px;
+  background-color: #F5F5F7;
   border-radius: 50%;
   top: 50%;
   left: 50%;
