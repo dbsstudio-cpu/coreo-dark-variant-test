@@ -239,8 +239,8 @@ window.addEventListener('DOMContentLoaded', () => {
   let mazeData = restoredRun?.mazeData || JSON.parse(JSON.stringify(pristineMazeData));
   let playerPos = Render3D.buildWorld(mazeData, currentStage);
   let railDirection = null;
-  let queuedDirection = null;
   let queuedTurn = null;
+  let deferredControlCommand = null;
   let lastRailDirection = null;
   let lastControlCommandId = ControlLogic.commandId;
   CameraLogic.refreshMetrics();
@@ -345,9 +345,15 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') saveRunSnapshot();
+    if (document.visibilityState === 'hidden') {
+      ControlLogic.stop?.('visibilitychange');
+      saveRunSnapshot();
+    }
   });
-  window.addEventListener('pagehide', saveRunSnapshot);
+  window.addEventListener('pagehide', () => {
+    ControlLogic.stop?.('pagehide');
+    saveRunSnapshot();
+  });
 
   function isWall(cx, cy) {
     if (cy < 0 || cy >= mazeData.length || cx < 0 || cx >= mazeData[0].length) return true;
@@ -383,41 +389,132 @@ window.addEventListener('DOMContentLoaded', () => {
     return !!(direction && !isWall(cell.x + direction.x, cell.y + direction.y));
   }
 
-  function clearQueuedDirection() {
-    queuedDirection = null;
+  function clearQueuedTurn() {
     queuedTurn = null;
   }
 
-  function queueDirection(direction, timestamp) {
-    queuedDirection = direction ? { ...direction } : null;
-    queuedTurn = queuedDirection ? {
-      timestamp,
-      origin: { x: playerPos.x, y: playerPos.y }
-    } : null;
+  function createTargetedTurn(direction, commandId, timestamp) {
+    if (!railDirection || !isPerpendicularDirection(direction, railDirection)) return null;
+    const target = RailAssist.findNearestLegalTurnAhead({
+      maze: mazeData,
+      position: playerPos,
+      railDirection,
+      desiredDirection: direction,
+      cellSize: CELL_SIZE,
+      maxDistance: RailAssist.TURN_TARGET_LOOKAHEAD_PX
+    });
+    if (!target) return null;
+    return {
+      commandId,
+      direction: { ...direction },
+      createdAt: timestamp,
+      targetCell: { ...target.cell },
+      targetCenter: { ...target.center },
+      targetAxis: target.axis,
+      targetGrace: target.grace,
+      approachDirection: { ...railDirection },
+      state: 'INTENT'
+    };
   }
 
-  function expireQueuedDirection(now) {
-    if (queuedDirection && RailAssist.queueExpired(queuedTurn, playerPos, now)) clearQueuedDirection();
+  function bindTurnIntent(direction, commandId, timestamp) {
+    const targetedTurn = createTargetedTurn(direction, commandId, timestamp);
+    if (targetedTurn) queuedTurn = targetedTurn;
+  }
+
+  function expireQueuedTurn(now) {
+    if (!queuedTurn || !RailAssist.queueExpired(queuedTurn, playerPos, now)) return;
+    queuedTurn.state = 'EXPIRED';
+    clearQueuedTurn();
+    deferredControlCommand = null;
+  }
+
+  function executeQueuedTurn() {
+    if (!queuedTurn || queuedTurn.state !== 'CONFIRMED') return false;
+    if (!isOpenFrom(queuedTurn.targetCell, queuedTurn.direction)) {
+      queuedTurn.state = 'CANCELLED';
+      clearQueuedTurn();
+      deferredControlCommand = null;
+      return false;
+    }
+    const deferred = deferredControlCommand;
+    deferredControlCommand = null;
+    playerPos[queuedTurn.targetAxis] = queuedTurn.targetCenter[queuedTurn.targetAxis];
+    railDirection = { ...queuedTurn.direction };
+    lastRailDirection = { ...railDirection };
+    queuedTurn.state = 'EXECUTED';
+    clearQueuedTurn();
+    if (deferred) {
+      applyControlDirection(
+        deferred.direction,
+        deferred.commandId,
+        deferred.intentCommandId,
+        deferred.basisDirection,
+        deferred.timestamp
+      );
+    }
+    return true;
+  }
+
+  function confirmTargetedTurn(direction, commandId, intentCommandId, timestamp) {
+    const matchesIntent = queuedTurn
+      && isSameDirection(queuedTurn.direction, direction)
+      && (!intentCommandId || queuedTurn.commandId === intentCommandId);
+    if (!matchesIntent) queuedTurn = createTargetedTurn(direction, commandId, timestamp);
+    if (!queuedTurn) return false;
+
+    queuedTurn.commandId = commandId;
+    queuedTurn.confirmedAt = timestamp;
+    queuedTurn.state = 'CONFIRMED';
+    if (RailAssist.hasPassedTargetBeyondGrace(playerPos, queuedTurn)) {
+      queuedTurn.state = 'EXPIRED';
+      clearQueuedTurn();
+      return false;
+    }
+    if (RailAssist.isInsideTargetExecutionWindow(playerPos, queuedTurn)) return executeQueuedTurn();
+    return true;
   }
 
   function resetRailControl() {
     railDirection = null;
-    clearQueuedDirection();
+    clearQueuedTurn();
+    deferredControlCommand = null;
     lastRailDirection = null;
     lastControlCommandId = ControlLogic.commandId;
   }
 
-  function applyControlDirection(direction, timestamp = performance.now()) {
+  function applyControlDirection(
+    direction,
+    commandId,
+    intentCommandId = null,
+    basisDirection = null,
+    timestamp = performance.now()
+  ) {
     if (!direction) return;
+
+    // A second confirmed gesture can arrive while the first target-bound turn is
+    // still approaching its cell. Preserve it for immediately after that turn;
+    // never reinterpret it as a reverse of the still-visible old rail direction.
+    if (queuedTurn?.state === 'CONFIRMED'
+      && basisDirection
+      && isSameDirection(basisDirection, queuedTurn.direction)
+      && !isSameDirection(basisDirection, railDirection)) {
+      deferredControlCommand = {
+        direction: { ...direction },
+        commandId,
+        intentCommandId,
+        basisDirection: { ...basisDirection },
+        timestamp
+      };
+      return;
+    }
 
     if (!railDirection) {
       if (isAtRailNode()) {
         if (isOpenFrom(currentRailCell(), direction)) {
           railDirection = { ...direction };
           lastRailDirection = { ...direction };
-          clearQueuedDirection();
-        } else {
-          queueDirection(direction, timestamp);
+          clearQueuedTurn();
         }
         return;
       }
@@ -426,45 +523,24 @@ window.addEventListener('DOMContentLoaded', () => {
       if (lastRailDirection && isSameAxis(direction, lastRailDirection)) {
         railDirection = { ...direction };
         lastRailDirection = { ...direction };
-        clearQueuedDirection();
-      } else {
-        queueDirection(direction, timestamp);
+        clearQueuedTurn();
       }
       return;
     }
 
     if (isSameDirection(direction, railDirection)) {
-      clearQueuedDirection();
       return;
     }
     if (isOppositeDirection(direction, railDirection)) {
       railDirection = { ...direction };
       lastRailDirection = { ...direction };
-      clearQueuedDirection();
+      clearQueuedTurn();
+      deferredControlCommand = null;
       return;
     }
 
     if (isPerpendicularDirection(direction, railDirection)) {
-      const oldDirection = { ...railDirection };
-      const axis = oldDirection.x !== 0 ? 'x' : 'y';
-      const sign = axis === 'x' ? oldDirection.x : oldDirection.y;
-      const center = railCenterOf(railCellOf(playerPos[axis]));
-      const passed = (playerPos[axis] - center) * sign;
-      const canTurnHere = isOpenFrom(currentRailCell(), direction);
-      const cornerGrace = RailAssist.cornerGrace(mazeData, currentRailCell(), direction);
-
-      if (isAtRailNode() && canTurnHere) {
-        railDirection = { ...direction };
-        lastRailDirection = { ...direction };
-        clearQueuedDirection();
-      } else if (passed > RAIL_NODE_EPSILON && passed <= cornerGrace && canTurnHere) {
-        playerPos[axis] = center;
-        railDirection = { ...direction };
-        lastRailDirection = { ...direction };
-        clearQueuedDirection();
-      } else {
-        queueDirection(direction, timestamp);
-      }
+      confirmTargetedTurn(direction, commandId, intentCommandId, timestamp);
     }
   }
 
@@ -474,15 +550,24 @@ window.addEventListener('DOMContentLoaded', () => {
       lastControlCommandId = command.id;
       if (command.type === 'stop') {
         railDirection = null;
-        clearQueuedDirection();
-      } else {
-        applyControlDirection(command.direction, command.timestamp);
+        clearQueuedTurn();
+        deferredControlCommand = null;
+      } else if (command.type === 'turn-intent') {
+        bindTurnIntent(command.direction, command.id, command.timestamp);
+      } else if (command.type === 'direction') {
+        applyControlDirection(
+          command.direction,
+          command.id,
+          command.intentCommandId,
+          command.basisDirection,
+          command.timestamp
+        );
       }
     }
   }
 
   function movePlayerAlongRails(distance, now = performance.now()) {
-    expireQueuedDirection(now);
+    expireQueuedTurn(now);
     let remaining = distance;
     let moved = false;
     let hitWall = false;
@@ -497,10 +582,10 @@ window.addEventListener('DOMContentLoaded', () => {
       if (Math.abs(delta) <= RAIL_NODE_EPSILON) {
         playerPos[axis] = center;
         const cell = currentRailCell();
-        if (queuedDirection && isOpenFrom(cell, queuedDirection)) {
-          railDirection = { ...queuedDirection };
-          lastRailDirection = { ...railDirection };
-          clearQueuedDirection();
+        if (queuedTurn
+          && queuedTurn.state === 'CONFIRMED'
+          && RailAssist.sameCell(cell, queuedTurn.targetCell)) {
+          executeQueuedTurn();
           continue;
         }
         if (!isOpenFrom(cell, railDirection)) {
