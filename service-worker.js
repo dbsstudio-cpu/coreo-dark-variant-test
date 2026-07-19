@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v0105-targeted-turn-20260720';
+const COREO_CACHE = 'coreo-dark-variant-v01051-player-stability-20260720';
 const COREO_ASSETS = [
   './',
   './index.html',

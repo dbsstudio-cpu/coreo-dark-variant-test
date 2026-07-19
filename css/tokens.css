@@ -724,7 +724,14 @@ body.stage-02-active #fog-overlay {
   z-index: 100;
 }
 
-#player.actor { z-index: 120; transition: top 0.045s linear, left 0.045s linear; }
+/* v0.10.5.1：正式座標已由 requestAnimationFrame 逐幀更新；不要再用 CSS transition
+   追趕上一幀的位置，避免 iOS 在中央縱向路線與相機同步移動時產生細抖。 */
+#player.actor {
+  z-index: 120;
+  transition: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
 #enemy.actor { z-index: 100; pointer-events: none; }
 
 #player.actor.victory-actor {
@@ -771,6 +778,10 @@ body.stage-02-active #fog-overlay {
 #player .actor-sprite {
   background-image: url('../assets/player.png');
   filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 229, 255, 0.5));
+  /* 光源拾取會同時動畫 transform 與 filter；固定成獨立合成層，避免重繪回傳到定位外層。 */
+  will-change: transform, filter;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* 反派內層視覺：EMBER｜熾核獵者專屬圖 */

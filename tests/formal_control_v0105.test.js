@@ -203,14 +203,26 @@ test('T10: formal code uses target-bound turns and has no arbitrary queued direc
   assert.match(rail, /TARGET_TURN_MAX_AGE_MS: 350/);
 });
 
-test('T11: formal UI exposes v0.10.5 and keeps full-screen controls', () => {
+test('T11: formal UI exposes v0.10.5.1 and keeps full-screen controls', () => {
   const root = path.join(__dirname, '..');
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
-  assert.match(index, /COREO DARK v0\.10\.5/);
+  assert.match(index, /COREO DARK v0\.10\.5\.1/);
   assert.match(index, /aria-label="連續滑動移動區"/);
   assert.doesNotMatch(index, /swipe-control-hint|digital-dpad|data-dpad-direction/);
   assert.match(css, /#joystick-zone\s*\{[\s\S]*?inset:\s*0;/);
-  assert.match(serviceWorker, /coreo-dark-variant-v0105-targeted-turn-20260720/);
+  assert.match(serviceWorker, /coreo-dark-variant-v01051-player-stability-20260720/);
+});
+
+test('T12: player and camera rendering are stable without changing v0.10.5 control', () => {
+  const root = path.join(__dirname, '..');
+  const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
+  const main = fs.readFileSync(path.join(root, 'js', 'main.js'), 'utf8');
+  const camera = fs.readFileSync(path.join(root, 'js', 'camera.js'), 'utf8');
+  assert.match(css, /#player\.actor\s*\{[\s\S]*?transition:\s*none;/);
+  assert.match(css, /#player \.actor-sprite\s*\{[\s\S]*?will-change:\s*transform, filter;/);
+  assert.match(main, /CameraLogic\.update\(playerPos\.y, dt\)/);
+  assert.match(camera, /1 - Math\.pow\(1 - 0\.16, safeDelta \/ 16\.66\)/);
+  assert.match(camera, /Math\.round\(this\.currentY \* pixelRatio\) \/ pixelRatio/);
 });

@@ -35,7 +35,7 @@ const CameraLogic = {
   },
 
   // 讓玩家穩定停在畫面約三分之一處，保留前方視野（方向依 exitDirection 而定）。
-  update: function(playerWorldY) {
+  update: function(playerWorldY, frameDeltaMs = 16.66) {
     if (!this.worldDOM) return;
 
     const worldHeight = this.worldHeight || this.worldDOM.offsetHeight || 0;
@@ -45,9 +45,16 @@ const CameraLogic = {
     const unshiftedPlayerY = (viewportHeight * 0.5) - (worldHeight * scale * 0.5) + (playerWorldY * scale);
 
     this.targetY = anchorY - unshiftedPlayerY;
-    this.currentY += (this.targetY - this.currentY) * 0.16;
 
-    const stableY = Math.round(this.currentY);
+    // v0.10.5.1：把原本「每幀固定 0.16」換成等效的時間式平滑。
+    // iOS 偶發掉幀時，相機不會因幀距改變而忽快忽慢；60Hz 的手感維持不變。
+    const safeDelta = Math.min(Math.max(Number(frameDeltaMs) || 16.66, 0), 34);
+    const smoothing = 1 - Math.pow(1 - 0.16, safeDelta / 16.66);
+    this.currentY += (this.targetY - this.currentY) * smoothing;
+
+    // 保留 iPhone Retina 的實體像素精度，避免整數 CSS px 造成可見的階梯跳動。
+    const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+    const stableY = Math.round(this.currentY * pixelRatio) / pixelRatio;
     this.worldDOM.style.transform = `rotateX(40deg) translate3d(0, ${stableY}px, -165px) scale(${scale})`;
   }
 };

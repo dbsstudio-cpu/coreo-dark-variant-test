@@ -783,7 +783,7 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    CameraLogic.update(playerPos.y);
+    CameraLogic.update(playerPos.y, dt);
     requestAnimationFrame(gameLoop);
   }
 
