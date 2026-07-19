@@ -143,13 +143,13 @@ window.addEventListener('DOMContentLoaded', () => {
         maxChaseDistanceFromGuard: 950
       },
       pulseRequirement: 1,
-      exitDirection: 'up',
+      exitDirection: 'down',
       briefing: {
         title: 'STAGE 01 | CORE AWAKENING',
         subtitle: '第一關｜核心甦醒',
         shardRule: '收集 5 個，可形成 1 個 Core Pulse。',
         pulseRule: '出口需要 1 個；可由碎片形成，或直接取得。',
-        mission: '收集 5 個碎片，或取得菱形 Core Pulse；避開 EMBER，啟動上方出口。',
+        mission: '收集 5 個碎片，或取得菱形 Core Pulse；避開 EMBER，啟動下方出口。',
         btnText: 'ENTER STAGE 01'
       }
     },

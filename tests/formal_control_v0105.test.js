@@ -212,7 +212,7 @@ test('T11: formal UI exposes v0.10.5.1 and keeps full-screen controls', () => {
   assert.match(index, /aria-label="連續滑動移動區"/);
   assert.doesNotMatch(index, /swipe-control-hint|digital-dpad|data-dpad-direction/);
   assert.match(css, /#joystick-zone\s*\{[\s\S]*?inset:\s*0;/);
-  assert.match(serviceWorker, /coreo-dark-variant-v01051-player-stability-20260720/);
+  assert.match(serviceWorker, /coreo-dark-variant-v01051-stage01-direction-test-20260720/);
 });
 
 test('T12: player and camera rendering are stable without changing v0.10.5 control', () => {
