@@ -47,8 +47,8 @@ const MazeLogic = {
       [0,1,0,1,1,1,0], // y=34
       [0,1,0,1,0,0,0], // y=35
       [0,1,4,1,1,1,0], // y=36 lower decision + reward branch
-      [0,0,0,0,0,1,0], // y=37 side approach，出口不與入口同一直線
-      [0,0,0,0,0,3,0]  // y=38 Exit：下方出口
+      [0,0,0,1,0,0,0], // y=37 出口前短直線
+      [0,0,0,3,0,0,0]  // y=38 Exit：下方中央出口
     ];
     this.verifySolvable(map);
     return map;

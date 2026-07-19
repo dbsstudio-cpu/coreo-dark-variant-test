@@ -8,6 +8,7 @@ const CameraLogic = {
   viewportWidth: 0,
   worldScale: 1,
   exitDirection: 'up',
+  anchorRatio: null,
 
   init: function() {
     this.worldDOM = document.getElementById('world');
@@ -30,8 +31,11 @@ const CameraLogic = {
   // exitDirection:'down'（Stage02，玩家往下走）鏡射成 0.44（前方在下，畫面下半留多一點），
   // 之前這個值是寫死的，只對 Stage01 的方向合理，Stage02 出口反過來後沒有跟著改，
   // 造成畫面上半大片空白、實際可玩區域被壓縮到下半一小塊。
-  setDirection: function(direction) {
+  setDirection: function(direction, anchorRatio = null) {
     this.exitDirection = direction === 'down' ? 'down' : 'up';
+    this.anchorRatio = Number.isFinite(anchorRatio)
+      ? Math.min(0.9, Math.max(0.1, anchorRatio))
+      : null;
   },
 
   // 讓玩家穩定停在畫面約三分之一處，保留前方視野（方向依 exitDirection 而定）。
@@ -41,7 +45,8 @@ const CameraLogic = {
     const worldHeight = this.worldHeight || this.worldDOM.offsetHeight || 0;
     const viewportHeight = this.viewportHeight || window.innerHeight || document.documentElement.clientHeight || 0;
     const scale = this.worldScale || 1;
-    const anchorY = viewportHeight * (this.exitDirection === 'down' ? 0.44 : 0.56);
+    const defaultAnchorRatio = this.exitDirection === 'down' ? 0.44 : 0.56;
+    const anchorY = viewportHeight * (this.anchorRatio ?? defaultAnchorRatio);
     const unshiftedPlayerY = (viewportHeight * 0.5) - (worldHeight * scale * 0.5) + (playerWorldY * scale);
 
     this.targetY = anchorY - unshiftedPlayerY;

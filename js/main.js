@@ -131,6 +131,7 @@ window.addEventListener('DOMContentLoaded', () => {
       },
       pulseRequirement: 1,
       exitDirection: 'down',
+      cameraAnchorRatio: 0.12,
       briefing: {
         title: 'STAGE 01 | CORE AWAKENING',
         subtitle: '第一關｜核心甦醒',
@@ -244,7 +245,10 @@ window.addEventListener('DOMContentLoaded', () => {
   let lastRailDirection = null;
   let lastControlCommandId = ControlLogic.commandId;
   CameraLogic.refreshMetrics();
-  CameraLogic.setDirection(STAGE_CONFIG[currentStage].exitDirection);
+  CameraLogic.setDirection(
+    STAGE_CONFIG[currentStage].exitDirection,
+    STAGE_CONFIG[currentStage].cameraAnchorRatio
+  );
   if (restoredRun?.playerPos) playerPos = restoredRun.playerPos;
 
   const world = document.getElementById('world');
@@ -823,7 +827,10 @@ window.addEventListener('DOMContentLoaded', () => {
     ControlLogic.stop('stage-change');
     resetRailControl();
     CameraLogic.refreshMetrics();
-    CameraLogic.setDirection(STAGE_CONFIG[stageId].exitDirection);
+    CameraLogic.setDirection(
+      STAGE_CONFIG[stageId].exitDirection,
+      STAGE_CONFIG[stageId].cameraAnchorRatio
+    );
     world.className = `stage-0${stageId}`;
     document.body.classList.toggle('stage-02-active', stageId === 2);
     world.appendChild(playerDiv);

@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v01051-stage01-direction-test-20260720';
+const COREO_CACHE = 'coreo-dark-variant-v01051-stage01-direction-test-r2-20260720';
 const COREO_ASSETS = [
   './',
   './index.html',

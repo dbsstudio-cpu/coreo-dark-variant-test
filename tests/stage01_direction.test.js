@@ -60,13 +60,12 @@ function reachableCells(map, start) {
   return visited;
 }
 
-test('Stage 01 uses a top entrance and a lower side-entry exit', () => {
+test('Stage 01 uses a top entrance and a lower exit', () => {
   const map = loadStage01();
   assert.equal(map.length, 39);
   assert.ok(map.every((row) => row.length === 7));
   assert.deepEqual(findCell(map, 2), { x: 3, y: 0 });
-  assert.deepEqual(findCell(map, 3), { x: 5, y: 38 });
-  assert.notEqual(findCell(map, 2).x, findCell(map, 3).x);
+  assert.deepEqual(findCell(map, 3), { x: 3, y: 38 });
 });
 
 test('Stage 01 gives a safe three-cell introduction before the first branch', () => {
@@ -96,6 +95,7 @@ test('Stage 01 camera and briefing point downward without touching control archi
   const lab = fs.readFileSync(path.join(root, 'js', 'main-control-lab.js'), 'utf8');
   const ccLab = fs.readFileSync(path.join(root, 'js', 'cc_main.js'), 'utf8');
   assert.match(main, /1:\s*\{[\s\S]*?exitDirection:\s*'down'/);
+  assert.match(main, /1:\s*\{[\s\S]*?cameraAnchorRatio:\s*0\.12/);
   assert.match(main, /啟動下方出口/);
   assert.match(lab, /1:\s*\{[\s\S]*?exitDirection:\s*'down'/);
   assert.match(ccLab, /s1:\s*\{\s*stage:\s*1,\s*exitDirection:\s*'down'/);

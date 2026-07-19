@@ -27,7 +27,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ---- 場景管理 ----
   const SCENARIOS = {
-    s1: { stage: 1, exitDirection: 'down', label: 'STAGE 01', getMap: () => MazeLogic.getStage01Map() },
+    s1: { stage: 1, exitDirection: 'down', cameraAnchorRatio: 0.12, label: 'STAGE 01', getMap: () => MazeLogic.getStage01Map() },
     s2: { stage: 2, exitDirection: 'down', label: 'STAGE 02', getMap: () => MazeLogic.getStage02Map() },
     // 凹槽急轉專用：從 Stage02 的 3 格深躲藏凹槽(1,16)出發，
     // 往下離開凹槽後在 (1,17) 立即右轉，是 Sean 描述的失敗情境本體
@@ -77,7 +77,7 @@ window.addEventListener('DOMContentLoaded', () => {
     releaseGlide = false;
     world.appendChild(playerDiv);
     CameraLogic.refreshMetrics();
-    CameraLogic.setDirection(sc.exitDirection);
+    CameraLogic.setDirection(sc.exitDirection, sc.cameraAnchorRatio);
     updatePlayerDOM();
     const label = document.getElementById('cc-scenario-label');
     if (label) label.textContent = sc.label;
