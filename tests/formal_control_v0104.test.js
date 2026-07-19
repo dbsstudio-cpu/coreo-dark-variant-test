@@ -24,7 +24,8 @@ function plainDirection(command) {
 
 test('T1: one held touch continuously emits up, right, down and left', () => {
   const control = loadControl();
-  assert.equal(control.VERSION, 'v0.10.3');
+  assert.equal(control.VERSION, 'v0.10.4');
+  assert.equal(control.AXIS_DECAY, 0.7);
   control.start(100, 100, 1);
 
   const up = control.move(100, 87, 100);
@@ -107,14 +108,34 @@ test('T8: sustained straight movement plus micro drift never oscillates axes', (
   assert.deepEqual(Array.from(control.getCommandsAfter(0), plainDirection), [{ x: 0, y: -1 }]);
 });
 
-test('formal UI exposes v0.10.3, full-screen controls and short-screen image containment', () => {
+test('T9: a sustained real-world corner arc emits U-R once without U-R-U-R oscillation', () => {
+  const control = loadControl();
+  control.start(100, 200, 8);
+  control.move(100, 187, 800);
+
+  let x = 100;
+  let y = 187;
+  const arcDeltas = [[8, -4], [8, -4], [8, -4], [8, -4], [8, -4], [8, -4], [8, -1], [8, -1]];
+  arcDeltas.forEach(([dx, dy], index) => {
+    x += dx;
+    y += dy;
+    control.move(x, y, 816 + index * 16);
+  });
+
+  assert.deepEqual(Array.from(control.getCommandsAfter(0), plainDirection), [
+    { x: 0, y: -1 },
+    { x: 1, y: 0 }
+  ]);
+});
+
+test('formal UI exposes v0.10.4, full-screen controls and short-screen image containment', () => {
   const root = path.join(__dirname, '..');
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
   const main = fs.readFileSync(path.join(root, 'js', 'main.js'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
 
-  assert.match(index, /COREO DARK v0\.10\.3/);
+  assert.match(index, /COREO DARK v0\.10\.4/);
   assert.match(index, /aria-label="連續滑動移動區"/);
   assert.doesNotMatch(index, /swipe-control-hint|digital-dpad|data-dpad-direction/);
   assert.match(css, /#joystick-zone\s*\{[\s\S]*?inset:\s*0;/);
@@ -124,5 +145,5 @@ test('formal UI exposes v0.10.3, full-screen controls and short-screen image con
   assert.match(css, /\.briefing-cinematic\s*\{[\s\S]*?flex:\s*1 1 auto;[\s\S]*?min-height:\s*0;/);
   assert.match(css, /\.cinematic-player img\s*\{[\s\S]*?max-height:\s*min\(170px, 24vh\);[\s\S]*?object-fit:\s*contain;/);
   assert.match(css, /\.cinematic-ember img\s*\{[\s\S]*?max-height:\s*min\(170px, 24vh\);[\s\S]*?object-fit:\s*contain;/);
-  assert.match(serviceWorker, /coreo-dark-variant-v0103-ios-turn-mini-briefing-20260720/);
+  assert.match(serviceWorker, /coreo-dark-variant-v0104-turn-oscillation-hotfix-20260720/);
 });

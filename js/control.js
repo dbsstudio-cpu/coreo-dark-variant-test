@@ -1,4 +1,4 @@
-// js/control.js — COREO DARK v0.10.3
+// js/control.js — COREO DARK v0.10.4
 // 在 v0.10.2「最近增量累積 → 一次性方向命令」基礎上，加入一項針對 iOS/mini 拇指弧線急轉的修正。
 //
 // 問題（CC 對照實際碼 + 模擬驗證）：
@@ -7,14 +7,18 @@
 //   單純調低 AXIS_BIAS（GPT 建議的 1.15）在真實收斂弧線下仍無法轉（模擬證實）。
 //   直接清空舊軸又會讓持續斜拉在兩軸間震盪（U R U R）。
 //
-// 修正（v0.10.3）：對「與當前行進方向同向」的沿軸累積做溫和衰減(leaky ×AXIS_DECAY)，
+// 修正：對「與當前行進方向同向」的沿軸累積做溫和衰減(leaky ×AXIS_DECAY)，
 //   讓換軸判定反映「最近的手指動向」而非「整段行程的累積」。
 //   只衰減同向沿軸；反向(opposite)與跨軸(turn)訊號完整保留 → 反向與抗抖動不受影響（模擬證實）。
+//
+// v0.10.3→v0.10.4 熱修：AXIS_DECAY 0.5 太猛，真機在轉角處出現 U-R-U-R 震盪＝「進彎頓一下、抖一下才轉」
+//   （iOS/Android 皆有，因屬純輸入邏輯）。模擬證實改 0.7 後淺/中/陡弧皆乾淨轉一次、零震盪，
+//   反向與抗抖動不受影響。本檔唯一改動＝AXIS_DECAY 0.5 → 0.7。
 //
 // 命令介面（emitCommand / commandId / getCommandsAfter / type:'direction'|'stop'）與 v0.10.2 完全相同
 //   → main.js 與 rail-assist.js 一行都不用改。
 const ControlLogic = {
-  VERSION: 'v0.10.3',
+  VERSION: 'v0.10.4',
   dx: 0,
   dy: 0,
   isActive: false,
@@ -34,9 +38,10 @@ const ControlLogic = {
   TURN_THRESHOLD: 13,
   AXIS_BIAS: 1.3,
   REVERSE_AXIS_BIAS: 1.15,
-  // v0.10.3 新增：同向沿軸累積的每步衰減係數。0.5=標準；0.6 較溫和(更穩、較不易轉)；0.4 較積極(更易轉)。
-  // 這是本輪解「弧線急轉漏判」的主要旋鈕。
-  AXIS_DECAY: 0.5,
+  // 同向沿軸累積的每步衰減係數（本輪解「弧線急轉」的主要旋鈕）。
+  // v0.10.4：0.5 會在轉角震盪(U-R-U-R)→抖動停頓，改 0.7 乾淨轉一次。
+  // 調節：0.75 更穩(更不易誤震盪)｜0.65 更易轉(若真機偏鈍)。不建議 ≤0.6(會回到震盪)。
+  AXIS_DECAY: 0.7,
 
   sameDirection: function(a, b) {
     return !!(a && b && a.x === b.x && a.y === b.y);
