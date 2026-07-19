@@ -1,31 +1,36 @@
-// js/control.js — COREO DARK v0.10.1
-// One deliberate swipe emits one direction command. The player keeps moving after
-// release; the next swipe changes direction and a tap stops movement.
+// js/control.js — COREO DARK v0.10.2 (CC spec)
+// 連續分段滑動輸入層：同一根手指按住可連續產生多個方向命令，不需要放開再重滑。
+// 每次 pointermove 取「最近增量」累積，主軸越過門檻就發一個一次性方向命令並歸零重算；
+// 手指微小晃動（低於門檻）完全不發命令，避免 v0.9.7 的過度靈敏。
+//
+// 命令介面（emitCommand / commandId / getCommandsAfter / type:'direction'|'stop'）
+// 與 v0.9.8、v0.10.1 完全相同 → main.js 與 rail-assist.js 一行都不用改。
 const ControlLogic = {
-  VERSION: 'v0.10.1',
-  SWIPE_THRESHOLD: 18,
-  DIAGONAL_FALLBACK_THRESHOLD: 26,
-  AXIS_BIAS: 1.15,
+  VERSION: 'v0.10.2',
   dx: 0,
   dy: 0,
   isActive: false,
   activePointerId: null,
-  startPointerX: 0,
-  startPointerY: 0,
-  gestureIssued: false,
+  lastPointerX: 0,
+  lastPointerY: 0,
+  accumulatedDX: 0,
+  accumulatedDY: 0,
   acceptedDirection: null,
   commandId: 0,
   commandQueue: [],
   zoneElement: null,
+  REVERSE_THRESHOLD: 11,
+  TURN_THRESHOLD: 13,
+  AXIS_BIAS: 1.3,
+  REVERSE_AXIS_BIAS: 1.15,
 
-  chooseDirection: function(dx, dy) {
-    const ax = Math.abs(dx);
-    const ay = Math.abs(dy);
-    if (ax < this.SWIPE_THRESHOLD && ay < this.SWIPE_THRESHOLD) return null;
-    if (ax >= ay * this.AXIS_BIAS) return { x: dx > 0 ? 1 : -1, y: 0 };
-    if (ay >= ax * this.AXIS_BIAS) return { x: 0, y: dy > 0 ? 1 : -1 };
-    if (Math.max(ax, ay) < this.DIAGONAL_FALLBACK_THRESHOLD) return null;
-    return ax >= ay ? { x: dx > 0 ? 1 : -1, y: 0 } : { x: 0, y: dy > 0 ? 1 : -1 };
+  sameDirection: function(a, b) {
+    return !!(a && b && a.x === b.x && a.y === b.y);
+  },
+
+  resetAccumulation: function() {
+    this.accumulatedDX = 0;
+    this.accumulatedDY = 0;
   },
 
   emitCommand: function(type, direction, source, now = performance.now()) {
@@ -39,7 +44,6 @@ const ControlLogic = {
     };
     this.commandQueue.push(command);
     if (this.commandQueue.length > 64) this.commandQueue.shift();
-
     if (type === 'direction') {
       this.acceptedDirection = { x: direction.x, y: direction.y };
       this.dx = direction.x;
@@ -52,39 +56,70 @@ const ControlLogic = {
     return command;
   },
 
+  chooseDirection: function() {
+    const dx = this.accumulatedDX;
+    const dy = this.accumulatedDY;
+    const ax = Math.abs(dx);
+    const ay = Math.abs(dy);
+    const current = this.acceptedDirection;
+
+    if (current && current.x !== 0 && dx * current.x < 0 && ax >= this.REVERSE_THRESHOLD && ax >= ay * this.REVERSE_AXIS_BIAS) {
+      return { x: dx > 0 ? 1 : -1, y: 0 };
+    }
+    if (current && current.y !== 0 && dy * current.y < 0 && ay >= this.REVERSE_THRESHOLD && ay >= ax * this.REVERSE_AXIS_BIAS) {
+      return { x: 0, y: dy > 0 ? 1 : -1 };
+    }
+
+    if (!current) {
+      if (ax >= this.TURN_THRESHOLD || ay >= this.TURN_THRESHOLD) {
+        return ax >= ay ? { x: dx > 0 ? 1 : -1, y: 0 } : { x: 0, y: dy > 0 ? 1 : -1 };
+      }
+      return null;
+    }
+
+    if (current.x !== 0 && ay >= this.TURN_THRESHOLD && ay >= ax * this.AXIS_BIAS) {
+      return { x: 0, y: dy > 0 ? 1 : -1 };
+    }
+    if (current.y !== 0 && ax >= this.TURN_THRESHOLD && ax >= ay * this.AXIS_BIAS) {
+      return { x: dx > 0 ? 1 : -1, y: 0 };
+    }
+    return null;
+  },
+
   start: function(x, y, pointerId) {
     if (this.isActive) return;
     this.isActive = true;
     this.activePointerId = pointerId;
-    this.startPointerX = x;
-    this.startPointerY = y;
-    this.gestureIssued = false;
+    this.lastPointerX = x;
+    this.lastPointerY = y;
+    this.resetAccumulation();
   },
 
   move: function(x, y, now = performance.now()) {
-    if (!this.isActive || this.gestureIssued) return null;
-    const direction = this.chooseDirection(x - this.startPointerX, y - this.startPointerY);
-    if (!direction) return null;
-    this.gestureIssued = true;
-    return this.emitCommand('direction', direction, 'discrete-swipe', now);
-  },
-
-  finish: function(source = 'pointerup', now = performance.now()) {
     if (!this.isActive) return null;
-    const issued = this.gestureIssued;
-    const cancelled = source === 'pointercancel' || source === 'touchcancel' || source === 'lostcapture';
-    this.isActive = false;
-    this.activePointerId = null;
-    this.gestureIssued = false;
-    if (issued && !cancelled) return null;
-    return this.stop(source === 'pointerup' || source === 'touchend' ? 'tap-stop' : source, now);
+    const dx = x - this.lastPointerX;
+    const dy = y - this.lastPointerY;
+    this.lastPointerX = x;
+    this.lastPointerY = y;
+    if (dx === 0 && dy === 0) return null;
+
+    if (this.accumulatedDX !== 0 && dx !== 0 && Math.sign(dx) !== Math.sign(this.accumulatedDX)) this.accumulatedDX = 0;
+    if (this.accumulatedDY !== 0 && dy !== 0 && Math.sign(dy) !== Math.sign(this.accumulatedDY)) this.accumulatedDY = 0;
+    this.accumulatedDX += dx;
+    this.accumulatedDY += dy;
+
+    const direction = this.chooseDirection();
+    if (!direction) return null;
+    const changed = !this.sameDirection(direction, this.acceptedDirection);
+    this.resetAccumulation();
+    return changed ? this.emitCommand('direction', direction, 'pointer-delta', now) : null;
   },
 
   stop: function(source = 'stop', now = performance.now()) {
     const hadInput = this.isActive || this.acceptedDirection || this.dx !== 0 || this.dy !== 0;
     this.isActive = false;
     this.activePointerId = null;
-    this.gestureIssued = false;
+    this.resetAccumulation();
     return hadInput ? this.emitCommand('stop', null, source, now) : null;
   },
 
@@ -93,17 +128,18 @@ const ControlLogic = {
   },
 
   init: function() {
-    this.zoneElement = document.getElementById('joystick-zone');
-    if (!this.zoneElement) throw new Error('COREO swipe control zone not found');
+    const zone = document.getElementById('joystick-zone');
+    this.zoneElement = zone;
+    if (!zone) throw new Error('COREO control zone not found');
 
     if (window.PointerEvent) {
-      this.zoneElement.addEventListener('pointerdown', (event) => {
+      zone.addEventListener('pointerdown', (event) => {
         if (this.isActive) return;
         event.preventDefault();
-        try { this.zoneElement.setPointerCapture?.(event.pointerId); } catch (_) { /* Safari teardown race. */ }
+        try { zone.setPointerCapture?.(event.pointerId); } catch (_) { /* Safari teardown race. */ }
         this.start(event.clientX, event.clientY, event.pointerId);
       }, { passive: false });
-      this.zoneElement.addEventListener('pointermove', (event) => {
+      zone.addEventListener('pointermove', (event) => {
         if (!this.isActive || event.pointerId !== this.activePointerId) return;
         event.preventDefault();
         this.move(event.clientX, event.clientY);
@@ -111,18 +147,18 @@ const ControlLogic = {
       const endPointer = (event, source) => {
         if (!this.isActive || event.pointerId !== this.activePointerId) return;
         event.preventDefault();
-        this.finish(source);
+        this.stop(source);
       };
-      this.zoneElement.addEventListener('pointerup', (event) => endPointer(event, 'pointerup'), { passive: false });
-      this.zoneElement.addEventListener('pointercancel', (event) => endPointer(event, 'pointercancel'), { passive: false });
-      this.zoneElement.addEventListener('lostpointercapture', (event) => {
-        if (event.pointerId === this.activePointerId) this.finish('lostcapture');
+      zone.addEventListener('pointerup', (event) => endPointer(event, 'pointerup'), { passive: false });
+      zone.addEventListener('pointercancel', (event) => endPointer(event, 'pointercancel'), { passive: false });
+      zone.addEventListener('lostpointercapture', (event) => {
+        if (event.pointerId === this.activePointerId) this.stop('lostcapture');
       });
       return;
     }
 
     const findTouch = (list, id) => Array.from(list || []).find((touch) => id === null || touch.identifier === id) || null;
-    this.zoneElement.addEventListener('touchstart', (event) => {
+    zone.addEventListener('touchstart', (event) => {
       if (this.isActive) return;
       const touch = event.changedTouches?.[0];
       if (!touch) return;
@@ -139,12 +175,12 @@ const ControlLogic = {
     document.addEventListener('touchend', (event) => {
       if (!this.isActive || !findTouch(event.changedTouches, this.activePointerId)) return;
       event.preventDefault();
-      this.finish('touchend');
+      this.stop('touchend');
     }, { passive: false });
     document.addEventListener('touchcancel', (event) => {
       if (!this.isActive) return;
       event.preventDefault();
-      this.finish('touchcancel');
+      this.stop('touchcancel');
     }, { passive: false });
   },
 

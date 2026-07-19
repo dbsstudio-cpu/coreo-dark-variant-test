@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>COREO Dark Variant - v0.10.1</title>
+  <title>COREO Dark Variant - v0.10.2</title>
   <meta name="theme-color" content="#0A0A0C">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,7 +29,7 @@
   </div>
 
   <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
-  <div id="version-tag">COREO DARK v0.10.1</div>
+  <div id="version-tag">COREO DARK v0.10.2</div>
 
   <!-- v0.6：最簡化選關畫面，只在已解鎖 Stage 02 且非救回狀態時顯示 -->
   <div id="stage-select-overlay">
@@ -94,10 +94,8 @@
     </div>
   </div>
 
-  <!-- v0.10.1：無介面離散滑動；滑一下轉向，輕點停止 -->
-  <div id="joystick-zone" aria-label="滑動移動區">
-    <div class="swipe-control-hint" aria-hidden="true">滑動轉向 · 輕點停止</div>
-  </div>
+  <!-- v0.10.2：滿版無介面連續分段滑動；放開立即停止 -->
+  <div id="joystick-zone" aria-label="連續滑動移動區"></div>
 
   <!-- 過關收束動畫 (無 alert) -->
   <div id="level-complete-overlay">
