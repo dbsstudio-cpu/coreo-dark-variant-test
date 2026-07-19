@@ -1,12 +1,20 @@
-// js/control.js — COREO DARK v0.10.2 (CC spec)
-// 連續分段滑動輸入層：同一根手指按住可連續產生多個方向命令，不需要放開再重滑。
-// 每次 pointermove 取「最近增量」累積，主軸越過門檻就發一個一次性方向命令並歸零重算；
-// 手指微小晃動（低於門檻）完全不發命令，避免 v0.9.7 的過度靈敏。
+// js/control.js — COREO DARK v0.10.3
+// 在 v0.10.2「最近增量累積 → 一次性方向命令」基礎上，加入一項針對 iOS/mini 拇指弧線急轉的修正。
 //
-// 命令介面（emitCommand / commandId / getCommandsAfter / type:'direction'|'stop'）
-// 與 v0.9.8、v0.10.1 完全相同 → main.js 與 rail-assist.js 一行都不用改。
+// 問題（CC 對照實際碼 + 模擬驗證）：
+//   往某方向走一段路時，該「沿軸」累積量會一直長大、直行期間從不歸零，
+//   大到之後任何側向轉彎意圖都追不上它 → 拇指弧線急轉偶發漏判（mini 最明顯）。
+//   單純調低 AXIS_BIAS（GPT 建議的 1.15）在真實收斂弧線下仍無法轉（模擬證實）。
+//   直接清空舊軸又會讓持續斜拉在兩軸間震盪（U R U R）。
+//
+// 修正（v0.10.3）：對「與當前行進方向同向」的沿軸累積做溫和衰減(leaky ×AXIS_DECAY)，
+//   讓換軸判定反映「最近的手指動向」而非「整段行程的累積」。
+//   只衰減同向沿軸；反向(opposite)與跨軸(turn)訊號完整保留 → 反向與抗抖動不受影響（模擬證實）。
+//
+// 命令介面（emitCommand / commandId / getCommandsAfter / type:'direction'|'stop'）與 v0.10.2 完全相同
+//   → main.js 與 rail-assist.js 一行都不用改。
 const ControlLogic = {
-  VERSION: 'v0.10.2',
+  VERSION: 'v0.10.3',
   dx: 0,
   dy: 0,
   isActive: false,
@@ -19,10 +27,16 @@ const ControlLogic = {
   commandId: 0,
   commandQueue: [],
   zoneElement: null,
+
+  // 門檻沿用 v0.9.8/v0.10.2 驗證值。AXIS_BIAS 保留 1.3 作為「非弧線情況」的穩定值；
+  // 若 mini 真機仍偏鈍，這是次要旋鈕，可依任務包階梯降到 1.15 / 1.10。
   REVERSE_THRESHOLD: 11,
   TURN_THRESHOLD: 13,
   AXIS_BIAS: 1.3,
   REVERSE_AXIS_BIAS: 1.15,
+  // v0.10.3 新增：同向沿軸累積的每步衰減係數。0.5=標準；0.6 較溫和(更穩、較不易轉)；0.4 較積極(更易轉)。
+  // 這是本輪解「弧線急轉漏判」的主要旋鈕。
+  AXIS_DECAY: 0.5,
 
   sameDirection: function(a, b) {
     return !!(a && b && a.x === b.x && a.y === b.y);
@@ -63,6 +77,7 @@ const ControlLogic = {
     const ay = Math.abs(dy);
     const current = this.acceptedDirection;
 
+    // 同軸反向：最容易觸發
     if (current && current.x !== 0 && dx * current.x < 0 && ax >= this.REVERSE_THRESHOLD && ax >= ay * this.REVERSE_AXIS_BIAS) {
       return { x: dx > 0 ? 1 : -1, y: 0 };
     }
@@ -70,6 +85,7 @@ const ControlLogic = {
       return { x: 0, y: dy > 0 ? 1 : -1 };
     }
 
+    // 靜止起步
     if (!current) {
       if (ax >= this.TURN_THRESHOLD || ay >= this.TURN_THRESHOLD) {
         return ax >= ay ? { x: dx > 0 ? 1 : -1, y: 0 } : { x: 0, y: dy > 0 ? 1 : -1 };
@@ -77,6 +93,7 @@ const ControlLogic = {
       return null;
     }
 
+    // 垂直／水平換軸
     if (current.x !== 0 && ay >= this.TURN_THRESHOLD && ay >= ax * this.AXIS_BIAS) {
       return { x: 0, y: dy > 0 ? 1 : -1 };
     }
@@ -103,10 +120,23 @@ const ControlLogic = {
     this.lastPointerY = y;
     if (dx === 0 && dy === 0) return null;
 
+    // 軸向反轉時清掉舊累積，讓「最近一段滑動」才是判定依據
     if (this.accumulatedDX !== 0 && dx !== 0 && Math.sign(dx) !== Math.sign(this.accumulatedDX)) this.accumulatedDX = 0;
     if (this.accumulatedDY !== 0 && dy !== 0 && Math.sign(dy) !== Math.sign(this.accumulatedDY)) this.accumulatedDY = 0;
     this.accumulatedDX += dx;
     this.accumulatedDY += dy;
+
+    // v0.10.3：對「與當前行進方向同向」的沿軸累積做溫和衰減（leaky integrator）。
+    // 直行本身不需要靠累積（railDirection 已持續前進），衰減它只讓「換軸判定」反映最近動向；
+    // 反向（accumulatedD* 與 accepted 反號）與跨軸（另一軸）訊號完整保留，不受影響。
+    if (this.acceptedDirection) {
+      if (this.acceptedDirection.y !== 0 && Math.sign(this.accumulatedDY) === Math.sign(this.acceptedDirection.y)) {
+        this.accumulatedDY *= this.AXIS_DECAY;
+      }
+      if (this.acceptedDirection.x !== 0 && Math.sign(this.accumulatedDX) === Math.sign(this.acceptedDirection.x)) {
+        this.accumulatedDX *= this.AXIS_DECAY;
+      }
+    }
 
     const direction = this.chooseDirection();
     if (!direction) return null;

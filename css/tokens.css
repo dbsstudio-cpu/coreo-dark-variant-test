@@ -1276,7 +1276,8 @@ body.stage-02-active #fog-overlay {
 
 /* 中央並排對峙 */
 .briefing-cinematic {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -1288,18 +1289,23 @@ body.stage-02-active #fog-overlay {
 .cinematic-player, .cinematic-ember {
   width: 42%;
   max-width: 170px;
+  min-height: 0;
   position: relative;
 }
 
 .cinematic-player { animation: breathe-player 4s ease-in-out infinite; }
 .cinematic-player img {
   width: 100%; height: auto;
+  max-height: min(170px, 24vh);
+  object-fit: contain;
   filter: drop-shadow(0 0 12px rgba(0, 140, 255, 0.48)) drop-shadow(0 0 22px rgba(66, 200, 255, 0.16));
 }
 
 .cinematic-ember { animation: breathe-ember 5s ease-in-out infinite; }
 .cinematic-ember img {
   width: 100%; height: auto;
+  max-height: min(170px, 24vh);
+  object-fit: contain;
   filter: drop-shadow(0 0 14px rgba(255, 69, 58, 0.62)) drop-shadow(0 0 24px rgba(122, 16, 36, 0.2));
 }
 
