@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v0106-stage01-top-entry-20260720';
+const COREO_CACHE = 'coreo-dark-variant-v01061-entry-edge-s2-circuit-20260720';
 const COREO_ASSETS = [
   './',
   './index.html',

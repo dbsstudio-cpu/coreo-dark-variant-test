@@ -203,16 +203,16 @@ test('T10: formal code uses target-bound turns and has no arbitrary queued direc
   assert.match(rail, /TARGET_TURN_MAX_AGE_MS: 350/);
 });
 
-test('T11: formal UI exposes v0.10.6 and keeps full-screen controls', () => {
+test('T11: formal UI exposes v0.10.6.1 and keeps full-screen controls', () => {
   const root = path.join(__dirname, '..');
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
-  assert.match(index, /COREO DARK v0\.10\.6/);
+  assert.match(index, /COREO DARK v0\.10\.6\.1/);
   assert.match(index, /aria-label="連續滑動移動區"/);
   assert.doesNotMatch(index, /swipe-control-hint|digital-dpad|data-dpad-direction/);
   assert.match(css, /#joystick-zone\s*\{[\s\S]*?inset:\s*0;/);
-  assert.match(serviceWorker, /coreo-dark-variant-v0106-stage01-top-entry-20260720/);
+  assert.match(serviceWorker, /coreo-dark-variant-v01061-entry-edge-s2-circuit-20260720/);
 });
 
 test('T12: player and camera rendering are stable without changing v0.10.5 control', () => {
@@ -225,4 +225,13 @@ test('T12: player and camera rendering are stable without changing v0.10.5 contr
   assert.match(main, /CameraLogic\.update\(playerPos\.y, dt\)/);
   assert.match(camera, /1 - Math\.pow\(1 - 0\.16, safeDelta \/ 16\.66\)/);
   assert.match(camera, /Math\.round\(this\.currentY \* pixelRatio\) \/ pixelRatio/);
+});
+
+test('T13: Stage 01 entry glow is not paint-clipped and Stage 02 owns stronger circuit waves', () => {
+  const root = path.join(__dirname, '..');
+  const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
+  assert.match(css, /#world\.stage-01,\s*#world\.stage-02\s*\{\s*contain:\s*layout style;\s*overflow:\s*visible;/);
+  assert.match(css, /#world\.stage-02\.circuit-pulse \.cell\.path::after\s*\{[\s\S]*?rgba\(229, 243, 255, 0\.9\)[\s\S]*?rgba\(47, 99, 255, 0\.48\)/);
+  assert.match(css, /#world\.stage-02\.circuit-pulse \.cell\.path\.pulse-wave-5::after\s*\{\s*animation-name:\s*circuit-wave-s2-5;/);
+  assert.match(css, /@keyframes circuit-wave-s2-5\s*\{[\s\S]*?74%\{opacity:\.82\}[\s\S]*?78%\{opacity:\.18\}/);
 });

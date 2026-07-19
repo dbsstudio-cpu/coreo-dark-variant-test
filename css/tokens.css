@@ -446,7 +446,10 @@ body.stage-02-active #fog-overlay {
   border-radius: 3px;
 }
 
-/* v0.9.5：只保留地圖內原生的左右入口牆；解除 paint containment，確保牆體自己的頂線不被邊界裁掉。 */
+/* v0.10.6.1：兩關都解除 paint containment。Stage01 上方入口移到地圖第一列後，
+   Android 會嚴格裁掉超出 #world 邊界的牆緣高光；保留 layout/style containment 與
+   camera-rig 的視窗裁切，只放行牆體自身的邊線與微光，不改地圖尺寸或鏡頭位置。 */
+#world.stage-01,
 #world.stage-02 {
   contain: layout style;
   overflow: visible;
@@ -1619,7 +1622,10 @@ body.stage-02-active #fog-overlay {
   box-shadow: inset 0 0 0 1px var(--coreo-s1-guide-secondary), inset 0 0 5px rgba(100, 210, 255, 0.28);
 }
 #world.stage-02.circuit-pulse .cell.path::after {
-  box-shadow: inset 0 0 0 1px var(--coreo-s2-guide), inset 0 0 5px rgba(115, 183, 255, 0.26);
+  box-shadow:
+    inset 0 0 0 1px rgba(229, 243, 255, 0.9),
+    inset 0 0 0 2px rgba(115, 183, 255, 0.7),
+    inset 0 0 8px rgba(47, 99, 255, 0.48);
 }
 #world.circuit-pulse .cell.path.pulse-wave-1::after { animation: circuit-wave-1 2.4s linear forwards; }
 #world.circuit-pulse .cell.path.pulse-wave-2::after { animation: circuit-wave-2 2.4s linear forwards; }
@@ -1640,8 +1646,35 @@ body.stage-02-active #fog-overlay {
   animation: circuit-wave-4 2.4s linear forwards;
 }
 
+/* v0.10.6.1 Stage02：只加強路線／牆緣通電辨識度，不碰 player、filter 或新增粒子。
+   五段拓撲與 2.4 秒總長維持不變；較寬的峰值和短餘韻讓深鈷藍材質上也能清楚讀出傳導方向。 */
+#world.stage-02.circuit-pulse .cell.path.pulse-wave-1::after { animation-name: circuit-wave-s2-1; }
+#world.stage-02.circuit-pulse .cell.path.pulse-wave-2::after { animation-name: circuit-wave-s2-2; }
+#world.stage-02.circuit-pulse .cell.path.pulse-wave-3::after { animation-name: circuit-wave-s2-3; }
+#world.stage-02.circuit-pulse .cell.path.pulse-wave-4::after { animation-name: circuit-wave-s2-4; }
+#world.stage-02.circuit-pulse .cell.path.pulse-wave-5::after { animation-name: circuit-wave-s2-5; }
+
+#world.stage-02.circuit-pulse .cell.wall.zone-vault::before {
+  box-shadow: inset 0 0 0 1px rgba(229, 243, 255, 0.92), inset 0 0 9px rgba(115, 183, 255, 0.58);
+  animation-name: circuit-wave-s2-2;
+}
+#world.stage-02.circuit-pulse .cell.wall.zone-lure::before {
+  box-shadow: inset 0 0 0 1px rgba(115, 183, 255, 0.88), inset 0 0 7px rgba(47, 99, 255, 0.42);
+  animation-name: circuit-wave-s2-3;
+}
+#world.stage-02.circuit-pulse .cell.wall.zone-return::before {
+  box-shadow: inset 0 0 0 1px rgba(229, 243, 255, 0.82), inset 0 0 8px rgba(115, 183, 255, 0.52);
+  animation-name: circuit-wave-s2-4;
+}
+
 @keyframes circuit-wave-1 { 0%,3%{opacity:0} 4%,8%{opacity:1} 10%,100%{opacity:0} }
 @keyframes circuit-wave-2 { 0%,13%{opacity:0} 15%,20%{opacity:1} 22%,100%{opacity:0} }
 @keyframes circuit-wave-3 { 0%,27%{opacity:0} 29%,35%{opacity:.92} 37%,100%{opacity:0} }
 @keyframes circuit-wave-4 { 0%,43%{opacity:0} 45%,52%{opacity:.88} 54%,100%{opacity:0} }
 @keyframes circuit-wave-5 { 0%,62%{opacity:0} 65%,73%{opacity:.58} 78%,100%{opacity:0} }
+
+@keyframes circuit-wave-s2-1 { 0%,2%{opacity:0} 4%,9%{opacity:1} 12%{opacity:.24} 16%,100%{opacity:0} }
+@keyframes circuit-wave-s2-2 { 0%,11%{opacity:0} 14%,21%{opacity:1} 24%{opacity:.24} 28%,100%{opacity:0} }
+@keyframes circuit-wave-s2-3 { 0%,25%{opacity:0} 28%,36%{opacity:.98} 39%{opacity:.22} 43%,100%{opacity:0} }
+@keyframes circuit-wave-s2-4 { 0%,41%{opacity:0} 44%,53%{opacity:.94} 56%{opacity:.2} 60%,100%{opacity:0} }
+@keyframes circuit-wave-s2-5 { 0%,59%{opacity:0} 63%,74%{opacity:.82} 78%{opacity:.18} 83%,100%{opacity:0} }
