@@ -112,6 +112,7 @@ test('formal UI exposes v0.10.3, full-screen controls and short-screen image con
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
   const main = fs.readFileSync(path.join(root, 'js', 'main.js'), 'utf8');
+  const serviceWorker = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
 
   assert.match(index, /COREO DARK v0\.10\.3/);
   assert.match(index, /aria-label="連續滑動移動區"/);
@@ -123,4 +124,5 @@ test('formal UI exposes v0.10.3, full-screen controls and short-screen image con
   assert.match(css, /\.briefing-cinematic\s*\{[\s\S]*?flex:\s*1 1 auto;[\s\S]*?min-height:\s*0;/);
   assert.match(css, /\.cinematic-player img\s*\{[\s\S]*?max-height:\s*min\(170px, 24vh\);[\s\S]*?object-fit:\s*contain;/);
   assert.match(css, /\.cinematic-ember img\s*\{[\s\S]*?max-height:\s*min\(170px, 24vh\);[\s\S]*?object-fit:\s*contain;/);
+  assert.match(serviceWorker, /coreo-dark-variant-v0103-ios-turn-mini-briefing-20260720/);
 });

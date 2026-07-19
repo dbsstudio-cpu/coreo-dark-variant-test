@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v0101-discrete-swipe-20260719';
+const COREO_CACHE = 'coreo-dark-variant-v0103-ios-turn-mini-briefing-20260720';
 const COREO_ASSETS = [
   './',
   './index.html',
