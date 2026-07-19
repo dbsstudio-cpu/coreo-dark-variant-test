@@ -203,16 +203,16 @@ test('T10: formal code uses target-bound turns and has no arbitrary queued direc
   assert.match(rail, /TARGET_TURN_MAX_AGE_MS: 350/);
 });
 
-test('T11: formal UI exposes v0.10.5.1 and keeps full-screen controls', () => {
+test('T11: formal UI exposes v0.10.6 and keeps full-screen controls', () => {
   const root = path.join(__dirname, '..');
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
-  assert.match(index, /COREO DARK v0\.10\.5\.1/);
+  assert.match(index, /COREO DARK v0\.10\.6/);
   assert.match(index, /aria-label="連續滑動移動區"/);
   assert.doesNotMatch(index, /swipe-control-hint|digital-dpad|data-dpad-direction/);
   assert.match(css, /#joystick-zone\s*\{[\s\S]*?inset:\s*0;/);
-  assert.match(serviceWorker, /coreo-dark-variant-v01051-stage01-direction-test-r2-20260720/);
+  assert.match(serviceWorker, /coreo-dark-variant-v0106-stage01-top-entry-20260720/);
 });
 
 test('T12: player and camera rendering are stable without changing v0.10.5 control', () => {
