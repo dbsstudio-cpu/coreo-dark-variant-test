@@ -190,13 +190,13 @@ window.addEventListener('DOMContentLoaded', () => {
       enemyAsset: 'assets/enemy_siphon.png',
       enemyName: 'SIPHON',
       // 巡邏座標必須落在格子中心；整數倍 CELL_SIZE 會落在格線交界並造成貼牆／抖動。
+      // 9x64 新路線：SIPHON 守右側閉環（x=7，y=19~38），涵蓋 Core Pulse (7,26) 與核心警戒區。
       enemyRoute: [
-        { x: 7.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 18.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 22.5 * CELL_SIZE },
         { x: 7.5 * CELL_SIZE, y: 23.5 * CELL_SIZE },
-        { x: 6.5 * CELL_SIZE, y: 23.5 * CELL_SIZE },
-        { x: 5.5 * CELL_SIZE, y: 23.5 * CELL_SIZE }
+        { x: 7.5 * CELL_SIZE, y: 25.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 29.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 33.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 37.5 * CELL_SIZE }
       ],
       enemyTuning: {
         baseAlertRadius: 150,

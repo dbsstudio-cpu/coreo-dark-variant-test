@@ -98,20 +98,35 @@ function graphStats(map) {
   };
 }
 
-test('Stage 03 uses the approved 9x39 connected single-loop topology', () => {
+test('Stage 03 uses the approved 9x64 connected single-loop topology', () => {
   const stats = graphStats(loadStage03Map());
   assert.equal(stats.width, 9);
-  assert.equal(stats.height, 39);
-  assert.deepEqual(stats.start, [2, 0]);
-  assert.deepEqual(stats.exit, [6, 38]);
-  assert.equal(stats.vertices, 86);
-  assert.equal(stats.edges, 86);
+  assert.equal(stats.height, 64);
+  assert.deepEqual(stats.start, [4, 2]);
+  assert.deepEqual(stats.exit, [4, 63]);
+  assert.equal(stats.vertices, 177);
+  assert.equal(stats.edges, 177);
   assert.equal(stats.components, 1);
-  assert.equal(stats.reachableFromStart.size, 86);
-  assert.ok(stats.reachableFromStart.has('6,38'));
+  assert.equal(stats.reachableFromStart.size, 177);
+  assert.ok(stats.reachableFromStart.has('4,63'));
   assert.equal(stats.cycleRank, 1);
-  assert.equal(stats.twoCore, 30);
-  assert.equal(Number((stats.twoCore / stats.vertices * 100).toFixed(1)), 34.9);
+  assert.equal(stats.twoCore, 50);
+  assert.equal(Number((stats.twoCore / stats.vertices * 100).toFixed(1)), 28.2);
+});
+
+test('Stage 03 entrance keeps two centred safety buffer rows above the start', () => {
+  const map = loadStage03Map();
+  assert.equal(map[0][4], 1);
+  assert.equal(map[1][4], 1);
+  assert.equal(map[2][4], 2);
+});
+
+test('Stage 03 has exactly one real exit and the decoys are plain floor', () => {
+  const map = loadStage03Map();
+  const exits = map.flatMap((row, y) => row.map((v, x) => (v === 3 ? `${x},${y}` : null))).filter(Boolean);
+  assert.deepEqual(exits, ['4,63']);
+  assert.equal(map[52][7], 1);
+  assert.equal(map[63][7], 1);
 });
 
 test('Stage 03 resource counts are exact', () => {
