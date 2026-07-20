@@ -203,16 +203,19 @@ test('T10: formal code uses target-bound turns and has no arbitrary queued direc
   assert.match(rail, /TARGET_TURN_MAX_AGE_MS: 350/);
 });
 
-test('T11: formal UI exposes v0.10.6.1 and keeps full-screen controls', () => {
+test('T11: formal UI exposes v0.10.6.2, direct Stage 03 access, and full-screen controls', () => {
   const root = path.join(__dirname, '..');
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
-  assert.match(index, /COREO DARK v0\.10\.6\.1/);
+  assert.match(index, /COREO DARK v0\.10\.6\.2/);
+  assert.match(index, /id="stage03-direct-entry"[^>]*href="stage03-lab\.html"/);
   assert.match(index, /aria-label="連續滑動移動區"/);
   assert.doesNotMatch(index, /swipe-control-hint|digital-dpad|data-dpad-direction/);
   assert.match(css, /#joystick-zone\s*\{[\s\S]*?inset:\s*0;/);
-  assert.match(serviceWorker, /coreo-dark-variant-v01061-entry-edge-s2-circuit-20260720/);
+  assert.match(css, /#stage03-direct-entry\s*\{[\s\S]*?z-index:\s*10001;/);
+  assert.match(serviceWorker, /coreo-dark-variant-v01062-stage03-direct-entry-20260721/);
+  assert.match(serviceWorker, /\.\/stage03-lab\.html/);
 });
 
 test('T12: player and camera rendering are stable without changing v0.10.5 control', () => {
