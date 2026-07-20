@@ -203,18 +203,20 @@ test('T10: formal code uses target-bound turns and has no arbitrary queued direc
   assert.match(rail, /TARGET_TURN_MAX_AGE_MS: 350/);
 });
 
-test('T11: formal UI exposes v0.10.6.3 with Stage 03 removed and full-screen controls', () => {
+test('T11: formal UI exposes v0.10.7 with integrated Stage 03 and full-screen controls', () => {
   const root = path.join(__dirname, '..');
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
-  assert.match(index, /COREO DARK v0\.10\.6\.3/);
+  assert.match(index, /COREO DARK v0\.10\.7/);
+  assert.match(index, /id="btn-stage-3"/);
   assert.doesNotMatch(index, /stage03-direct-entry|stage03-lab\.html/);
   assert.match(index, /aria-label="連續滑動移動區"/);
   assert.doesNotMatch(index, /swipe-control-hint|digital-dpad|data-dpad-direction/);
   assert.match(css, /#joystick-zone\s*\{[\s\S]*?inset:\s*0;/);
   assert.doesNotMatch(css, /stage03-direct-entry/);
-  assert.match(serviceWorker, /coreo-dark-variant-v01063-stage03-removed-20260721/);
+  assert.match(serviceWorker, /coreo-dark-variant-v0107-stage03-integrated-20260720/);
+  assert.match(serviceWorker, /assets\/enemy_siphon\.png/);
   assert.doesNotMatch(serviceWorker, /stage03-lab/);
 });
 

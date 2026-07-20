@@ -32,6 +32,9 @@ const FX = {
     if (!world) return;
     const burst = document.createElement('div');
     burst.className = 'supernova-burst-fx';
+    if (world.classList.contains('stage-03')) {
+      burst.style.background = 'radial-gradient(circle, rgba(230,255,241,.9) 0%, rgba(115,224,166,.66) 22%, rgba(32,201,114,.3) 44%, transparent 76%)';
+    }
     burst.style.left = `${x}px`;
     burst.style.top = `${y}px`;
     world.appendChild(burst);
@@ -53,7 +56,10 @@ const FX = {
     // v0.8.3：Sean/GPT 最高優先覆蓋裁決，Stage02 的 Core Pulse 飛行粒子也不能是白金黃，
     // 這個粒子是 appendChild 到 document.body（不是 #world 底下），沒辦法用 CSS 後代選擇器
     // 靠 .stage-02 自動切色，直接在 JS 判斷目前是哪一關
-    const isStage02 = document.getElementById('world')?.classList.contains('stage-02');
+    const world = document.getElementById('world');
+    const isStage02 = world?.classList.contains('stage-02');
+    const isStage03 = world?.classList.contains('stage-03');
+    const boostColor = isStage03 ? '#20C972' : (isStage02 ? '#64D2FF' : 'var(--coreo-core-boost)');
     const uiCore = document.getElementById(isBoost ? 'ui-pulse-val' : 'ui-shard-val');
     const rect = coreDOM.getBoundingClientRect();
     const uiRect = uiCore.getBoundingClientRect();
@@ -64,9 +70,9 @@ const FX = {
     particle.style.top = `${rect.top + rect.height / 2}px`;
     particle.style.width = isBoost ? '14px' : '12px';
     particle.style.height = isBoost ? '14px' : '12px';
-    particle.style.backgroundColor = isBoost ? (isStage02 ? '#64D2FF' : 'var(--coreo-core-boost)') : 'var(--coreo-core-basic)';
+    particle.style.backgroundColor = isBoost ? boostColor : (isStage03 ? '#DDF8E9' : 'var(--coreo-core-basic)');
     particle.style.borderRadius = isBoost ? '4px' : '50%';
-    particle.style.boxShadow = isBoost ? `0 0 15px ${isStage02 ? '#64D2FF' : 'var(--coreo-core-boost)'}` : '0 0 15px var(--coreo-core-basic-glow)';
+    particle.style.boxShadow = isBoost ? `0 0 15px ${boostColor}` : `0 0 15px ${isStage03 ? '#8AF0B8' : 'var(--coreo-core-basic-glow)'}`;
     particle.style.zIndex = '9999';
     particle.style.pointerEvents = 'none';
     document.body.appendChild(particle);
@@ -158,7 +164,9 @@ const FX = {
       if ('vibrate' in navigator) navigator.vibrate([50, 50, 100]);
       const overlay = document.getElementById('level-complete-overlay');
       // v0.8.3：Sean/GPT 最高優先覆蓋裁決，STAGE SECURED 底線在 Stage02 也不能帶黃色
-      overlay.classList.toggle('stage-02', document.getElementById('world')?.classList.contains('stage-02'));
+      const worldClassList = document.getElementById('world')?.classList;
+      overlay.classList.toggle('stage-02', worldClassList?.contains('stage-02'));
+      overlay.classList.toggle('stage-03', worldClassList?.contains('stage-03'));
       overlay.classList.add('show');
       overlay.addEventListener('click', () => {
         location.reload();
@@ -203,8 +211,10 @@ const FX = {
       setTimeout(() => spriteDOM.classList.remove('shake'), 200);
     }
     if (pulseHudEl) {
-      pulseHudEl.classList.add('glow');
-      setTimeout(() => pulseHudEl.classList.remove('glow'), 220);
+      const worldClassList = document.getElementById('world')?.classList;
+      const glowClass = worldClassList?.contains('stage-03') ? 'glow-s3' : (worldClassList?.contains('stage-02') ? 'glow-s2' : 'glow');
+      pulseHudEl.classList.add(glowClass);
+      setTimeout(() => pulseHudEl.classList.remove(glowClass), 220);
     }
     if ('vibrate' in navigator) navigator.vibrate([40, 40, 40, 40, 40]);
   }

@@ -1,4 +1,4 @@
-const COREO_CACHE = 'coreo-dark-variant-v01063-stage03-removed-20260721';
+const COREO_CACHE = 'coreo-dark-variant-v0107-stage03-integrated-20260720';
 const COREO_ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,8 @@ const COREO_ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './assets/player.png',
-  './assets/enemy_ember.png'
+  './assets/enemy_ember.png',
+  './assets/enemy_siphon.png'
 ];
 
 self.addEventListener('install', (event) => {

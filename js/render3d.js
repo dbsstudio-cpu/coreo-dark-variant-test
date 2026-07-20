@@ -119,12 +119,18 @@ const Render3D = {
   // v0.9.0：以合併牆體矩形和設計分區的交集判斷，不能只看區塊左上角，
   // 否則貪婪合併後可能完全漏掉 Vault/Lure/Return 的導光 class。
   getWallZoneClass: function(x, y, stageId, w = 1, h = 1) {
-    if (stageId !== 2) return null;
     const overlaps = (minX, minY, maxX, maxY) =>
       x <= maxX && x + w - 1 >= minX && y <= maxY && y + h - 1 >= minY;
-    if (overlaps(2, 18, 6, 22)) return 'zone-vault';
-    if (overlaps(0, 25, 8, 38)) return 'zone-return';
-    if (overlaps(6, 13, 8, 24)) return 'zone-lure';
+    if (stageId === 2) {
+      if (overlaps(2, 18, 6, 22)) return 'zone-vault';
+      if (overlaps(0, 25, 8, 38)) return 'zone-return';
+      if (overlaps(6, 13, 8, 24)) return 'zone-lure';
+    }
+    if (stageId === 3) {
+      if (overlaps(6, 13, 8, 23)) return 'zone-vault';
+      if (overlaps(1, 13, 5, 23)) return 'zone-lure';
+      if (overlaps(1, 24, 7, 38)) return 'zone-return';
+    }
     return null;
   },
 

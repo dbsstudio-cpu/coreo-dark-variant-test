@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>COREO Dark Variant - v0.10.6.3</title>
+  <title>COREO Dark Variant - v0.10.7</title>
   <meta name="theme-color" content="#0A0A0C">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,13 +29,14 @@
   </div>
 
   <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
-  <div id="version-tag">COREO DARK v0.10.6.3</div>
+  <div id="version-tag">COREO DARK v0.10.7</div>
 
   <!-- v0.6：最簡化選關畫面，只在已解鎖 Stage 02 且非救回狀態時顯示 -->
   <div id="stage-select-overlay">
     <h2 style="color: var(--coreo-text-primary); letter-spacing: 2px; margin-bottom: 30px;">SELECT MISSION</h2>
     <div id="btn-stage-1" class="stage-card">STAGE 01<br><small>CORE AWAKENING</small></div>
     <div id="btn-stage-2" class="stage-card locked">STAGE 02<br><small>EMBER VAULT</small></div>
+    <div id="btn-stage-3" class="stage-card locked">STAGE 03<br><small>SIPHON CIRCUIT</small></div>
   </div>
 
   <!-- Stage Briefing (Cinematic Poster v1.1) -->
@@ -60,8 +61,8 @@
           <div class="cinematic-name player-name">LIGHT CORE</div>
         </div>
         <div class="cinematic-ember">
-          <img src="assets/enemy_ember.png" alt="EMBER" />
-          <div class="cinematic-name ember-name">EMBER</div>
+          <img id="briefing-enemy-img" src="assets/enemy_ember.png" alt="EMBER" />
+          <div id="briefing-enemy-name" class="cinematic-name ember-name">EMBER</div>
         </div>
       </div>
 

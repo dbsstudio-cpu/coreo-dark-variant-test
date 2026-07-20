@@ -34,9 +34,14 @@ window.addEventListener('DOMContentLoaded', () => {
   // 這裡直接依 currentStage 切換 class 名稱，讓 Stage02 走冷白/冰青版本、Stage01 維持原本黃綠閃光
   function flashHud(el) {
     if (!el) return;
-    const glowClass = currentStage === 2 ? 'glow-s2' : 'glow';
+    const glowClass = currentStage === 3 ? 'glow-s3' : (currentStage === 2 ? 'glow-s2' : 'glow');
     el.classList.add(glowClass);
     setTimeout(() => el.classList.remove(glowClass), 200);
+  }
+
+  function applyStageBodyClasses(stageId) {
+    document.body.classList.toggle('stage-02-active', stageId === 2);
+    document.body.classList.toggle('stage-03-active', stageId === 3);
   }
 
   function buildDistanceMap(startX, startY) {
@@ -178,14 +183,72 @@ window.addEventListener('DOMContentLoaded', () => {
         mission: '收集 5 個碎片形成一個 Core Pulse；引開 EMBER，潛入 Vault 取得另一個，再前往下方出口。',
         btnText: 'ENTER STAGE 02'
       }
+    },
+    3: {
+      getMap: () => MazeLogic.getStage03Map(),
+      enemyType: 'siphon',
+      enemyAsset: 'assets/enemy_siphon.png',
+      enemyName: 'SIPHON',
+      // 巡邏座標必須落在格子中心；整數倍 CELL_SIZE 會落在格線交界並造成貼牆／抖動。
+      enemyRoute: [
+        { x: 7.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 18.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 22.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 23.5 * CELL_SIZE },
+        { x: 6.5 * CELL_SIZE, y: 23.5 * CELL_SIZE },
+        { x: 5.5 * CELL_SIZE, y: 23.5 * CELL_SIZE }
+      ],
+      enemyTuning: {
+        baseAlertRadius: 150,
+        pathAlertLimit: 10,
+        pathSearchLimit: 64,
+        patrolSpeed: 0.60,
+        chaseSpeed: 1.34,
+        chaseDuration: 14000,
+        maxChaseDistanceFromGuard: 850,
+        alertDelay: 260,
+        chaseMemoryDuration: 1600,
+        searchDuration: 2200,
+        reactionInterval: 200
+      },
+      pulseRequirement: 2,
+      exitDirection: 'down',
+      cameraAnchorRatio: 0.44,
+      briefing: {
+        title: 'STAGE 03 | SIPHON CIRCUIT',
+        subtitle: '第三關｜蝕核迴路',
+        shardRule: '收集 5 個，可形成 1 個 Core Pulse。',
+        pulseRule: '出口需要 2 個；另一個被 SIPHON 嚴密守護。',
+        mission: '引開 SIPHON、取得核心並辨認真正出口。',
+        btnText: 'ENTER STAGE 03'
+      }
     }
   };
 
-  // Stage01 保留原參數；只有進入 Stage02 時才套用小幅壓力補強，避免改壞共用 EnemyLogic。
+  // 每次切關先回復共用 EnemyLogic 的正式預設值，再疊加該關 tuning，避免 S3 參數滲回 S1/S2。
+  const DEFAULT_ENEMY_TUNING = Object.freeze({
+    baseAlertRadius: 145,
+    pathAlertLimit: 7,
+    pathSearchLimit: 24,
+    chaseDuration: 11000,
+    alertDelay: 180,
+    patrolSpeed: 0.62,
+    chaseSpeed: 1.30,
+    reactionInterval: 180,
+    chaseMemoryDuration: 1300,
+    searchDuration: 1800,
+    maxChaseDistanceFromGuard: 950
+  });
+
   function applyEnemyTuning(stageId) {
-    const tuning = STAGE_CONFIG[stageId].enemyTuning;
-    if (!tuning) return;
-    Object.assign(EnemyLogic, tuning);
+    const tuning = STAGE_CONFIG[stageId].enemyTuning || {};
+    Object.assign(EnemyLogic, DEFAULT_ENEMY_TUNING, tuning);
+  }
+
+  function initEnemyForStage(stageId) {
+    const cfg = STAGE_CONFIG[stageId];
+    applyEnemyTuning(stageId);
+    EnemyLogic.init(cfg.enemyRoute, cfg.enemyType || 'villainHunt');
   }
 
   // v0.6：破關進度記憶，用 localStorage 永久保存，跟下面 sessionStorage 的「本局即時快照」
@@ -253,7 +316,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const world = document.getElementById('world');
   world.className = `stage-0${currentStage}`;
-  document.body.classList.toggle('stage-02-active', currentStage === 2);
+  applyStageBodyClasses(currentStage);
 
   const playerDiv = document.createElement('div');
   playerDiv.id = 'player';
@@ -264,8 +327,7 @@ window.addEventListener('DOMContentLoaded', () => {
   playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
-  applyEnemyTuning(currentStage);
-  EnemyLogic.init(STAGE_CONFIG[currentStage].enemyRoute, 'villainHunt');
+  initEnemyForStage(currentStage);
   if (restoredRun?.enemy) {
     Object.assign(EnemyLogic, {
       x: restoredRun.enemy.x ?? EnemyLogic.x,
@@ -726,8 +788,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     world.appendChild(playerDiv);
     updatePlayerDOM();
-    applyEnemyTuning(currentStage);
-    EnemyLogic.init(STAGE_CONFIG[currentStage].enemyRoute, 'villainHunt');
+    initEnemyForStage(currentStage);
 
     currentSpeed = baseSpeed;
     isGameOver = false;
@@ -803,6 +864,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const briefingPulseRuleEl = document.getElementById('briefing-pulse-rule');
   const briefingMissionEl = document.getElementById('briefing-mission');
   const briefingEnterBtn = document.getElementById('briefing-enter-btn');
+  const briefingEnemyImgEl = document.getElementById('briefing-enemy-img');
+  const briefingEnemyNameEl = document.getElementById('briefing-enemy-name');
 
   function applyBriefingText(stageId) {
     const cfg = STAGE_CONFIG[stageId];
@@ -812,9 +875,21 @@ window.addEventListener('DOMContentLoaded', () => {
     if (briefingPulseRuleEl) briefingPulseRuleEl.textContent = cfg.briefing.pulseRule;
     if (briefingMissionEl) briefingMissionEl.textContent = cfg.briefing.mission;
     if (briefingEnterBtn) briefingEnterBtn.textContent = cfg.briefing.btnText;
+    const enemyType = cfg.enemyType || 'villainHunt';
+    if (briefingEnemyImgEl) {
+      briefingEnemyImgEl.src = cfg.enemyAsset || 'assets/enemy_ember.png';
+      briefingEnemyImgEl.alt = cfg.enemyName || 'EMBER';
+    }
+    if (briefingEnemyNameEl) {
+      briefingEnemyNameEl.textContent = cfg.enemyName || 'EMBER';
+      briefingEnemyNameEl.className = `cinematic-name ${enemyType === 'siphon' ? 'siphon-name' : 'ember-name'}`;
+    }
 
     // v0.7.1：依關卡套用專屬 CSS class，供 Stage 02 白金儀表板與光效使用
-    if (briefingOverlay) briefingOverlay.classList.toggle('stage-02', stageId === 2);
+    if (briefingOverlay) {
+      briefingOverlay.classList.toggle('stage-02', stageId === 2);
+      briefingOverlay.classList.toggle('stage-03', stageId === 3);
+    }
   }
 
   // 只有從 Stage Select 主動選關時才會呼叫，救回狀態不會走這條路徑，
@@ -832,7 +907,7 @@ window.addEventListener('DOMContentLoaded', () => {
       STAGE_CONFIG[stageId].cameraAnchorRatio
     );
     world.className = `stage-0${stageId}`;
-    document.body.classList.toggle('stage-02-active', stageId === 2);
+    applyStageBodyClasses(stageId);
     world.appendChild(playerDiv);
     updatePlayerDOM();
 
@@ -841,8 +916,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (hudShardVal) hudShardVal.textContent = '00';
     if (hudPulseVal) hudPulseVal.textContent = '0';
 
-    applyEnemyTuning(stageId);
-    EnemyLogic.init(STAGE_CONFIG[stageId].enemyRoute, 'villainHunt');
+    initEnemyForStage(stageId);
     updateExitVisual();
 
     if (stageSelectUI) stageSelectUI.classList.remove('show');
@@ -856,11 +930,16 @@ window.addEventListener('DOMContentLoaded', () => {
   if (!restoredRun && stageSelectUI && ProgressManager.data.highestUnlockedStage > 1) {
     const btnS1 = document.getElementById('btn-stage-1');
     const btnS2 = document.getElementById('btn-stage-2');
+    const btnS3 = document.getElementById('btn-stage-3');
     if (btnS2) btnS2.classList.remove('locked');
+    if (btnS3 && ProgressManager.data.highestUnlockedStage >= 3) btnS3.classList.remove('locked');
     if (briefingOverlay) briefingOverlay.classList.remove('show');
     stageSelectUI.classList.add('show');
     if (btnS1) btnS1.addEventListener('click', () => enterStage(1));
     if (btnS2) btnS2.addEventListener('click', () => enterStage(2));
+    if (btnS3 && ProgressManager.data.highestUnlockedStage >= 3) {
+      btnS3.addEventListener('click', () => enterStage(3));
+    }
   } else {
     // 全新玩家直接進 Stage 01，或救回狀態直接顯示救回時所在關卡的 Briefing 文字
     applyBriefingText(currentStage);
