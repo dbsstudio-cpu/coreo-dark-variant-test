@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>COREO Stage 03 - Ring Lab</title>
+  <meta name="theme-color" content="#0A0F16">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/stage03-lab.css">
+</head>
+<body>
+  <!-- 獨立 3D 空間與搖桿層 -->
+  <div id="game-container">
+    <div id="fog-overlay"></div>
+    <div id="camera-rig">
+      <div id="world"></div>
+    </div>
+  </div>
+  <div id="joystick-zone" aria-label="連續滑動移動區"></div>
+
+  <!-- 引入 v0.10.6.1 的原生基底，絕不修改 -->
+  <script src="js/control.js"></script>
+  <script src="js/rail-assist.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/render3d.js"></script>
+
+  <!-- 引入本次新增的測試邏輯 -->
+  <script src="js/stage03_ring.js"></script>
+  <script src="js/stage03_main.js"></script>
+</body>
+</html>

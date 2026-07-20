@@ -1,0 +1,16 @@
+body { background: #0A0F16; }
+
+/* 暫時冷色牆體與路面 */
+.stage-03 .cell.wall {
+  background: linear-gradient(145deg, #111A26 0%, #060B12 100%);
+  border-color: rgba(67, 217, 255, 0.15);
+}
+.stage-03 .cell.wall::after { background: #020408; }
+.stage-03 .cell.path { background: #16202D; }
+.stage-03 .cell.start { background: rgba(67, 217, 255, 0.2); }
+
+/* SVG 圓角軌道發光 */
+.ring-track {
+  filter: drop-shadow(0 0 10px rgba(67, 217, 255, 0.45));
+  opacity: 0.8;
+}
