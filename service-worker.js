@@ -1,11 +1,9 @@
-const COREO_CACHE = 'coreo-dark-variant-v01062-stage03-direct-entry-20260721';
+const COREO_CACHE = 'coreo-dark-variant-v01063-stage03-removed-20260721';
 const COREO_ASSETS = [
   './',
   './index.html',
-  './stage03-lab.html',
   './manifest.json',
   './css/tokens.css',
-  './css/stage03-lab.css',
   './js/maze.js',
   './js/control.js',
   './js/rail-assist.js',
@@ -14,8 +12,6 @@ const COREO_ASSETS = [
   './js/fx.js',
   './js/enemy.js',
   './js/main.js',
-  './js/stage03_ring.js',
-  './js/stage03_main.js',
   './icons/icon-180.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
