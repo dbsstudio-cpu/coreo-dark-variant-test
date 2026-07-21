@@ -198,10 +198,10 @@ window.addEventListener('DOMContentLoaded', () => {
       // 9x44 真迷宮版 v2：SIPHON 守右幹核心區（x=7，y=23~27），覆蓋強制必拿的 Core Pulse (7,25)。
       // 左幹(x=1)完全無敵人：安全但拿不到 Pulse，形成真正的風險取捨。座標須為格子中心(.5)。
       enemyRoute: [
-        { x: 7.5 * CELL_SIZE, y: 20.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 23.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 26.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }
+        { x: 7.5 * CELL_SIZE, y: 22.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 25.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 28.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 31.5 * CELL_SIZE }
       ],
       enemyTuning: {
         baseAlertRadius: 150,
@@ -229,6 +229,13 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }
   };
+
+  function updateHudProgress() {
+    const shardProgress = Math.min(shardCount, SHARDS_PER_PULSE);
+    const pulseGoal = STAGE_CONFIG[currentStage]?.pulseRequirement || 0;
+    if (hudShardVal) hudShardVal.textContent = `${shardProgress}/${SHARDS_PER_PULSE}`;
+    if (hudPulseVal) hudPulseVal.textContent = `${Math.min(pulseCount, pulseGoal)}/${pulseGoal}`;
+  }
 
   // 每次切關先回復共用 EnemyLogic 的正式預設值，再疊加該關 tuning，避免 S3 參數滲回 S1/S2。
   const DEFAULT_ENEMY_TUNING = Object.freeze({
@@ -353,8 +360,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (restoredRun) {
     shardCount = restoredRun.shardCount || 0;
     pulseCount = restoredRun.pulseCount || 0;
-    if (hudShardVal) hudShardVal.textContent = shardCount.toString().padStart(2, '0');
-    if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
+    updateHudProgress();
   }
 
   function saveRunSnapshot() {
@@ -731,13 +737,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
       if (type === 4) {
         shardCount++;
-        if (hudShardVal) hudShardVal.textContent = shardCount.toString().padStart(2, '0');
+        updateHudProgress();
         flashHud(hudShardVal);
         FX.spawnEdgeLight(playerPos.x, playerPos.y, 'basic');
 
         if (shardCount % SHARDS_PER_PULSE === 0) {
           pulseCount++;
-          if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
+          updateHudProgress();
           flashHud(hudPulseVal);
           FX.corePulseFeedback(playerSprite);
           energizeMatrix();
@@ -745,7 +751,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         pulseCount++;
-        if (hudPulseVal) hudPulseVal.textContent = pulseCount.toString();
+        updateHudProgress();
         flashHud(hudPulseVal);
         FX.corePulseFeedback(playerSprite);
         energizeMatrix();
@@ -805,8 +811,7 @@ window.addEventListener('DOMContentLoaded', () => {
     isGameOver = false;
     shardCount = 0;
     pulseCount = 0;
-    if (hudShardVal) hudShardVal.textContent = '00';
-    if (hudPulseVal) hudPulseVal.textContent = '0';
+    updateHudProgress();
     updateExitVisual();
 
     const globalAlert = document.getElementById('global-alert-overlay');
@@ -924,8 +929,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     shardCount = 0;
     pulseCount = 0;
-    if (hudShardVal) hudShardVal.textContent = '00';
-    if (hudPulseVal) hudPulseVal.textContent = '0';
+    updateHudProgress();
 
     initEnemyForStage(stageId);
     updateExitVisual();

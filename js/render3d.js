@@ -97,6 +97,7 @@ const Render3D = {
         if (type === 2) {
           startPos = { x: x * this.CELL_SIZE + this.CELL_SIZE / 2, y: y * this.CELL_SIZE + this.CELL_SIZE / 2 };
           this.createEntity(world, x, y, 'start');
+          if (stageId === 3) this.createStage03EntranceGate(world, x, y);
         } else if (type === 3) {
           this.createEntity(world, x, y, 'exit');
         } else if (type === 4 || type === 5) {
@@ -132,6 +133,19 @@ const Render3D = {
       if (overlaps(1, 24, 7, 38)) return 'zone-return';
     }
     return null;
+  },
+
+  // Stage 03 entrance is a visual portal only. Collision and maze topology stay
+  // untouched; the overlay masks the solid top wall into a centred ceremonial opening.
+  createStage03EntranceGate: function(world, startX, startY) {
+    const gate = document.createElement('div');
+    gate.className = 'stage03-entrance-gate';
+    gate.style.left = `${startX * this.CELL_SIZE}px`;
+    gate.style.top = `${Math.max(0, startY - 2) * this.CELL_SIZE}px`;
+    gate.style.width = `${this.CELL_SIZE}px`;
+    gate.style.height = `${this.CELL_SIZE * 2}px`;
+    gate.setAttribute('aria-hidden', 'true');
+    world.appendChild(gate);
   },
 
   createBlock: function(world, x, y, w, h, classes) {

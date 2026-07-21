@@ -152,9 +152,12 @@ test('Stage 03 entrance uses a top safety frame and a wide gate hall, not one so
 
 test('Stage 03 central trunk is broken three times so the player must choose left or right', () => {
   const map = loadStage03Map();
-  for (const [from, to] of [[8, 9], [20, 21], [32, 33]]) {
+  for (const [from, to] of [[9, 12], [21, 24], [33, 36]]) {
     for (let y = from; y <= to; y++) assert.equal(map[y][4], 0, `central trunk must be blocked at y=${y}`);
   }
+  // 左右縱幹也各自斷開一次，避免出現「從頭直到尾的大直線」（Sean 真機回報：兩側大直線很奇怪）
+  for (let y = 26; y <= 30; y++) assert.equal(map[y][1], 0, `left trunk must break at y=${y}`);
+  for (let y = 17; y <= 20; y++) assert.equal(map[y][7], 0, `right trunk must break at y=${y}`);
   for (const y of [4, 40]) {
     assert.ok(map[y].slice(1, 8).every((v) => v !== 0), `full rung y=${y} must be walkable across`);
   }
@@ -162,11 +165,11 @@ test('Stage 03 central trunk is broken three times so the player must choose lef
 
 test('Stage 03 forces the risky right trunk: only route to the mandatory Core Pulse', () => {
   const map = loadStage03Map();
-  assert.equal(map[25][7], 5);                                   // Core Pulse 在右幹
-  for (const y of [23, 24, 26, 27]) assert.equal(map[y][7], 7);  // SIPHON 核心區上下包夾
-  for (let y = 23; y <= 27; y++) assert.notEqual(map[y][1], 0);  // 左幹同段安全可通行但拿不到 Pulse
+  assert.equal(map[28][7], 5);                                   // Core Pulse 在右幹
+  for (const y of [26, 27, 29, 30]) assert.equal(map[y][7], 7);  // SIPHON 核心區上下包夾
+  assert.equal(map[28][4], 1);   // 中央幹在同一高度是安全的替代路線，但拿不到 Pulse
   const counts = graphStats(map).counts;
-  assert.equal(counts[4], 7);   // 7 顆能量只能組 1 顆 Pulse（需 5 顆/顆），第 2 顆必須冒險拿 (7,25)
+  assert.equal(counts[4], 7);   // 7 顆能量只能組 1 顆 Pulse（需 5 顆/顆），第 2 顆必須冒險拿 (7,28)
   assert.equal(counts[5], 1);
   assert.equal(counts[6], 1);
   assert.equal(counts[7], 4);
@@ -180,6 +183,23 @@ test('Stage 03 ends with three identical-looking corridors: hide / real exit / d
   assert.equal(map[43][7], 1);   // 右：假出口死路（不得是代號 3）
   for (const x of [1, 4, 7]) {
     for (let y = 41; y <= 42; y++) assert.notEqual(map[y][x], 0, `final corridor x=${x} must run to the bottom`);
+  }
+});
+
+// 迴歸測試：SIPHON 巡邏點曾兩次落在牆格上（會造成貼牆、碰撞與抖動）。
+// 地圖一改動就可能讓舊座標失效，這裡直接用正式地圖驗證每個巡邏點都踩在可走格中心。
+test('Stage 03 SIPHON patrol points all sit on walkable cell centres', () => {
+  const map = loadStage03Map();
+  const main = read('js/main.js');
+  const stage03Block = main.slice(main.indexOf("enemyName: 'SIPHON'"));
+  const route = stage03Block.slice(0, stage03Block.indexOf(']'));
+  const points = [...route.matchAll(/x:\s*([\d.]+)\s*\*\s*CELL_SIZE,\s*y:\s*([\d.]+)\s*\*\s*CELL_SIZE/g)]
+    .map(([, x, y]) => [Number(x), Number(y)]);
+  assert.ok(points.length >= 3, 'SIPHON 至少要有 3 個巡邏點');
+  for (const [x, y] of points) {
+    assert.ok(x % 1 === 0.5 && y % 1 === 0.5, `巡邏點 (${x}, ${y}) 必須是格子中心(.5)，整數倍會落在格線交界`);
+    const cell = map[Math.floor(y)]?.[Math.floor(x)];
+    assert.ok(cell !== undefined && cell !== 0, `巡邏點 (${x}, ${y}) 落在牆格或地圖外`);
   }
 });
 
@@ -210,6 +230,21 @@ test('Stage 03 is wired into the formal UI and existing enemy engine', () => {
   assert.match(css, /#world\.stage-03\.circuit-pulse/);
   assert.doesNotMatch(html, /stage03-lab/i);
   assert.doesNotMatch(main, /ringState|moveAxis|moveSign/);
+});
+
+test('Stage 03 entrance, exit and HUD progress stay stage-scoped', () => {
+  const render3d = read('js/render3d.js');
+  const main = read('js/main.js');
+  const html = read('index.html');
+  const css = read('css/tokens.css');
+  assert.match(render3d, /stageId\s*===\s*3[\s\S]*?createStage03EntranceGate/);
+  assert.match(css, /#world\.stage-03\s*\{[\s\S]*?contain:\s*layout style;[\s\S]*?overflow:\s*visible;/);
+  assert.match(css, /\.stage03-entrance-gate\s*\{/);
+  assert.match(css, /\.stage-03 \.cell\.exit::before\s*\{/);
+  assert.match(main, /function updateHudProgress\(\)/);
+  assert.match(main, /Math\.min\(shardCount, SHARDS_PER_PULSE\)/);
+  assert.match(html, /id="ui-shard-val">0\/5</);
+  assert.match(html, /id="ui-pulse-val">0\/1</);
 });
 
 test('SIPHON asset and protected control architecture match the approved hashes', () => {

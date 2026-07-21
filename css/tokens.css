@@ -455,6 +455,12 @@ body.stage-02-active #fog-overlay {
   overflow: visible;
 }
 
+/* Stage 03 Android：獨立解除世界上緣 paint 裁切，不改 Stage 01/02 規則。 */
+#world.stage-03 {
+  contain: layout style;
+  overflow: visible;
+}
+
 /* 核心凹槽區（代號7）牆體：白金邊緣微光，只做內側反射不整面發光。
    v0.6：座標判定修正後這組樣式終於會真的套用到牆上，順勢把強度調到肉眼可辨（原本太弱形同沒有） */
 /* v0.8.3：Sean/GPT 最高優先覆蓋裁決——Stage02 禁止黃色，凹槽內側反射不再是例外，
@@ -640,6 +646,63 @@ body.stage-02-active #fog-overlay {
   box-shadow: 0 0 10px rgba(245, 245, 247, 0.24);
 }
 
+/* Stage 03：紫水晶能源閘門。入口覆層只負責視覺，碰撞仍由原迷宮格控制。 */
+.stage03-entrance-gate {
+  position: absolute;
+  pointer-events: none;
+  z-index: 8;
+  transform: translateZ(25px);
+  box-sizing: border-box;
+  border: 2px solid var(--coreo-s3-shell);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background:
+    linear-gradient(180deg, rgba(4, 2, 10, .98) 0%, rgba(12, 7, 24, .92) 48%, rgba(24, 15, 44, .28) 84%, transparent 100%);
+  box-shadow:
+    0 0 0 1px rgba(242, 235, 255, .58),
+    0 0 16px rgba(141, 99, 210, .72),
+    inset 0 0 20px rgba(141, 99, 210, .22);
+}
+.stage03-entrance-gate::before,
+.stage03-entrance-gate::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+.stage03-entrance-gate::before {
+  left: 7px;
+  right: 7px;
+  top: 8px;
+  bottom: 0;
+  border: 2px solid var(--coreo-s3-shell-hot);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 0 10px rgba(183, 155, 234, .72);
+}
+.stage03-entrance-gate::after {
+  left: 5px;
+  right: 5px;
+  bottom: -2px;
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, transparent, var(--coreo-s3-shell-hot) 18% 82%, transparent);
+  box-shadow: 0 0 12px rgba(141, 99, 210, .88);
+}
+.stage-03 .cell.start {
+  border-radius: 7px;
+  background: linear-gradient(180deg, rgba(141, 99, 210, .16), rgba(38, 34, 49, .72));
+  box-shadow: inset 0 0 0 1px rgba(242, 235, 255, .28), inset 0 0 16px rgba(141, 99, 210, .2);
+}
+.stage-03 .cell.start::before {
+  border-color: var(--coreo-s3-shell);
+  border-top-color: var(--coreo-s3-shell-hot);
+  box-shadow: 0 0 9px rgba(183, 155, 234, .66), inset 0 0 8px rgba(141, 99, 210, .34);
+}
+.stage-03 .cell.start::after {
+  background: var(--coreo-s3-shell-hot);
+  box-shadow: 0 0 9px rgba(183, 155, 234, .82);
+}
+
 /* v0.5.15：出口改為「白金光環 Core Ring」+ 底部光柱，取代原本綠色虛線框 */
 /* v0.5.24：GPT 裁決第四優先，白金光環改用 Core Pulse 白金色系，加一層淡冰藍內光跟 Core Pulse 建立視覺關聯 */
 .cell.exit {
@@ -708,6 +771,26 @@ body.stage-02-active #fog-overlay {
 .stage-02 .cell.exit::after {
   width: 4px;
   background: linear-gradient(to top, rgba(229, 243, 255, 0.78), rgba(115, 183, 255, 0.4) 42%, rgba(47, 99, 255, 0.14) 74%, transparent);
+}
+
+/* Stage 03 出口跟隨紫水晶關卡身分，避免殘留前兩關的冰青色。 */
+.stage-03 .cell.exit {
+  background: radial-gradient(circle at 50% 50%, rgba(242, 235, 255, .13) 0 18%, rgba(141, 99, 210, .16) 19% 48%, transparent 68%);
+  box-shadow: inset 0 0 28px rgba(141, 99, 210, .3), inset 0 0 44px rgba(183, 155, 234, .14);
+}
+.stage-03 .cell.exit.partial-charged {
+  filter: brightness(.86);
+  border: 1px solid rgba(183, 155, 234, .46);
+  box-shadow: inset 0 0 17px rgba(122, 75, 208, .3);
+}
+.stage-03 .cell.exit::before {
+  border-color: var(--coreo-s3-shell-hot);
+  border-top-color: transparent;
+  box-shadow: 0 0 7px rgba(242, 235, 255, .62), 0 0 18px rgba(141, 99, 210, .7);
+}
+.stage-03 .cell.exit::after {
+  width: 4px;
+  background: linear-gradient(to top, rgba(242, 235, 255, .86), rgba(183, 155, 234, .5) 42%, rgba(141, 99, 210, .2) 74%, transparent);
 }
 
 @keyframes exit-ring-spin {
