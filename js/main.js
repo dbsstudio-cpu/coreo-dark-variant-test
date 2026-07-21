@@ -190,12 +190,12 @@ window.addEventListener('DOMContentLoaded', () => {
       enemyAsset: 'assets/enemy_siphon.png',
       enemyName: 'SIPHON',
       // 巡邏座標必須落在格子中心；整數倍 CELL_SIZE 會落在格線交界並造成貼牆／抖動。
-      // 9x44 真迷宮版：SIPHON 守右幹核心區（x=7，y=23~29），覆蓋強制必拿的 Core Pulse (7,26)。
+      // 9x44 真迷宮版 v2：SIPHON 守右幹核心區（x=7，y=23~27），覆蓋強制必拿的 Core Pulse (7,25)。
       // 左幹(x=1)完全無敵人：安全但拿不到 Pulse，形成真正的風險取捨。座標須為格子中心(.5)。
       enemyRoute: [
+        { x: 7.5 * CELL_SIZE, y: 20.5 * CELL_SIZE },
         { x: 7.5 * CELL_SIZE, y: 23.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 25.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 27.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 26.5 * CELL_SIZE },
         { x: 7.5 * CELL_SIZE, y: 29.5 * CELL_SIZE }
       ],
       enemyTuning: {
