@@ -8,6 +8,11 @@ window.addEventListener('DOMContentLoaded', () => {
   const CELL_SIZE = Render3D.CELL_SIZE;
   const PLAYER_RADIUS = 21;
   const RAIL_NODE_EPSILON = 0.05;
+  // Stage 03 has denser legal turns. Its intent can bind 75px before a junction,
+  // so the global 350ms safety cap can expire on mobile before the player arrives.
+  // Keep the target cell fixed and the spatial pass limit unchanged; only allow
+  // more time for iPhone/Android frame pacing and gesture confirmation.
+  const STAGE_03_TURN_TARGET_MAX_AGE_MS = 600;
   let baseSpeed = 4.2;
   let currentSpeed = baseSpeed;
   let isGameOver = false;
@@ -489,7 +494,13 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function expireQueuedTurn(now) {
-    if (!queuedTurn || !RailAssist.queueExpired(queuedTurn, playerPos, now)) return;
+    if (!queuedTurn) return;
+    const stage03Expired = currentStage === 3
+      && (Math.max(0, now - queuedTurn.createdAt) > STAGE_03_TURN_TARGET_MAX_AGE_MS
+        || RailAssist.hasPassedTargetBeyondGrace(playerPos, queuedTurn));
+    const otherStageExpired = currentStage !== 3
+      && RailAssist.queueExpired(queuedTurn, playerPos, now);
+    if (!stage03Expired && !otherStageExpired) return;
     queuedTurn.state = 'EXPIRED';
     clearQueuedTurn();
     deferredControlCommand = null;

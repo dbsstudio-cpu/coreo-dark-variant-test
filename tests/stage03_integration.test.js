@@ -128,6 +128,13 @@ test('Stage 03 never leaves the player without a turn option for more than 3 cel
   }
 });
 
+test('Stage 03 keeps a fixed targeted turn alive through mobile frame pacing', () => {
+  const main = read('js/main.js');
+  assert.match(main, /STAGE_03_TURN_TARGET_MAX_AGE_MS\s*=\s*600/);
+  assert.match(main, /currentStage\s*===\s*3[\s\S]*?hasPassedTargetBeyondGrace\(playerPos, queuedTurn\)/);
+  assert.match(main, /currentStage\s*!==\s*3[\s\S]*?RailAssist\.queueExpired\(queuedTurn, playerPos, now\)/);
+});
+
 test('Stage 03 entrance uses a top safety frame and a wide gate hall, not one solid slab', () => {
   const map = loadStage03Map();
   assert.equal(map[0][4], 0, '上緣安全框：入口牆體不得貼世界邊界');
