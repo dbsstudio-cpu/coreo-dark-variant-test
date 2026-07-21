@@ -98,35 +98,58 @@ function graphStats(map) {
   };
 }
 
-test('Stage 03 uses the approved 9x64 connected single-loop topology', () => {
+test('Stage 03 uses the approved 9x44 multi-cycle maze topology', () => {
   const stats = graphStats(loadStage03Map());
   assert.equal(stats.width, 9);
-  assert.equal(stats.height, 64);
+  assert.equal(stats.height, 44);
   assert.deepEqual(stats.start, [4, 2]);
-  assert.deepEqual(stats.exit, [4, 63]);
-  assert.equal(stats.vertices, 177);
-  assert.equal(stats.edges, 177);
+  assert.deepEqual(stats.exit, [4, 43]);
+  assert.equal(stats.vertices, 139);
+  assert.equal(stats.edges, 144);
   assert.equal(stats.components, 1);
-  assert.equal(stats.reachableFromStart.size, 177);
-  assert.ok(stats.reachableFromStart.has('4,63'));
-  assert.equal(stats.cycleRank, 1);
-  assert.equal(stats.twoCore, 50);
-  assert.equal(Number((stats.twoCore / stats.vertices * 100).toFixed(1)), 28.2);
+  assert.equal(stats.reachableFromStart.size, 139);
+  assert.ok(stats.reachableFromStart.has('4,43'));
+  // 迷宮感的關鍵：多個獨立環（上一版 cycleRank=1 等於只有唯一一條路，已被否決）
+  assert.equal(stats.cycleRank, 6);
+  assert.ok(stats.cycleRank >= 5 && stats.cycleRank <= 8, 'cycle rank must stay in 5~8');
+  const twoCorePct = stats.twoCore / stats.vertices * 100;
+  assert.ok(twoCorePct >= 60 && twoCorePct <= 85, `2-core ${twoCorePct.toFixed(1)}% out of range`);
 });
 
-test('Stage 03 entrance keeps two centred safety buffer rows above the start', () => {
+test('Stage 03 entrance uses a top safety frame and side alcoves, not one solid slab', () => {
   const map = loadStage03Map();
-  assert.equal(map[0][4], 1);
-  assert.equal(map[1][4], 1);
-  assert.equal(map[2][4], 2);
+  assert.equal(map[0][4], 0);           // 上緣安全框：入口牆體不貼世界邊界
+  assert.deepEqual(map[1].slice(3, 6), [1, 1, 1]); // 閘門側凹龕
+  assert.equal(map[2][4], 2);           // 起點置中
+  assert.deepEqual(map[3].slice(3, 6), [1, 1, 1]);
 });
 
-test('Stage 03 has exactly one real exit and the decoys are plain floor', () => {
+test('Stage 03 central trunk is broken twice so the player must choose left or right', () => {
+  const map = loadStage03Map();
+  for (let y = 7; y <= 13; y++) assert.equal(map[y][4], 0, `central trunk must be blocked at y=${y}`);
+  for (let y = 23; y <= 29; y++) assert.equal(map[y][4], 0, `central trunk must be blocked at y=${y}`);
+  for (const y of [6, 14, 22, 30, 38]) {
+    assert.ok(map[y].slice(1, 8).every((v) => v !== 0), `rung y=${y} must be fully walkable`);
+  }
+});
+
+test('Stage 03 forces the risky right trunk: only route to the mandatory Core Pulse', () => {
+  const map = loadStage03Map();
+  assert.equal(map[26][7], 5);                 // Core Pulse 在右幹
+  for (const y of [24, 25, 27, 28]) assert.equal(map[y][7], 7); // SIPHON 核心區包夾
+  for (let y = 23; y <= 29; y++) assert.notEqual(map[y][1], 0); // 左幹同段安全可通行
+  const counts = graphStats(map).counts;
+  assert.equal(counts[4], 7);   // 7 顆能量只能組 1 顆 Pulse，第 2 顆必須靠 (7,26)
+  assert.equal(counts[5], 1);
+});
+
+test('Stage 03 ends with three identical-looking corridors: hide / real exit / decoy', () => {
   const map = loadStage03Map();
   const exits = map.flatMap((row, y) => row.map((v, x) => (v === 3 ? `${x},${y}` : null))).filter(Boolean);
-  assert.deepEqual(exits, ['4,63']);
-  assert.equal(map[52][7], 1);
-  assert.equal(map[63][7], 1);
+  assert.deepEqual(exits, ['4,43']);
+  assert.equal(map[42][1], 6);   // 左：躲藏死路
+  assert.equal(map[43][1], 0);
+  assert.equal(map[43][7], 1);   // 右：假出口死路（不得是代號 3）
 });
 
 test('Stage 03 resource counts are exact', () => {

@@ -1684,10 +1684,12 @@ body.stage-02-active #fog-overlay {
    全部以 Stage 03 專屬選擇器隔離，不改 Stage 01／02。
 ========================================= */
 :root {
-  --coreo-s3-path: #173228;
-  --coreo-s3-path-metal: #24513E;
-  --coreo-s3-wall-top: #030806;
-  --coreo-s3-wall-side: #15372A;
+  /* 路面改中性石墨綠：亮度對齊 Stage01(#202936)/Stage02(#1D2634)，大幅降低綠色飽和度。
+     飽和綠 #42B878 只保留給牆框(shell)、入口與能量/通電線，不再鋪滿地板。 */
+  --coreo-s3-path: #222E29;
+  --coreo-s3-path-metal: #33453D;
+  --coreo-s3-wall-top: #050A08;
+  --coreo-s3-wall-side: #1B2E26;
   --coreo-s3-wall-shadow: rgba(1, 10, 6, .34);
   --coreo-s3-shell: #42B878;
   --coreo-s3-shell-hot: #E6FFF1;
@@ -1714,7 +1716,7 @@ body.stage-03-active #fog-overlay {
 }
 
 .stage-03 .cell.path {
-  background: linear-gradient(145deg, rgba(36, 81, 62, .4), transparent 44%), var(--coreo-s3-path);
+  background: linear-gradient(145deg, rgba(51, 69, 61, .32), transparent 44%), var(--coreo-s3-path);
   box-shadow: inset 0 0 0 1px rgba(230, 255, 241, .06), inset 0 0 8px rgba(66, 184, 120, .08);
 }
 .stage-03 .cell.wall {
