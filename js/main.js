@@ -157,7 +157,7 @@ window.addEventListener('DOMContentLoaded', () => {
         subtitle: '第一關｜核心甦醒',
         shardRule: '收集 5 個，可形成 1 個 Core Pulse。',
         pulseRule: '出口需要 1 個；可由碎片形成，或直接取得。',
-        mission: '收集 Core Shard 或取得 Core Pulse；測試角色放大特效，避開 OVERLOAD，啟動下方出口。',
+        mission: '收集 5 個碎片，或取得菱形 Core Pulse；避開 OVERLOAD，啟動下方出口。',
         btnText: 'ENTER STAGE 01'
       }
     },
