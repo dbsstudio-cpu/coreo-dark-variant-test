@@ -734,6 +734,27 @@ body.stage-02-active #fog-overlay {
   transform: translate(-50%, 0);
 }
 
+.stage-01 .cell.exit .exit-video-sprite {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 82px;
+  height: 82px;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  border-radius: 18px;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 14px rgba(0, 207, 255, .82)) drop-shadow(0 0 34px rgba(8, 120, 255, .56));
+  animation: corezax-exit-seed-hover 2.4s ease-in-out infinite;
+}
+
+@keyframes corezax-exit-seed-hover {
+  0%, 100% { transform: translate(-50%, -50%) scale(.92); opacity: .86; }
+  50% { transform: translate(-50%, -56%) scale(1.08); opacity: 1; }
+}
+
 /* v0.8.2：GPT 明確裁決 Stage02 不得是黃光關，出口光環是「永久旋轉、不是瞬間效果」，
    之前每一輪任務包範圍都太窄沒人碰過這裡，才會一直看到白金色。Stage01 出口維持不動，
    Stage02 出口改用線性通電光效同一套冷白/冰青色系，兩關视觉語言各自獨立不互相影響。 */
@@ -866,6 +887,25 @@ body.stage-02-active #fog-overlay {
   filter: drop-shadow(0 0 18px rgba(255, 69, 58, 0.95)) drop-shadow(0 0 42px rgba(255, 69, 58, 0.65));
 }
 
+.actor-video-sprite {
+  position: absolute;
+  inset: -10px;
+  width: calc(100% + 20px);
+  height: calc(100% + 20px);
+  object-fit: contain;
+  border-radius: 18px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+#player .actor-video-sprite {
+  filter: drop-shadow(0 0 16px rgba(0, 229, 255, .9)) drop-shadow(0 0 34px rgba(0, 229, 255, .48));
+}
+
+#enemy .actor-video-sprite {
+  filter: drop-shadow(0 0 20px rgba(255, 69, 58, .95)) drop-shadow(0 0 44px rgba(255, 69, 58, .7));
+}
+
 /* --- 能量分級系統 (LIGHT CORE) --- */
 .light-core-item {
   position: absolute;
@@ -949,6 +989,30 @@ body.stage-02-active #fog-overlay {
  .actor-sprite.player-collect-anim-4,
 .actor-sprite.player-collect-basic {
   animation: player-joy-4 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.stage-01 #player .actor-sprite.player-collect-basic {
+  animation: corezax-stage01-test-grow-3x 1.15s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 4000;
+}
+
+@keyframes corezax-stage01-test-grow-3x {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1) drop-shadow(0 0 14px rgba(0, 229, 255, .8));
+  }
+  18% {
+    transform: scale(3) rotate(-4deg);
+    filter: brightness(1.6) drop-shadow(0 0 28px rgba(0, 229, 255, 1)) drop-shadow(0 0 62px rgba(95, 225, 255, .78));
+  }
+  58% {
+    transform: scale(2.55) rotate(5deg);
+    filter: brightness(1.42) drop-shadow(0 0 24px rgba(0, 229, 255, .94)) drop-shadow(0 0 52px rgba(95, 225, 255, .64));
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1.18) drop-shadow(0 0 16px rgba(0, 229, 255, .85));
+  }
 }
 @keyframes player-joy-4 {
   0%, 100% { transform: scale(1) rotate(0deg); }
@@ -1380,19 +1444,23 @@ body.stage-02-active #fog-overlay {
 }
 
 .cinematic-player { animation: breathe-player 4s ease-in-out infinite; }
-.cinematic-player img {
+.cinematic-player img,
+.cinematic-player video {
   width: 100%; height: auto;
   max-height: min(170px, 24vh);
   object-fit: contain;
   filter: drop-shadow(0 0 12px rgba(0, 140, 255, 0.48)) drop-shadow(0 0 22px rgba(66, 200, 255, 0.16));
+  border-radius: 18px;
 }
 
 .cinematic-ember { animation: breathe-ember 5s ease-in-out infinite; }
-.cinematic-ember img {
+.cinematic-ember img,
+.cinematic-ember video {
   width: 100%; height: auto;
   max-height: min(170px, 24vh);
   object-fit: contain;
   filter: drop-shadow(0 0 14px rgba(255, 69, 58, 0.62)) drop-shadow(0 0 24px rgba(122, 16, 36, 0.2));
+  border-radius: 18px;
 }
 
 .cinematic-name {

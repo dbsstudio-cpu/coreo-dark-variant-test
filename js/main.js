@@ -131,6 +131,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const STAGE_CONFIG = {
     1: {
       getMap: () => MazeLogic.getStage01Map(),
+      enemyName: 'OVERLOAD',
       enemyRoute: [
         { x: 1.5 * CELL_SIZE, y: 21.5 * CELL_SIZE },
         { x: 1.5 * CELL_SIZE, y: 20.5 * CELL_SIZE },
@@ -156,7 +157,7 @@ window.addEventListener('DOMContentLoaded', () => {
         subtitle: '第一關｜核心甦醒',
         shardRule: '收集 5 個，可形成 1 個 Core Pulse。',
         pulseRule: '出口需要 1 個；可由碎片形成，或直接取得。',
-        mission: '收集 5 個碎片，或取得菱形 Core Pulse；避開 EMBER，啟動下方出口。',
+        mission: '收集 5 個碎片，或取得菱形 Core Pulse；避開 OVERLOAD，啟動下方出口。',
         btnText: 'ENTER STAGE 01'
       }
     },
@@ -371,7 +372,39 @@ window.addEventListener('DOMContentLoaded', () => {
   playerDiv.appendChild(playerSprite);
   world.appendChild(playerDiv);
 
+  function attachLoopingSpriteVideo(spriteDOM, src, className) {
+    if (!spriteDOM) return;
+    spriteDOM.querySelectorAll('.actor-video-sprite').forEach((node) => node.remove());
+    if (!src) return;
+    const video = document.createElement('video');
+    video.className = `actor-video-sprite ${className || ''}`.trim();
+    video.src = src;
+    video.autoplay = true;
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.setAttribute('aria-hidden', 'true');
+    spriteDOM.appendChild(video);
+    video.play?.().catch(() => {});
+  }
+
+  function applyStage01AnimationTestSprites(stageId) {
+    const isStage01 = stageId === 1;
+    attachLoopingSpriteVideo(
+      playerSprite,
+      isStage01 ? 'assets/corezax_stage01_zax_core_test.mp4' : '',
+      'zax-core-test-video'
+    );
+    attachLoopingSpriteVideo(
+      EnemyLogic.spriteElement,
+      isStage01 ? 'assets/corezax_stage01_overload_villain.mp4' : '',
+      'overload-villain-test-video'
+    );
+  }
+
   initEnemyForStage(currentStage);
+  applyStage01AnimationTestSprites(currentStage);
   if (restoredRun?.enemy) {
     Object.assign(EnemyLogic, {
       x: restoredRun.enemy.x ?? EnemyLogic.x,
@@ -1027,8 +1060,29 @@ window.addEventListener('DOMContentLoaded', () => {
   const briefingPulseRuleEl = document.getElementById('briefing-pulse-rule');
   const briefingMissionEl = document.getElementById('briefing-mission');
   const briefingEnterBtn = document.getElementById('briefing-enter-btn');
+  const briefingPlayerMediaEl = document.getElementById('briefing-player-media');
   const briefingEnemyImgEl = document.getElementById('briefing-enemy-img');
   const briefingEnemyNameEl = document.getElementById('briefing-enemy-name');
+
+  function setBriefingMedia(mediaEl, src, label) {
+    if (!mediaEl) return;
+    if (mediaEl.tagName === 'VIDEO') {
+      if (src.endsWith('.png')) {
+        mediaEl.removeAttribute('src');
+        mediaEl.setAttribute('poster', src);
+        mediaEl.load?.();
+      } else if (mediaEl.getAttribute('src') !== src) {
+        mediaEl.removeAttribute('poster');
+        mediaEl.setAttribute('src', src);
+        mediaEl.load?.();
+      }
+      mediaEl.setAttribute('aria-label', label);
+      mediaEl.play?.().catch(() => {});
+    } else {
+      mediaEl.src = src;
+      mediaEl.alt = label;
+    }
+  }
 
   function applyBriefingText(stageId) {
     const cfg = STAGE_CONFIG[stageId];
@@ -1039,10 +1093,16 @@ window.addEventListener('DOMContentLoaded', () => {
     if (briefingMissionEl) briefingMissionEl.textContent = cfg.briefing.mission;
     if (briefingEnterBtn) briefingEnterBtn.textContent = cfg.briefing.btnText;
     const enemyType = cfg.enemyType || 'villainHunt';
-    if (briefingEnemyImgEl) {
-      briefingEnemyImgEl.src = cfg.enemyAsset || 'assets/enemy_ember.png';
-      briefingEnemyImgEl.alt = cfg.enemyName || 'EMBER';
-    }
+    setBriefingMedia(
+      briefingPlayerMediaEl,
+      stageId === 1 ? 'assets/corezax_stage01_zax_core_test.mp4' : 'assets/corezax_stage01_zax_core_test.mp4',
+      'CoreZax player core'
+    );
+    setBriefingMedia(
+      briefingEnemyImgEl,
+      stageId === 1 ? 'assets/corezax_stage01_overload_villain.mp4' : (cfg.enemyAsset || 'assets/enemy_ember.png'),
+      stageId === 1 ? 'OVERLOAD' : (cfg.enemyName || 'EMBER')
+    );
     if (briefingEnemyNameEl) {
       briefingEnemyNameEl.textContent = cfg.enemyName || 'EMBER';
       briefingEnemyNameEl.className = `cinematic-name ${enemyType === 'siphon' ? 'siphon-name' : 'ember-name'}`;
@@ -1087,6 +1147,7 @@ window.addEventListener('DOMContentLoaded', () => {
     updateHudProgress();
 
     initEnemyForStage(stageId);
+    applyStage01AnimationTestSprites(stageId);
     updateExitVisual();
 
     if (stageSelectUI) stageSelectUI.classList.remove('show');
