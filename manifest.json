@@ -1,7 +1,7 @@
 ﻿{
-  "name": "COREO Dark Variant",
-  "short_name": "COREO Dark",
-  "description": "COREO dark visual experiment for mobile testing.",
+  "name": "CoreZax",
+  "short_name": "CoreZax",
+  "description": "CoreZax mobile maze game.",
   "lang": "zh-TW",
   "start_url": "./",
   "scope": "./",

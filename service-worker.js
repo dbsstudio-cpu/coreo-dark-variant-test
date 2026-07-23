@@ -1,5 +1,5 @@
-const COREO_CACHE = 'coreo-dark-variant-v0107-stage03-integrated-20260720';
-const COREO_ASSETS = [
+const COREZAX_CACHE = 'corezax-v0107-brand-baseline-20260723';
+const COREZAX_ASSETS = [
   './',
   './index.html',
   './manifest.json',
@@ -23,14 +23,14 @@ const COREO_ASSETS = [
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(COREO_CACHE).then((cache) => cache.addAll(COREO_ASSETS))
+    caches.open(COREZAX_CACHE).then((cache) => cache.addAll(COREZAX_ASSETS))
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== COREO_CACHE).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key !== COREZAX_CACHE).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -42,7 +42,7 @@ self.addEventListener('fetch', (event) => {
     fetch(event.request)
       .then((response) => {
         const copy = response.clone();
-        caches.open(COREO_CACHE).then((cache) => cache.put(event.request, copy));
+        caches.open(COREZAX_CACHE).then((cache) => cache.put(event.request, copy));
         return response;
       })
       .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))

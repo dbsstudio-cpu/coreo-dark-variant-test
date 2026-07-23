@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>COREO Dark Variant - v0.10.7</title>
+  <title>CoreZax - v0.10.7</title>
   <meta name="theme-color" content="#0A0A0C">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="COREO Dark">
+  <meta name="apple-mobile-web-app-title" content="CoreZax">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -29,7 +29,7 @@
   </div>
 
   <!-- 版本標記，方便對照測試先後順序，不列入正式 HUD 視覺 -->
-  <div id="version-tag">COREO DARK v0.10.7</div>
+  <div id="version-tag">CoreZax v0.10.7</div>
 
   <!-- v0.6：最簡化選關畫面，只在已解鎖 Stage 02 且非救回狀態時顯示 -->
   <div id="stage-select-overlay">
@@ -57,7 +57,7 @@
       <!-- 中央：平行並排對峙 -->
       <div class="briefing-cinematic">
         <div class="cinematic-player">
-          <img src="assets/player.png" alt="COREO" />
+          <img src="assets/player.png" alt="CoreZax player core" />
           <div class="cinematic-name player-name">LIGHT CORE</div>
         </div>
         <div class="cinematic-ember">
@@ -125,7 +125,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js').catch((error) => {
-          console.warn('COREO service worker registration failed:', error);
+          console.warn('CoreZax service worker registration failed:', error);
         });
       });
     }

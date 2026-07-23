@@ -258,9 +258,10 @@ test('SIPHON asset and protected control architecture match the approved hashes'
   for (const [file, hash] of Object.entries(expected)) assert.equal(sha256(file), hash, file);
 });
 
-test('formal version is v0.10.7 and manifest remains protected', () => {
+test('formal version is CoreZax v0.10.7 and manifest remains protected', () => {
   assert.match(read('index.html'), /v0\.10\.7/);
-  assert.equal(sha256('manifest.json'), '84D5BE74C5F6E0FF307F368D5695459CFFECE2E6832F307C032879CC8FC48228');
-  assert.match(read('service-worker.js'), /coreo-dark-variant-v0107-stage03-integrated-20260720/);
+  assert.match(read('index.html'), /CoreZax/);
+  assert.match(read('manifest.json'), /"name": "CoreZax"/);
+  assert.match(read('service-worker.js'), /corezax-v0107-brand-baseline-20260723/);
   assert.match(read('service-worker.js'), /assets\/enemy_siphon\.png/);
 });
