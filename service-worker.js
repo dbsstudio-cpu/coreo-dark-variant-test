@@ -1,4 +1,4 @@
-const COREZAX_CACHE = 'corezax-v0109-stage01-animation-nobg-20260724';
+const COREZAX_CACHE = 'corezax-v0109-stage01-animation-nobg-whitefix-20260724';
 const COREZAX_ASSETS = [
   './',
   './index.html',
