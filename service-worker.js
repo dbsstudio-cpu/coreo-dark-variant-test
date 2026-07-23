@@ -1,4 +1,4 @@
-const COREZAX_CACHE = 'corezax-v0109-stage03-intelligence-20260723';
+const COREZAX_CACHE = 'corezax-v0109-stage03-visual-fix-20260723';
 const COREZAX_ASSETS = [
   './',
   './index.html',

@@ -12,6 +12,9 @@ const Render3D = {
     const w = mazeData[0].length;
     const width = w * this.CELL_SIZE;
     const height = h * this.CELL_SIZE;
+    const stage03StartX = stageId === 3
+      ? mazeData.reduce((found, row) => (found >= 0 ? found : row.indexOf(2)), -1)
+      : -1;
     world.style.width = `${width}px`;
     world.style.height = `${height}px`;
     world.style.marginLeft = `-${width / 2}px`;
@@ -85,7 +88,25 @@ const Render3D = {
           let wallClasses = isReactive ? 'wall reactive-block' : 'wall';
           const zoneClass = this.getWallZoneClass(x, y, stageId, blockW, blockH);
           if (zoneClass) wallClasses += ` ${zoneClass}`;
-          this.createBlock(world, x, y, blockW, blockH, wallClasses);
+
+          // Stage 03 的 y=0 仍是碰撞安全框，但視覺上必須在起點正上方切出真正入口。
+          // 只拆分渲染區塊，不修改 mazeData，因此角色仍無法越出地圖，也不影響 Stage 01/02。
+          const opensStage03Entrance = (
+            stageId === 3 &&
+            y === 0 &&
+            blockH === 1 &&
+            stage03StartX >= x &&
+            stage03StartX < x + blockW
+          );
+          if (opensStage03Entrance) {
+            const leftWidth = stage03StartX - x;
+            const rightX = stage03StartX + 1;
+            const rightWidth = x + blockW - rightX;
+            if (leftWidth > 0) this.createBlock(world, x, y, leftWidth, blockH, wallClasses);
+            if (rightWidth > 0) this.createBlock(world, rightX, y, rightWidth, blockH, wallClasses);
+          } else {
+            this.createBlock(world, x, y, blockW, blockH, wallClasses);
+          }
         }
       }
     }

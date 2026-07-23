@@ -308,8 +308,10 @@ test('Stage 03 entrance, exit and HUD progress stay stage-scoped', () => {
   const html = read('index.html');
   const css = read('css/tokens.css');
   assert.match(render3d, /stageId\s*===\s*3[\s\S]*?createStage03EntranceGate/);
+  assert.match(render3d, /opensStage03Entrance[\s\S]*?leftWidth[\s\S]*?rightWidth/);
   assert.match(css, /#world\.stage-03\s*\{[\s\S]*?contain:\s*layout style;[\s\S]*?overflow:\s*visible;/);
   assert.match(css, /\.stage03-entrance-gate\s*\{/);
+  assert.doesNotMatch(css, /body\.stage-03-active::before/);
   assert.match(css, /\.stage-03 \.cell\.exit::before\s*\{/);
   assert.match(main, /function updateHudProgress\(\)/);
   assert.match(main, /Math\.min\(shardCount, SHARDS_PER_PULSE\)/);
@@ -332,6 +334,6 @@ test('formal version is CoreZax v0.10.9 and manifest remains protected', () => {
   assert.match(read('index.html'), /v0\.10\.9/);
   assert.match(read('index.html'), /CoreZax/);
   assert.match(read('manifest.json'), /"name": "CoreZax"/);
-  assert.match(read('service-worker.js'), /corezax-v0109-stage03-intelligence-20260723/);
+  assert.match(read('service-worker.js'), /corezax-v0109-stage03-visual-fix-20260723/);
   assert.match(read('service-worker.js'), /assets\/enemy_siphon\.png/);
 });

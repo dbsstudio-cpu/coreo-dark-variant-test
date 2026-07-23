@@ -653,41 +653,25 @@ body.stage-02-active #fog-overlay {
   z-index: 8;
   transform: translateZ(25px);
   box-sizing: border-box;
-  border: 2px solid var(--coreo-s3-shell);
-  border-bottom: 0;
-  border-radius: 12px 12px 0 0;
-  background:
-    linear-gradient(180deg, rgba(4, 2, 10, .98) 0%, rgba(12, 7, 24, .92) 48%, rgba(24, 15, 44, .28) 84%, transparent 100%);
-  box-shadow:
-    0 0 0 1px rgba(242, 235, 255, .58),
-    0 0 16px rgba(141, 99, 210, .72),
-    inset 0 0 20px rgba(141, 99, 210, .22);
+  border: 0;
+  background: transparent;
+  box-shadow: inset 12px 0 18px -16px rgba(183, 155, 234, .8),
+              inset -12px 0 18px -16px rgba(183, 155, 234, .8);
 }
 .stage03-entrance-gate::before,
 .stage03-entrance-gate::after {
   content: '';
   position: absolute;
-  pointer-events: none;
-}
-.stage03-entrance-gate::before {
-  left: 7px;
-  right: 7px;
-  top: 8px;
+  top: 0;
   bottom: 0;
-  border: 2px solid var(--coreo-s3-shell-hot);
-  border-bottom: 0;
-  border-radius: 8px 8px 0 0;
-  box-shadow: 0 0 10px rgba(183, 155, 234, .72);
+  width: 3px;
+  pointer-events: none;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--coreo-s3-shell-hot), var(--coreo-s3-shell) 58%, transparent);
+  box-shadow: 0 0 10px rgba(183, 155, 234, .78), 0 0 18px rgba(141, 99, 210, .48);
 }
-.stage03-entrance-gate::after {
-  left: 5px;
-  right: 5px;
-  bottom: -2px;
-  height: 4px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, transparent, var(--coreo-s3-shell-hot) 18% 82%, transparent);
-  box-shadow: 0 0 12px rgba(141, 99, 210, .88);
-}
+.stage03-entrance-gate::before { left: 2px; }
+.stage03-entrance-gate::after { right: 2px; }
 .stage-03 .cell.start {
   border-radius: 7px;
   background: linear-gradient(180deg, rgba(141, 99, 210, .16), rgba(38, 34, 49, .72));
@@ -1911,21 +1895,10 @@ body.stage-03-active #fog-overlay {
 }
 
 /* =========================================
-   Stage 03 — 視野控制、記憶回饋與偽裝門
+   Stage 03 — 記憶回饋與偽裝門
+   不再使用固定於螢幕的黑色圓形遮罩；它會讓下半部失去亮度，
+   且不會跟隨角色，真機上讀起來像整片畫面故障。
 ========================================= */
-body.stage-03-active::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 450;
-  background: radial-gradient(
-    circle at 50% 55%,
-    transparent 16vh,
-    rgba(5, 3, 9, 0.85) 34vh,
-    #050309 56vh
-  );
-}
 
 .stage-03 .cell.path.rejected-path::after {
   content: '';
