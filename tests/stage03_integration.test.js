@@ -98,32 +98,73 @@ function graphStats(map) {
   };
 }
 
-test('Stage 03 uses the approved 9x44 multi-cycle maze topology', () => {
-  const stats = graphStats(loadStage03Map());
+// 最短通關路：BFS 步數。硬底線＝必須 >= Stage 02(67)、Stage 01(58)，證明「不比前兩關簡單」。
+function shortestPath(map) {
+  const key = (x, y) => `${x},${y}`;
+  let start = null, exit = null;
+  for (let y = 0; y < map.length; y++) for (let x = 0; x < map[0].length; x++) {
+    if (map[y][x] === 2) start = [x, y];
+    if (map[y][x] === 3) exit = [x, y];
+  }
+  const q = [start]; const dist = new Map([[key(...start), 0]]);
+  for (let h = 0; h < q.length; h++) {
+    const [x, y] = q[h];
+    if (x === exit[0] && y === exit[1]) return dist.get(key(x, y));
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, k = key(nx, ny);
+      if (map[ny]?.[nx] && !dist.has(k)) { dist.set(k, dist.get(key(x, y)) + 1); q.push([nx, ny]); }
+    }
+  }
+  return Infinity;
+}
+
+test('Stage 03 uses the approved 9x48 multi-cycle maze topology', () => {
+  const map = loadStage03Map();
+  const stats = graphStats(map);
   assert.equal(stats.width, 9);
-  assert.equal(stats.height, 44);
+  assert.equal(stats.height, 48);
   assert.ok(stats.width * stats.height <= 450, 'total cells must stay within the mobile perf budget');
   assert.deepEqual(stats.start, [4, 2]);
-  assert.deepEqual(stats.exit, [4, 43]);
+  assert.deepEqual(stats.exit, [4, 47]);
   assert.equal(stats.components, 1);
   assert.equal(stats.reachableFromStart.size, stats.vertices, 'every walkable cell must be reachable');
-  assert.ok(stats.reachableFromStart.has('4,43'));
-  // 迷宮感的關鍵：多個獨立環。上一版 cycleRank=1 等於「起點到出口只有唯一一條路」，已被 Sean 否決。
-  assert.ok(stats.cycleRank >= 5 && stats.cycleRank <= 8, `cycle rank ${stats.cycleRank} must stay in 5~8`);
+  assert.ok(stats.reachableFromStart.has('4,47'));
+  // S 原填 181 邊不可信；依 CC 指示在補 Shard 與 Pulse 側凹後由實際 map 重算。
+  assert.equal(stats.vertices, 183);
+  assert.equal(stats.edges, 190);
+  assert.equal(stats.cycleRank, 8);
+  assert.ok(stats.cycleRank / stats.vertices * 100 >= 2.5, 'topology density must be >= 2.5%');
+  assert.equal(shortestPath(map), 69, 'Stage 03 shortest path must remain above Stage 02 (67)');
 });
 
-// 迴歸測試：真機回報「走一段會卡住、左右轉不了」。根因是走廊太長沒有開口，
-// 導致 v0.10.5 的轉向意圖找不到合法路口。這裡強制每 3 格內必須有一次可轉的機會。
+test('Stage 03 uses narrow corridors without open rooms or one-cell zigzags', () => {
+  const map = loadStage03Map();
+  for (let y = 0; y < map.length - 1; y++) {
+    for (let x = 0; x < map[0].length - 1; x++) {
+      const open2x2 = map[y][x] && map[y][x + 1] && map[y + 1][x] && map[y + 1][x + 1];
+      assert.ok(!open2x2, `open-room 2x2 block is forbidden at ${x},${y}`);
+    }
+  }
+  const rungs = [4, 10, 16, 22, 28, 34, 40, 46];
+  for (const y of rungs) assert.ok(map[y].slice(1, 8).every(Boolean), `rung y=${y} must be a single-row corridor`);
+});
+
 test('Stage 03 never leaves the player without a turn option for more than 3 cells', () => {
   const map = loadStage03Map();
-  const walkable = (x, y) => map[y] !== undefined && map[y][x] !== undefined && map[y][x] !== 0;
+  const walkable = (x, y) => map[y]?.[x] !== undefined && map[y][x] !== 0;
   const canTurn = (x, y) => walkable(x - 1, y) || walkable(x + 1, y);
-  for (let x = 0; x < 9; x++) {
+  for (let x = 0; x < map[0].length; x++) {
     let sinceTurn = 0;
     for (let y = 0; y < map.length; y++) {
-      if (!walkable(x, y)) { sinceTurn = 0; continue; }
+      if (!walkable(x, y)) {
+        sinceTurn = 0;
+        continue;
+      }
       sinceTurn = canTurn(x, y) ? 0 : sinceTurn + 1;
-      assert.ok(sinceTurn <= 3, `corridor x=${x} has ${sinceTurn} cells with no side opening at y=${y}`);
+      assert.ok(
+        sinceTurn <= 3,
+        `corridor x=${x} has ${sinceTurn} cells with no side opening at y=${y}`
+      );
     }
   }
 });
@@ -150,40 +191,69 @@ test('Stage 03 entrance uses a top safety frame and a wide gate hall, not one so
   assert.ok(slabRows <= 2, `入口前 5 列有 ${slabRows} 列是被實心大塊夾住的單格走廊，最多只允許 2 列`);
 });
 
-test('Stage 03 central trunk is broken three times so the player must choose left or right', () => {
+test('Stage 03 has three materially different start-to-exit routes', () => {
   const map = loadStage03Map();
-  for (const [from, to] of [[9, 12], [21, 24], [33, 36]]) {
-    for (let y = from; y <= to; y++) assert.equal(map[y][4], 0, `central trunk must be blocked at y=${y}`);
+  const start = [4, 2], exit = [4, 47], dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  const key = (x, y) => `${x},${y}`;
+  const paths = [];
+  function visit(x, y, seen) {
+    if (paths.length >= 2000) return;
+    if (x === exit[0] && y === exit[1]) { paths.push([...seen]); return; }
+    for (const [dx, dy] of dirs) {
+      const nx = x + dx, ny = y + dy, nk = key(nx, ny);
+      if (map[ny]?.[nx] && !seen.includes(nk)) visit(nx, ny, [...seen, nk]);
+    }
   }
-  // 左右縱幹也各自斷開一次，避免出現「從頭直到尾的大直線」（Sean 真機回報：兩側大直線很奇怪）
-  for (let y = 26; y <= 30; y++) assert.equal(map[y][1], 0, `left trunk must break at y=${y}`);
-  for (let y = 17; y <= 20; y++) assert.equal(map[y][7], 0, `right trunk must break at y=${y}`);
-  for (const y of [4, 40]) {
-    assert.ok(map[y].slice(1, 8).every((v) => v !== 0), `full rung y=${y} must be walkable across`);
+  visit(...start, [key(...start)]);
+  const eligible = paths.filter((p) => p.length - 1 >= 69 && p.length - 1 <= 79);
+  let bestMinUnique = 0;
+  for (let a = 0; a < eligible.length; a++) for (let b = a + 1; b < eligible.length; b++) for (let c = b + 1; c < eligible.length; c++) {
+    const trio = [eligible[a], eligible[b], eligible[c]];
+    const unique = [];
+    for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) {
+      const left = new Set(trio[i]), right = new Set(trio[j]);
+      unique.push([...left].filter((v) => !right.has(v)).length, [...right].filter((v) => !left.has(v)).length);
+    }
+    bestMinUnique = Math.max(bestMinUnique, Math.min(...unique));
   }
+  assert.ok(paths.length >= 3, `expected >=3 complete routes, got ${paths.length}`);
+  assert.ok(bestMinUnique >= 6, `three routes need >=6 mutually unused cells; got ${bestMinUnique}`);
 });
 
-test('Stage 03 forces the risky right trunk: only route to the mandatory Core Pulse', () => {
+test('Stage 03 SIPHON defends the Pulse while either end remains a real escape route', () => {
   const map = loadStage03Map();
-  assert.equal(map[28][7], 5);                                   // Core Pulse 在右幹
-  for (const y of [26, 27, 29, 30]) assert.equal(map[y][7], 7);  // SIPHON 核心區上下包夾
-  assert.equal(map[28][4], 1);   // 中央幹在同一高度是安全的替代路線，但拿不到 Pulse
+  assert.equal(map[19][7], 5);
+  const siphon = [[7, 17], [7, 18], [7, 20], [7, 21]];
+  for (const [x, y] of siphon) assert.equal(map[y][x], 7, `SIPHON core at ${x},${y}`);
+  const canReach = (target, blocked) => {
+    const q = [[7, 19]], seen = new Set(['7,19', blocked]);
+    for (let h = 0; h < q.length; h++) {
+      const [x, y] = q[h];
+      if (`${x},${y}` === target) return true;
+      for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        const nx = x + dx, ny = y + dy, nk = `${nx},${ny}`;
+        if (map[ny]?.[nx] && !seen.has(nk)) { seen.add(nk); q.push([nx, ny]); }
+      }
+    }
+    return false;
+  };
+  assert.ok(canReach('4,22', '7,17'), 'upper guard occupied: lower escape must reach the main maze');
+  assert.ok(canReach('4,16', '7,21'), 'lower guard occupied: upper escape must reach the main maze');
   const counts = graphStats(map).counts;
-  assert.equal(counts[4], 7);   // 7 顆能量只能組 1 顆 Pulse（需 5 顆/顆），第 2 顆必須冒險拿 (7,28)
+  assert.equal(counts[4], 7);
   assert.equal(counts[5], 1);
-  assert.equal(counts[6], 1);
+  assert.equal(counts[6], 2);
   assert.equal(counts[7], 4);
 });
 
-test('Stage 03 ends with three identical-looking corridors: hide / real exit / decoy', () => {
+test('Stage 03 ends with three identical-looking doors on the final rung', () => {
   const map = loadStage03Map();
   const exits = map.flatMap((row, y) => row.map((v, x) => (v === 3 ? `${x},${y}` : null))).filter(Boolean);
-  assert.deepEqual(exits, ['4,43']);
-  assert.equal(map[43][1], 6);   // 左：躲藏死路
-  assert.equal(map[43][7], 1);   // 右：假出口死路（不得是代號 3）
-  for (const x of [1, 4, 7]) {
-    for (let y = 41; y <= 42; y++) assert.notEqual(map[y][x], 0, `final corridor x=${x} must run to the bottom`);
-  }
+  assert.deepEqual(exits, ['4,47']);
+  assert.equal(map[47][1], 6);   // 左：躲藏死路
+  assert.equal(map[47][7], 6);   // 右：偽裝假門（不得是代號 3）
+  assert.ok(map[46].slice(1, 8).every(Boolean), 'final rung must connect all three doors');
+  for (const x of [1, 4, 7]) assert.notEqual(map[47][x], 0, `final door x=${x} must look usable`);
 });
 
 // 迴歸測試：SIPHON 巡邏點曾兩次落在牆格上（會造成貼牆、碰撞與抖動）。
@@ -209,7 +279,7 @@ test('Stage 03 resource counts are exact', () => {
   assert.equal(counts[3], 1);
   assert.equal(counts[4], 7);
   assert.equal(counts[5], 1);
-  assert.equal(counts[6], 1);
+  assert.equal(counts[6], 2);
   assert.equal(counts[7], 4);
 });
 
@@ -253,15 +323,15 @@ test('SIPHON asset and protected control architecture match the approved hashes'
     'js/control.js': '78BD61F9EF95F1904925825A5F98584CD166220530062B0B18B4AAC3125509AD',
     'js/rail-assist.js': '2638C5AA59397661377FBBBC44B2C37EE2813CCBDF0DCCA5DE1B27821E5EE9B4',
     'js/camera.js': 'E3CF908095005AF6EF03F2B606A5F3C5D6E51332EAA89DF803F61F73B244CD59',
-    'js/enemy.js': 'DB7A09B3C252722FC1C883452591ABB3193D8F06B4C4263EB914011E1569E0A8'
+    'js/enemy.js': '1F275EDA78F71B346142B3D50A07A47D6F75D40CC5DF3D2A2AFF6C6B56DEE16E'
   };
   for (const [file, hash] of Object.entries(expected)) assert.equal(sha256(file), hash, file);
 });
 
-test('formal version is CoreZax v0.10.7 and manifest remains protected', () => {
-  assert.match(read('index.html'), /v0\.10\.7/);
+test('formal version is CoreZax v0.10.9 and manifest remains protected', () => {
+  assert.match(read('index.html'), /v0\.10\.9/);
   assert.match(read('index.html'), /CoreZax/);
   assert.match(read('manifest.json'), /"name": "CoreZax"/);
-  assert.match(read('service-worker.js'), /corezax-v0107-brand-baseline-20260723/);
+  assert.match(read('service-worker.js'), /corezax-v0109-stage03-intelligence-20260723/);
   assert.match(read('service-worker.js'), /assets\/enemy_siphon\.png/);
 });

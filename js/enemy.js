@@ -101,6 +101,14 @@ const EnemyLogic = {
 
   update: function(playerPos, isPlayerHidden, dt, mazeData, cellSize) {
     if (!this.domElement) return;
+
+    if (this.type === 'siphon') {
+      this.updateSiphon(playerPos, isPlayerHidden, dt, mazeData, cellSize);
+      this.recoverIfStuck(dt, mazeData, cellSize);
+      this.updateDOM();
+      return;
+    }
+
     const distToPlayer = Math.hypot(playerPos.x - this.x, playerPos.y - this.y);
     const pathToPlayer = isPlayerHidden ? null : this.findPathToPlayer(playerPos, mazeData, cellSize, this.pathSearchLimit);
     const pathDistance = pathToPlayer ? pathToPlayer.length : Infinity;
@@ -363,6 +371,141 @@ const EnemyLogic = {
     }
 
     return null;
+  },
+
+  updateSiphon: function(playerPos, isPlayerHidden, dt, mazeData, cellSize) {
+    const distToPlayer = Math.hypot(playerPos.x - this.x, playerPos.y - this.y);
+    const pathToPlayer = isPlayerHidden
+      ? null
+      : this.findPathToPlayer(playerPos, mazeData, cellSize, this.pathSearchLimit);
+    const pathDistance = pathToPlayer ? pathToPlayer.length : Infinity;
+
+    if (!isPlayerHidden && pathToPlayer) {
+      this.lastKnownCell = this.toCell(playerPos, cellSize);
+      this.chaseMemoryTimer = this.chaseMemoryDuration;
+    } else if (this.chaseMemoryTimer > 0) {
+      this.chaseMemoryTimer -= dt;
+    }
+
+    if (this.state === 'patrol') {
+      if (!isPlayerHidden && distToPlayer < this.alertRadius) {
+        this.state = 'chase';
+        this.chaseTimer = this.chaseDuration;
+        FX.toggleGlobalAlert(true);
+      } else if (!isPlayerHidden && pathDistance <= this.pathAlertLimit * 1.5) {
+        this.state = 'observe';
+        this.observeTimer = 400;
+      }
+    } else if (this.state === 'observe') {
+      if (isPlayerHidden) {
+        this.state = 'patrol';
+      } else if (distToPlayer < this.alertRadius) {
+        this.state = 'chase';
+        this.chaseTimer = this.chaseDuration;
+        FX.toggleGlobalAlert(true);
+      } else {
+        this.observeTimer -= dt;
+        if (this.observeTimer <= 0) {
+          this.state = 'intercept';
+          this.interceptTarget = this.predictPlayerJunction(playerPos, mazeData, cellSize);
+          this.interceptTimer = 4000;
+        }
+      }
+    } else if (this.state === 'intercept') {
+      if (isPlayerHidden) {
+        this.state = 'search';
+        this.searchTimer = this.searchDuration;
+      } else if (distToPlayer < this.alertRadius) {
+        this.state = 'chase';
+        this.chaseTimer = this.chaseDuration;
+        FX.toggleGlobalAlert(true);
+      } else {
+        this.interceptTimer -= dt;
+        if (this.interceptTimer <= 0 || this.reachedCell(this.interceptTarget, cellSize)) {
+          this.state = 'search';
+          this.searchTimer = this.searchDuration;
+        }
+      }
+    } else if (this.state === 'chase') {
+      if (isPlayerHidden || distToPlayer > this.alertRadius * 8) {
+        this.state = 'search';
+        this.searchTimer = this.searchDuration;
+        FX.toggleGlobalAlert(false);
+      } else {
+        this.chaseTimer -= dt;
+        if (this.chaseTimer <= 0) {
+          this.state = 'search';
+          this.searchTimer = this.searchDuration;
+          FX.toggleGlobalAlert(false);
+        }
+      }
+    } else if (this.state === 'search') {
+      if (!isPlayerHidden && (pathDistance <= this.pathAlertLimit || distToPlayer < this.alertRadius)) {
+        this.state = 'chase';
+        this.chaseTimer = this.chaseDuration;
+        FX.toggleGlobalAlert(true);
+      } else {
+        this.searchTimer -= dt;
+        if (this.searchTimer <= 0) this.state = 'return';
+      }
+    } else if (this.state === 'return') {
+      if (!isPlayerHidden && (pathDistance <= this.pathAlertLimit || distToPlayer < this.alertRadius)) {
+        this.state = 'chase';
+        this.chaseTimer = this.chaseDuration;
+        FX.toggleGlobalAlert(true);
+      } else if (
+        this.currentTarget &&
+        Math.hypot(this.currentTarget.x - this.x, this.currentTarget.y - this.y) < 6
+      ) {
+        this.state = 'patrol';
+      }
+    } else {
+      this.state = 'patrol';
+    }
+
+    if (this.state === 'patrol') {
+      this.updatePatrol(dt, mazeData, cellSize);
+    } else if (this.state === 'observe') {
+      // 原地觀察，避免尚未選定攔截點就漂移。
+    } else if (this.state === 'intercept') {
+      const path = this.findPathToCell(this.interceptTarget, mazeData, cellSize, 64);
+      const target = this.getPathStepTarget(
+        path,
+        this.cellCenter(this.interceptTarget, cellSize),
+        cellSize
+      );
+      this.moveToward(target, this.patrolSpeed * 1.1, dt, mazeData, cellSize, true);
+    } else if (this.state === 'chase') {
+      this.updatePathChase(playerPos, pathToPlayer, dt, mazeData, cellSize);
+    } else if (this.state === 'search') {
+      this.updateSearch(dt, mazeData, cellSize);
+    } else if (this.state === 'return') {
+      const targetCell = this.toCell(this.currentTarget, cellSize);
+      const path = this.findPathToCell(targetCell, mazeData, cellSize, 64);
+      const target = this.getPathStepTarget(path, this.currentTarget, cellSize);
+      this.moveToward(target, this.patrolSpeed, dt, mazeData, cellSize, true);
+    }
+  },
+
+  predictPlayerJunction: function(playerPos, mazeData, cellSize) {
+    const playerCell = this.toCell(playerPos, cellSize);
+    const junctions = mazeData.metadata?.junctions || [];
+    let closest = null;
+    let minDistance = Infinity;
+    for (const junction of junctions) {
+      const distance = Math.hypot(junction.x - playerCell.x, junction.y - playerCell.y);
+      if (distance < minDistance && distance > 2) {
+        minDistance = distance;
+        closest = junction;
+      }
+    }
+    return closest || playerCell;
+  },
+
+  reachedCell: function(target, cellSize) {
+    if (!target) return true;
+    const center = this.cellCenter(target, cellSize);
+    return Math.hypot(this.x - center.x, this.y - center.y) < 8;
   },
 
   updateDOM: function() {

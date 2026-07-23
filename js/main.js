@@ -27,6 +27,14 @@ window.addEventListener('DOMContentLoaded', () => {
   const RUN_STATE_KEY = 'coreo-dark-run-state-v7'; // v0.10.1 無介面離散滑動控制
   let pulseEffectUntil = 0;
   let pulseEffectTimer = null;
+  let stage03Memory = {
+    visitedCells: new Set(),
+    enteredBranches: new Set(),
+    resolvedBranches: new Set(),
+    rejectedBranches: new Set(),
+    lastDecisionJunction: null
+  };
+  let currentBranchId = null;
 
   // v0.5.14: Core Shard / Core Pulse 資源規則（GPT 裁決）
   const SHARDS_PER_PULSE = 5;
@@ -195,13 +203,13 @@ window.addEventListener('DOMContentLoaded', () => {
       enemyAsset: 'assets/enemy_siphon.png',
       enemyName: 'SIPHON',
       // 巡邏座標必須落在格子中心；整數倍 CELL_SIZE 會落在格線交界並造成貼牆／抖動。
-      // 9x44 真迷宮版 v2：SIPHON 守右幹核心區（x=7，y=23~27），覆蓋強制必拿的 Core Pulse (7,25)。
-      // 左幹(x=1)完全無敵人：安全但拿不到 Pulse，形成真正的風險取捨。座標須為格子中心(.5)。
+      // v0.10.9：SIPHON 明確留守 Core Pulse (7,19) 周圍，不為了放行玩家而離崗。
+      // 守備廊上下接 y16/y22 兩條橫梁；玩家可繞另一縱幹引敵，再由相反端進出。
       enemyRoute: [
-        { x: 7.5 * CELL_SIZE, y: 22.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 25.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 28.5 * CELL_SIZE },
-        { x: 7.5 * CELL_SIZE, y: 31.5 * CELL_SIZE }
+        { x: 7.5 * CELL_SIZE, y: 17.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 18.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 20.5 * CELL_SIZE },
+        { x: 7.5 * CELL_SIZE, y: 21.5 * CELL_SIZE }
       ],
       enemyTuning: {
         baseAlertRadius: 150,
@@ -302,6 +310,15 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       if (!parsed || !Array.isArray(parsed.mazeData) || !parsed.playerPos) return null;
+      if (parsed.stage03Memory) {
+        stage03Memory = {
+          visitedCells: new Set(parsed.stage03Memory.visitedCells || []),
+          enteredBranches: new Set(parsed.stage03Memory.enteredBranches || []),
+          resolvedBranches: new Set(parsed.stage03Memory.resolvedBranches || []),
+          rejectedBranches: new Set(parsed.stage03Memory.rejectedBranches || []),
+          lastDecisionJunction: parsed.stage03Memory.lastDecisionJunction || null
+        };
+      }
       return parsed;
     } catch (error) {
       sessionStorage.removeItem(RUN_STATE_KEY);
@@ -309,10 +326,23 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // JSON.stringify 會遺失掛在陣列上的 metadata；Stage 03 記憶與 SIPHON
+  // 需要這些拓撲資料，因此複製地圖時必須明確保留。
+  function cloneMazeData(source) {
+    const clone = source.map((row) => [...row]);
+    if (source.metadata) clone.metadata = JSON.parse(JSON.stringify(source.metadata));
+    return clone;
+  }
+
   const restoredRun = loadRunSnapshot();
   let currentStage = (restoredRun && STAGE_CONFIG[restoredRun.stage]) ? restoredRun.stage : 1;
-  let pristineMazeData = JSON.parse(JSON.stringify(STAGE_CONFIG[currentStage].getMap()));
-  let mazeData = restoredRun?.mazeData || JSON.parse(JSON.stringify(pristineMazeData));
+  let pristineMazeData = cloneMazeData(STAGE_CONFIG[currentStage].getMap());
+  let mazeData = restoredRun?.mazeData
+    ? cloneMazeData(restoredRun.mazeData)
+    : cloneMazeData(pristineMazeData);
+  if (pristineMazeData.metadata) {
+    mazeData.metadata = JSON.parse(JSON.stringify(pristineMazeData.metadata));
+  }
   let playerPos = Render3D.buildWorld(mazeData, currentStage);
   let railDirection = null;
   let queuedTurn = null;
@@ -381,6 +411,13 @@ window.addEventListener('DOMContentLoaded', () => {
         chaseMemoryTimer: EnemyLogic.chaseMemoryTimer,
         searchTimer: EnemyLogic.searchTimer,
         lastKnownCell: EnemyLogic.lastKnownCell
+      },
+      stage03Memory: {
+        visitedCells: Array.from(stage03Memory.visitedCells),
+        enteredBranches: Array.from(stage03Memory.enteredBranches),
+        resolvedBranches: Array.from(stage03Memory.resolvedBranches),
+        rejectedBranches: Array.from(stage03Memory.rejectedBranches),
+        lastDecisionJunction: stage03Memory.lastDecisionJunction
       },
       savedAt: Date.now()
     };
@@ -706,9 +743,29 @@ window.addEventListener('DOMContentLoaded', () => {
     const exitDOM = document.querySelector('.cell.exit');
     if (!exitDOM) return;
     const req = STAGE_CONFIG[currentStage].pulseRequirement;
-    exitDOM.classList.remove('partial-charged');
-    if (pulseCount > 0 && pulseCount < req) {
-      exitDOM.classList.add('partial-charged');
+
+    if (currentStage === 3) {
+      const fakes = document.querySelectorAll('.stage-03 .cell.pocket[data-grid-y="47"]');
+      if (pulseCount >= req) {
+        exitDOM.classList.remove('dormant');
+        exitDOM.classList.add('active-exit');
+        fakes.forEach((fake) => {
+          fake.classList.remove('dormant');
+          fake.classList.add('revealed-fake');
+        });
+      } else {
+        exitDOM.classList.add('dormant');
+        exitDOM.classList.remove('active-exit');
+        fakes.forEach((fake) => {
+          fake.classList.add('dormant');
+          fake.classList.remove('revealed-fake');
+        });
+      }
+    } else {
+      exitDOM.classList.remove('partial-charged');
+      if (pulseCount > 0 && pulseCount < req) {
+        exitDOM.classList.add('partial-charged');
+      }
     }
   }
 
@@ -775,6 +832,59 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function updateExplorationMemory() {
+    if (currentStage !== 3 || !mazeData.metadata) return;
+    const cx = Math.floor(playerPos.x / CELL_SIZE);
+    const cy = Math.floor(playerPos.y / CELL_SIZE);
+    stage03Memory.visitedCells.add(`${cx},${cy}`);
+
+    const isJunction = mazeData.metadata.junctions.some((junction) => (
+      junction.x === cx && junction.y === cy
+    ));
+    if (isJunction) {
+      stage03Memory.lastDecisionJunction = { x: cx, y: cy };
+      if (currentBranchId) {
+        const branch = mazeData.metadata.branches.find((item) => item.id === currentBranchId);
+        if (branch?.type === 'structural-dead') {
+          stage03Memory.rejectedBranches.add(currentBranchId);
+        } else if (branch?.type === 'conditional' && branch.reason === 'resource') {
+          const hasResource = branch.cells.some(([x, y]) => {
+            const value = mazeData[y]?.[x];
+            return value === 4 || value === 5;
+          });
+          if (!hasResource) stage03Memory.resolvedBranches.add(currentBranchId);
+        }
+        currentBranchId = null;
+      }
+    } else {
+      const branch = mazeData.metadata.branches.find((item) => (
+        item.cells.some(([x, y]) => x === cx && y === cy)
+      ));
+      if (branch) {
+        currentBranchId = branch.id;
+        stage03Memory.enteredBranches.add(branch.id);
+      }
+    }
+
+    stage03Memory.rejectedBranches.forEach((branchId) => {
+      const branch = mazeData.metadata.branches.find((item) => item.id === branchId);
+      const [x, y] = branch?.cells?.[0] || [];
+      const cell = document.querySelector(
+        `.cell.path[data-grid-x="${x}"][data-grid-y="${y}"]`
+      );
+      if (cell) cell.classList.add('rejected-path');
+    });
+
+    stage03Memory.resolvedBranches.forEach((branchId) => {
+      const branch = mazeData.metadata.branches.find((item) => item.id === branchId);
+      const [x, y] = branch?.cells?.[0] || [];
+      const cell = document.querySelector(
+        `.cell.path[data-grid-x="${x}"][data-grid-y="${y}"]`
+      );
+      if (cell) cell.classList.add('resolved-path');
+    });
+  }
+
   function triggerSignalLost() {
     if (isResetting || isGameOver) return;
     isResetting = true;
@@ -797,7 +907,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function resetLevel() {
     clearRunSnapshot();
-    mazeData = JSON.parse(JSON.stringify(pristineMazeData));
+    mazeData = cloneMazeData(pristineMazeData);
     playerPos = Render3D.buildWorld(mazeData, currentStage);
     ControlLogic.stop('level-reset');
     resetRailControl();
@@ -811,6 +921,14 @@ window.addEventListener('DOMContentLoaded', () => {
     isGameOver = false;
     shardCount = 0;
     pulseCount = 0;
+    stage03Memory = {
+      visitedCells: new Set(),
+      enteredBranches: new Set(),
+      resolvedBranches: new Set(),
+      rejectedBranches: new Set(),
+      lastDecisionJunction: null
+    };
+    currentBranchId = null;
     updateHudProgress();
     updateExitVisual();
 
@@ -844,6 +962,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (movement.moved) {
         updatePlayerDOM();
         checkPickups();
+        updateExplorationMemory();
 
         if (!isPulseEffectActive(time) && time - lastTrailTime >= TRAIL_INTERVAL) {
           lastTrailTime = time;
@@ -912,8 +1031,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // 所以這裡永遠是「乾淨開始新的一關」，不需要處理救回快照
   function enterStage(stageId) {
     currentStage = stageId;
-    pristineMazeData = JSON.parse(JSON.stringify(STAGE_CONFIG[stageId].getMap()));
-    mazeData = JSON.parse(JSON.stringify(pristineMazeData));
+    pristineMazeData = cloneMazeData(STAGE_CONFIG[stageId].getMap());
+    mazeData = cloneMazeData(pristineMazeData);
     playerPos = Render3D.buildWorld(mazeData, stageId);
     ControlLogic.stop('stage-change');
     resetRailControl();
@@ -929,6 +1048,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
     shardCount = 0;
     pulseCount = 0;
+    stage03Memory = {
+      visitedCells: new Set(),
+      enteredBranches: new Set(),
+      resolvedBranches: new Set(),
+      rejectedBranches: new Set(),
+      lastDecisionJunction: null
+    };
+    currentBranchId = null;
     updateHudProgress();
 
     initEnemyForStage(stageId);

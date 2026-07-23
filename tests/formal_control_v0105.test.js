@@ -203,20 +203,20 @@ test('T10: formal code uses target-bound turns and has no arbitrary queued direc
   assert.match(rail, /TARGET_TURN_MAX_AGE_MS: 350/);
 });
 
-test('T11: formal UI exposes CoreZax v0.10.7 with integrated Stage 03 and full-screen controls', () => {
+test('T11: formal UI exposes CoreZax v0.10.9 with Stage 03 9x48 and full-screen controls', () => {
   const root = path.join(__dirname, '..');
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'css', 'tokens.css'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
-  assert.match(index, /CoreZax v0\.10\.7/);
-  assert.match(index, /<title>CoreZax - v0\.10\.7<\/title>/);
+  assert.match(index, /CoreZax v0\.10\.9/);
+  assert.match(index, /<title>CoreZax - v0\.10\.9<\/title>/);
   assert.match(index, /id="btn-stage-3"/);
   assert.doesNotMatch(index, /stage03-direct-entry|stage03-lab\.html/);
   assert.match(index, /aria-label="連續滑動移動區"/);
   assert.doesNotMatch(index, /swipe-control-hint|digital-dpad|data-dpad-direction/);
   assert.match(css, /#joystick-zone\s*\{[\s\S]*?inset:\s*0;/);
   assert.doesNotMatch(css, /stage03-direct-entry/);
-  assert.match(serviceWorker, /corezax-v0107-brand-baseline-20260723/);
+  assert.match(serviceWorker, /corezax-v0109-stage03-intelligence-20260723/);
   assert.match(serviceWorker, /assets\/enemy_siphon\.png/);
   assert.doesNotMatch(serviceWorker, /stage03-lab/);
 });
