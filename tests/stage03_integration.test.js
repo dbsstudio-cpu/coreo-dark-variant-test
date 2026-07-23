@@ -334,6 +334,6 @@ test('formal version is CoreZax v0.10.9 and manifest remains protected', () => {
   assert.match(read('index.html'), /v0\.10\.9/);
   assert.match(read('index.html'), /CoreZax/);
   assert.match(read('manifest.json'), /"name": "CoreZax"/);
-  assert.match(read('service-worker.js'), /corezax-v0109-siphon-pressure-20260723/);
+  assert.match(read('service-worker.js'), /corezax-v0109-siphon-balance-20260723/);
   assert.match(read('service-worker.js'), /assets\/enemy_siphon\.png/);
 });

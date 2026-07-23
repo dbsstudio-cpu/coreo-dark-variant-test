@@ -216,7 +216,7 @@ window.addEventListener('DOMContentLoaded', () => {
         pathAlertLimit: 12,
         pathSearchLimit: 64,
         patrolSpeed: 1.45,
-        chaseSpeed: 3.36,
+        chaseSpeed: 3.15,
         chaseDuration: 14000,
         maxChaseDistanceFromGuard: 850,
         alertDelay: 260,

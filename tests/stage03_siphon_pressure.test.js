@@ -66,7 +66,9 @@ test('hunt uses the approved pressure values and never returns to the guard loop
   });
   assert.equal(pressure.huntActive, true);
   assert.equal(pressure.phase, 'hunt_acquire');
-  assert.equal(pressure.tuning.huntChaseSpeed, 3.36);
+  assert.equal(pressure.tuning.huntChaseSpeed, 3.15);
+  assert.equal(pressure.tuning.huntInterceptSpeed, 3.05);
+  assert.equal(pressure.tuning.huntSearchSpeed, 2.60);
   assert.equal(pressure.tuning.huntMemoryDuration, 8000);
   assert.equal(pressure.tuning.huntSearchDuration, 6500);
   assert.doesNotMatch(read('js/siphon-pressure.js'), /phase\s*=\s*['"]return['"]/);
@@ -84,7 +86,7 @@ test('intercept prediction uses two shared BFS maps and selects a walkable forwa
       return { x: Math.floor(pos.x / cellSize), y: Math.floor(pos.y / cellSize) };
     }
   };
-  const result = pressure._debugChooseIntercept(enemy, { x: 4, y: 10 }, map, 3.25);
+  const result = pressure._debugChooseIntercept(enemy, { x: 4, y: 10 }, map, 3.05);
   assert.equal(result.bfsRuns, 2);
   assert.ok(result.target, 'a forward intercept junction must be selected');
   assert.notEqual(map[result.target.y][result.target.x], 0);
@@ -133,6 +135,6 @@ test('iOS actors render above the Stage 03 wall depth', () => {
   const actorDepth = Number(css.match(/\.actor\s*\{[\s\S]*?translateZ\((\d+)px\)/)?.[1]);
   const wallDepth = Number(css.match(/\.stage-03 \.cell\.wall\s*\{[\s\S]*?translateZ\((\d+)px\)/)?.[1]);
   assert.ok(actorDepth > wallDepth, `actor depth ${actorDepth} must exceed wall depth ${wallDepth}`);
-  assert.match(css, /\.actor\s*\{[\s\S]*?-webkit-transform:[\s\S]*?translateZ\(32px\)/);
+  assert.match(css, /\.actor\s*\{[\s\S]*?-webkit-transform:[\s\S]*?translateZ\(22px\)/);
   assert.match(css, /#enemy\.actor\s*\{\s*z-index:\s*100/);
 });

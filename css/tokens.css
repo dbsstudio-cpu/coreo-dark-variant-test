@@ -790,8 +790,8 @@ body.stage-02-active #fog-overlay {
   transform-style: preserve-3d;
   /* 角色必須高於最高 18px 牆面；iOS Safari 會依實際 3D 深度而非 z-index
      排序，舊 10px 會讓主角與反派在橫牆交界被遮掉。 */
-  transform: translate(-50%, -50%) translateZ(32px);
-  -webkit-transform: translate(-50%, -50%) translateZ(32px);
+  transform: translate(-50%, -50%) translateZ(22px);
+  -webkit-transform: translate(-50%, -50%) translateZ(22px);
   transition: top 0.07s linear, left 0.07s linear;
   z-index: 100;
   will-change: transform;
