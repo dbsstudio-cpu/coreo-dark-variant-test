@@ -788,10 +788,15 @@ body.stage-02-active #fog-overlay {
 .actor {
   position: absolute;
   transform-style: preserve-3d;
-  /* Z 軸數值固定為 12px 貼地感，JS 絕對不可再覆寫此屬性 */
-  transform: translate(-50%, -50%) translateZ(10px);
+  /* 角色必須高於最高 18px 牆面；iOS Safari 會依實際 3D 深度而非 z-index
+     排序，舊 10px 會讓主角與反派在橫牆交界被遮掉。 */
+  transform: translate(-50%, -50%) translateZ(32px);
+  -webkit-transform: translate(-50%, -50%) translateZ(32px);
   transition: top 0.07s linear, left 0.07s linear;
   z-index: 100;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* v0.10.5.1：正式座標已由 requestAnimationFrame 逐幀更新；不要再用 CSS transition

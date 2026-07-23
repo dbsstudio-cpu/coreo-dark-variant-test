@@ -212,16 +212,16 @@ window.addEventListener('DOMContentLoaded', () => {
         { x: 7.5 * CELL_SIZE, y: 21.5 * CELL_SIZE }
       ],
       enemyTuning: {
-        baseAlertRadius: 150,
-        pathAlertLimit: 10,
+        baseAlertRadius: 165,
+        pathAlertLimit: 12,
         pathSearchLimit: 64,
-        patrolSpeed: 0.60,
-        chaseSpeed: 1.34,
+        patrolSpeed: 1.45,
+        chaseSpeed: 3.36,
         chaseDuration: 14000,
         maxChaseDistanceFromGuard: 850,
         alertDelay: 260,
-        chaseMemoryDuration: 1600,
-        searchDuration: 2200,
+        chaseMemoryDuration: 8000,
+        searchDuration: 6500,
         reactionInterval: 200
       },
       pulseRequirement: 2,
@@ -269,6 +269,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const cfg = STAGE_CONFIG[stageId];
     applyEnemyTuning(stageId);
     EnemyLogic.init(cfg.enemyRoute, cfg.enemyType || 'villainHunt');
+    SiphonPressure.reset();
   }
 
   // v0.6：破關進度記憶，用 localStorage 永久保存，跟下面 sessionStorage 的「本局即時快照」
@@ -386,6 +387,9 @@ window.addEventListener('DOMContentLoaded', () => {
     EnemyLogic.currentTarget = route[EnemyLogic.patrolIndex % route.length] || EnemyLogic.currentTarget;
     EnemyLogic.updateDOM();
   }
+  if (currentStage === 3 && restoredRun?.siphonPressure) {
+    SiphonPressure.restore(restoredRun.siphonPressure);
+  }
 
   if (restoredRun) {
     shardCount = restoredRun.shardCount || 0;
@@ -412,6 +416,7 @@ window.addEventListener('DOMContentLoaded', () => {
         searchTimer: EnemyLogic.searchTimer,
         lastKnownCell: EnemyLogic.lastKnownCell
       },
+      siphonPressure: currentStage === 3 ? SiphonPressure.snapshot() : null,
       stage03Memory: {
         visitedCells: Array.from(stage03Memory.visitedCells),
         enteredBranches: Array.from(stage03Memory.enteredBranches),
@@ -781,6 +786,16 @@ window.addEventListener('DOMContentLoaded', () => {
     FX.toggleGlobalAlert(true);
   }
 
+  function armStage03SiphonHunt() {
+    if (currentStage !== 3) return;
+    SiphonPressure.armHunt({
+      playerPos,
+      cellSize: CELL_SIZE,
+      direction: railDirection || lastRailDirection
+    });
+    FX.toggleGlobalAlert(true);
+  }
+
   function checkPickups() {
     const cx = Math.floor(playerPos.x / CELL_SIZE);
     const cy = Math.floor(playerPos.y / CELL_SIZE);
@@ -814,6 +829,7 @@ window.addEventListener('DOMContentLoaded', () => {
         energizeMatrix();
         updateExitVisual();
         armStage02ReturnPressure();
+        armStage03SiphonHunt();
       }
       saveRunSnapshot();
     }
@@ -975,6 +991,13 @@ window.addEventListener('DOMContentLoaded', () => {
     const cy = Math.floor(playerPos.y / CELL_SIZE);
     const isPlayerHidden = Boolean(mazeData[cy] && mazeData[cy][cx] === 6);
 
+    if (currentStage === 3) {
+      SiphonPressure.setPlayerContext({
+        playerPos,
+        cellSize: CELL_SIZE,
+        direction: railDirection || lastRailDirection
+      });
+    }
     EnemyLogic.update(playerPos, isPlayerHidden, dt, mazeData, CELL_SIZE);
 
     const distToEnemy = Math.hypot(playerPos.x - EnemyLogic.x, playerPos.y - EnemyLogic.y);

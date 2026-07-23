@@ -1,4 +1,4 @@
-const COREZAX_CACHE = 'corezax-v0109-stage03-visual-fix-20260723';
+const COREZAX_CACHE = 'corezax-v0109-siphon-pressure-20260723';
 const COREZAX_ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const COREZAX_ASSETS = [
   './js/render3d.js',
   './js/fx.js',
   './js/enemy.js',
+  './js/siphon-pressure.js',
   './js/main.js',
   './icons/icon-180.png',
   './icons/icon-192.png',
