@@ -375,7 +375,6 @@ window.addEventListener('DOMContentLoaded', () => {
   function attachLoopingSpriteVideo(spriteDOM, src, className) {
     if (!spriteDOM) return;
     spriteDOM.querySelectorAll('.actor-video-sprite').forEach((node) => node.remove());
-    spriteDOM.classList.toggle('has-video-sprite', Boolean(src));
     if (!src) return;
     const video = document.createElement('video');
     video.className = `actor-video-sprite ${className || ''}`.trim();
