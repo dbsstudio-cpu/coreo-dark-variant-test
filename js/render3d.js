@@ -120,7 +120,7 @@ const Render3D = {
           this.createEntity(world, x, y, 'start');
           if (stageId === 3) this.createStage03EntranceGate(world, x, y);
         } else if (type === 3) {
-          this.createEntity(world, x, y, 'exit', stageId);
+          this.createEntity(world, x, y, 'exit');
         } else if (type === 4 || type === 5) {
           const core = document.createElement('div');
           core.className = type === 4 ? 'light-core-item standard' : 'light-core-item upgraded';
@@ -183,26 +183,13 @@ const Render3D = {
     world.appendChild(block);
   },
 
-  createEntity: function(world, x, y, typeClass, stageId) {
+  createEntity: function(world, x, y, typeClass) {
     const entity = document.createElement('div');
     entity.className = `cell entity ${typeClass}`;
     entity.style.left = `${x * this.CELL_SIZE}px`;
     entity.style.top = `${y * this.CELL_SIZE}px`;
     entity.style.width = `${this.CELL_SIZE}px`;
     entity.style.height = `${this.CELL_SIZE}px`;
-    if (typeClass === 'exit' && stageId === 1) {
-      const exitVideo = document.createElement('video');
-      exitVideo.className = 'exit-video-sprite';
-      exitVideo.src = 'assets/corezax_stage01_exit_seed_test.mp4';
-      exitVideo.autoplay = true;
-      exitVideo.muted = true;
-      exitVideo.loop = true;
-      exitVideo.playsInline = true;
-      exitVideo.preload = 'metadata';
-      exitVideo.setAttribute('aria-hidden', 'true');
-      entity.appendChild(exitVideo);
-      exitVideo.play?.().catch(() => {});
-    }
     world.appendChild(entity);
   }
 };

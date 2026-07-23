@@ -1,4 +1,4 @@
-const COREZAX_CACHE = 'corezax-v0109-stage01-animation-test-20260724';
+const COREZAX_CACHE = 'corezax-v0109-stage03-turn-precision-20260723';
 const COREZAX_ASSETS = [
   './',
   './index.html',
@@ -18,10 +18,7 @@ const COREZAX_ASSETS = [
   './icons/icon-512.png',
   './assets/player.png',
   './assets/enemy_ember.png',
-  './assets/enemy_siphon.png',
-  './assets/corezax_stage01_zax_core_test.mp4',
-  './assets/corezax_stage01_overload_villain.mp4',
-  './assets/corezax_stage01_exit_seed_test.mp4'
+  './assets/enemy_siphon.png'
 ];
 
 self.addEventListener('install', (event) => {
