@@ -171,7 +171,11 @@ test('Stage 03 never leaves the player without a turn option for more than 3 cel
 
 test('Stage 03 keeps a fixed targeted turn alive through mobile frame pacing', () => {
   const main = read('js/main.js');
-  assert.match(main, /STAGE_03_TURN_TARGET_MAX_AGE_MS\s*=\s*600/);
+  assert.match(main, /STAGE_03_TURN_TARGET_LOOKAHEAD_PX\s*=\s*85/);
+  assert.match(main, /STAGE_03_TURN_TARGET_MAX_AGE_MS\s*=\s*700/);
+  assert.match(main, /STAGE_03_TURN_TARGET_GRACE_PX\s*=\s*24/);
+  assert.match(main, /currentStage\s*===\s*3[\s\S]*?STAGE_03_TURN_TARGET_LOOKAHEAD_PX[\s\S]*?RailAssist\.TURN_TARGET_LOOKAHEAD_PX/);
+  assert.match(main, /currentStage\s*===\s*3[\s\S]*?Math\.max\(target\.grace,\s*STAGE_03_TURN_TARGET_GRACE_PX\)[\s\S]*?target\.grace/);
   assert.match(main, /currentStage\s*===\s*3[\s\S]*?hasPassedTargetBeyondGrace\(playerPos, queuedTurn\)/);
   assert.match(main, /currentStage\s*!==\s*3[\s\S]*?RailAssist\.queueExpired\(queuedTurn, playerPos, now\)/);
 });
@@ -334,6 +338,6 @@ test('formal version is CoreZax v0.10.9 and manifest remains protected', () => {
   assert.match(read('index.html'), /v0\.10\.9/);
   assert.match(read('index.html'), /CoreZax/);
   assert.match(read('manifest.json'), /"name": "CoreZax"/);
-  assert.match(read('service-worker.js'), /corezax-v0109-siphon-balance-20260723/);
+  assert.match(read('service-worker.js'), /corezax-v0109-stage03-turn-precision-20260723/);
   assert.match(read('service-worker.js'), /assets\/enemy_siphon\.png/);
 });

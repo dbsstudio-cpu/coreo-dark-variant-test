@@ -1,4 +1,4 @@
-const COREZAX_CACHE = 'corezax-v0109-siphon-balance-20260723';
+const COREZAX_CACHE = 'corezax-v0109-stage03-turn-precision-20260723';
 const COREZAX_ASSETS = [
   './',
   './index.html',

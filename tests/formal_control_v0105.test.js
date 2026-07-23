@@ -216,7 +216,7 @@ test('T11: formal UI exposes CoreZax v0.10.9 with Stage 03 9x48 and full-screen 
   assert.doesNotMatch(index, /swipe-control-hint|digital-dpad|data-dpad-direction/);
   assert.match(css, /#joystick-zone\s*\{[\s\S]*?inset:\s*0;/);
   assert.doesNotMatch(css, /stage03-direct-entry/);
-  assert.match(serviceWorker, /corezax-v0109-siphon-balance-20260723/);
+  assert.match(serviceWorker, /corezax-v0109-stage03-turn-precision-20260723/);
   assert.match(serviceWorker, /assets\/enemy_siphon\.png/);
   assert.doesNotMatch(serviceWorker, /stage03-lab/);
 });

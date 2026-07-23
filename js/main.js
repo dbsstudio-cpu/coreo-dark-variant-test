@@ -8,11 +8,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const CELL_SIZE = Render3D.CELL_SIZE;
   const PLAYER_RADIUS = 21;
   const RAIL_NODE_EPSILON = 0.05;
-  // Stage 03 has denser legal turns. Its intent can bind 75px before a junction,
-  // so the global 350ms safety cap can expire on mobile before the player arrives.
-  // Keep the target cell fixed and the spatial pass limit unchanged; only allow
-  // more time for iPhone/Android frame pacing and gesture confirmation.
-  const STAGE_03_TURN_TARGET_MAX_AGE_MS = 600;
+  // Stage 03 has denser legal turns. Give mobile gestures a slightly earlier,
+  // longer target-bound window without changing the shared v0.10.5 control core.
+  // The target remains fixed, so an intent can never drift to a later junction.
+  const STAGE_03_TURN_TARGET_LOOKAHEAD_PX = 85;
+  const STAGE_03_TURN_TARGET_MAX_AGE_MS = 700;
+  const STAGE_03_TURN_TARGET_GRACE_PX = 24;
   let baseSpeed = 4.2;
   let currentSpeed = baseSpeed;
   let isGameOver = false;
@@ -520,7 +521,9 @@ window.addEventListener('DOMContentLoaded', () => {
       railDirection,
       desiredDirection: direction,
       cellSize: CELL_SIZE,
-      maxDistance: RailAssist.TURN_TARGET_LOOKAHEAD_PX
+      maxDistance: currentStage === 3
+        ? STAGE_03_TURN_TARGET_LOOKAHEAD_PX
+        : RailAssist.TURN_TARGET_LOOKAHEAD_PX
     });
     if (!target) return null;
     return {
@@ -530,7 +533,9 @@ window.addEventListener('DOMContentLoaded', () => {
       targetCell: { ...target.cell },
       targetCenter: { ...target.center },
       targetAxis: target.axis,
-      targetGrace: target.grace,
+      targetGrace: currentStage === 3
+        ? Math.max(target.grace, STAGE_03_TURN_TARGET_GRACE_PX)
+        : target.grace,
       approachDirection: { ...railDirection },
       state: 'INTENT'
     };
